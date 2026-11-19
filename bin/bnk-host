@@ -109,7 +109,7 @@ case "$cmd" in
   registry)    phase 20 ;;
   flo)         phase 30 ;;
   certs)       phase 40 ;;
-  cneinstance) phase 47 && phase 50 ;;
+  cneinstance) phase 45 && phase 47 && phase 50 && phase 55 ;;   # NADs first, F5 network objects once the CRDs exist
   license)     phase 60 ;;
   ready)       phase 65 ;;
   verify)      BNK_RECORD_PROVENANCE=true phase 70; write_outputs ;;

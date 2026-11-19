@@ -22,6 +22,8 @@ jobs:
         run: ./tests/lint.sh
       - name: CNEInstance renders with the pinned versions
         run: ./tests/render.sh
+      - name: every installer phase is in exactly one step (Forge runs steps)
+        run: ./tests/steps.sh
       - name: cluster files are valid
         run: ./tests/cluster.sh
 
