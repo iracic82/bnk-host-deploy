@@ -16,7 +16,7 @@ case "$o" in
       completed/success)  ok "the 'apps' workflow applied main ($(echo "$sha" | cut -c1-7)) (Gitea > Actions > apps)" ;;
       in_progress/*|queued/*|waiting/*|running/*) ok "the 'apps' workflow is applying main now (Gitea > Actions > apps)" ;;
       *)
-        echo "   the 'apps' workflow has not applied main yet (${st}): starting it (Gitea > Actions > apps)"
+        echo "   the 'apps' workflow has not applied main yet ($([[ -z "$st" || "$st" == none ]] && echo "no run for this commit" || echo "$st")): starting it (Gitea > Actions > apps)"
         gitea_api POST "${REPO_PATH}/actions/workflows/apps.yml/dispatches" '{"ref":"main"}' >/dev/null \
           || fail "could not start the apps workflow"
         sleep 5; r=$(wait_run apps.yml "" 300 || true)
