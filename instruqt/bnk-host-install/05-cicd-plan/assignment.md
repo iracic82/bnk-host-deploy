@@ -1,9 +1,10 @@
 ---
 slug: cicd-plan
+id: lhq3adxfqyhi
 type: challenge
-title: "Path A, CI/CD (1/2): declare the cluster, read the plan"
-teaser: Say in a pull request that this cluster should have BNK, on which node, and let the
-  pipeline show you exactly what an install would do, before anything changes.
+title: 'Path A, CI/CD (1/2): declare the cluster, read the plan'
+teaser: Say in a pull request that this cluster should have BNK, on which node, and
+  let the pipeline show you exactly what an install would do, before anything changes.
 notes:
 - type: text
   contents: |-
@@ -23,26 +24,31 @@ notes:
 
     **Taking path B or C?** Press **Skip** now.
 tabs:
-- title: VS Code
+- id: gvct7m4yejcd
+  title: VS Code
   type: service
   hostname: lab
   port: 8444
-- title: Gitea
+- id: yb5bi1fiqgnr
+  title: Gitea
   type: service
   hostname: lab
   port: 3000
   custom_request_headers:
   - key: X-WEBAUTH-USER
     value: learner
-- title: Terminal
+- id: kveelwytr8ue
+  title: Terminal
   type: terminal
   hostname: lab
-- title: Lab Topology
+- id: iauxt23pnexn
+  title: Lab Topology
   type: service
   hostname: lab
   port: 5050
 difficulty: intermediate
 timelimit: 2400
+enhanced_loading: null
 ---
 
 # Path A, CI/CD (1/2): declare the cluster, read the plan

@@ -1,9 +1,11 @@
 ---
 slug: first-traffic
+id: x28zyoh5bjug
 type: challenge
 title: First traffic through BIG-IP Next for Kubernetes
-teaser: Ship an app the GitOps way, ask BNK for a VIP with the Gateway API, and send a request from a
-  user behind the edge router, through TMM, to a pod. Then watch it spread across pods.
+teaser: Ship an app the GitOps way, ask BNK for a VIP with the Gateway API, and send
+  a request from a user behind the edge router, through TMM, to a pod. Then watch
+  it spread across pods.
 notes:
 - type: text
   contents: |-
@@ -19,30 +21,36 @@ notes:
     The app team never touches TMM, VLANs or routers. They ask for a listener in the
     `f5-gateway-class`, and BNK programs TMM to answer on a VIP.
 tabs:
-- title: VS Code
+- id: dsxwfw9ggk0b
+  title: VS Code
   type: service
   hostname: lab
   port: 8444
-- title: Terminal
+- id: enxfetob9fgt
+  title: Terminal
   type: terminal
   hostname: lab
-- title: Gitea
+- id: mhduhjfvvj8z
+  title: Gitea
   type: service
   hostname: lab
   port: 3000
   custom_request_headers:
   - key: X-WEBAUTH-USER
     value: learner
-- title: Lab Topology
+- id: klhgogrcj0hv
+  title: Lab Topology
   type: service
   hostname: lab
   port: 5050
-- title: Argo CD
+- id: oocnkcdxeozi
+  title: Argo CD
   type: service
   hostname: lab
   port: 8091
 difficulty: intermediate
 timelimit: 2400
+enhanced_loading: null
 ---
 
 # First traffic through BIG-IP Next for Kubernetes

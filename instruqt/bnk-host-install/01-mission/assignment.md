@@ -1,9 +1,11 @@
 ---
 slug: mission
+id: if1yav9gaw8w
 type: challenge
-title: "Your mission: a bare cluster, and BNK by the end of the day"
-teaser: Meet the cluster you will install BIG-IP Next for Kubernetes on, and the tools around it.
-  Learn what BNK is made of and why platform teams never install it by hand twice.
+title: 'Your mission: a bare cluster, and BNK by the end of the day'
+teaser: Meet the cluster you will install BIG-IP Next for Kubernetes on, and the tools
+  around it. Learn what BNK is made of and why platform teams never install it by
+  hand twice.
 notes:
 - type: text
   contents: |-
@@ -46,18 +48,22 @@ notes:
       **Skip** on the other two. CI/CD is the recommended path.
     - Nothing in this sandbox is shared with anyone. Break it freely.
 tabs:
-- title: Terminal
+- id: 5c5yhqtmzdor
+  title: Terminal
   type: terminal
   hostname: lab
-- title: Lab Topology
+- id: wg8mkp63bygn
+  title: Lab Topology
   type: service
   hostname: lab
   port: 5050
-- title: VS Code
+- id: 2npaiyuixvq1
+  title: VS Code
   type: service
   hostname: lab
   port: 8444
-- title: Gitea
+- id: z1j09madjlto
+  title: Gitea
   type: service
   hostname: lab
   port: 3000
@@ -66,6 +72,7 @@ tabs:
     value: learner
 difficulty: basic
 timelimit: 1200
+enhanced_loading: null
 ---
 
 # Your mission: a bare cluster, and BNK by the end of the day

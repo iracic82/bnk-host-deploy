@@ -1,9 +1,11 @@
 ---
 slug: the-repository
+id: 3kclkdrnivaa
 type: challenge
-title: "The repository: F5's install guide, as code"
-teaser: Read the installer the way you would review it at work. Map every phase to the page of F5's
-  guide it replaces, run its tests, and register the CI runner that will execute it.
+title: 'The repository: F5''s install guide, as code'
+teaser: Read the installer the way you would review it at work. Map every phase to
+  the page of F5's guide it replaces, run its tests, and register the CI runner that
+  will execute it.
 notes:
 - type: text
   contents: |-
@@ -20,26 +22,31 @@ notes:
     `bnk-host-deploy` keeps each answer in its own file, so a pull request that changes one thing
     changes one file. In this challenge you read it, test it, and give it a CI runner.
 tabs:
-- title: VS Code
+- id: p0y7uwx4aedx
+  title: VS Code
   type: service
   hostname: lab
   port: 8444
-- title: Terminal
+- id: clmpwfkyhsqz
+  title: Terminal
   type: terminal
   hostname: lab
-- title: Gitea
+- id: 3xefvn3o8xif
+  title: Gitea
   type: service
   hostname: lab
   port: 3000
   custom_request_headers:
   - key: X-WEBAUTH-USER
     value: learner
-- title: Lab Topology
+- id: bychkgcihvxi
+  title: Lab Topology
   type: service
   hostname: lab
   port: 5050
 difficulty: intermediate
 timelimit: 2400
+enhanced_loading: null
 ---
 
 # The repository: F5's install guide, as code

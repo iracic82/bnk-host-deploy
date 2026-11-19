@@ -1,9 +1,11 @@
 ---
 slug: day-2
+id: qgmadlxp5z0a
 type: challenge
-title: "Day 2: audit with Forge, change through git"
-teaser: Install is day one. Point BNK Forge at the running cluster to audit what is deployed, prove the
-  cluster still matches git, and make a change the only way changes should happen.
+title: 'Day 2: audit with Forge, change through git'
+teaser: Install is day one. Point BNK Forge at the running cluster to audit what is
+  deployed, prove the cluster still matches git, and make a change the only way changes
+  should happen.
 notes:
 - type: text
   contents: |-
@@ -18,30 +20,36 @@ notes:
     drift history. It does that for any cluster you give it a kubeconfig for, however BNK got there.
     The two together are how a platform team runs BNK at scale.
 tabs:
-- title: BNK Forge
+- id: eelx1ankvvbp
+  title: BNK Forge
   type: service
   hostname: lab
   port: 8090
-- title: Terminal
+- id: v0pfovzjqazy
+  title: Terminal
   type: terminal
   hostname: lab
-- title: VS Code
+- id: 9iuzmyvx99q6
+  title: VS Code
   type: service
   hostname: lab
   port: 8444
-- title: Gitea
+- id: svvkp6ekou6a
+  title: Gitea
   type: service
   hostname: lab
   port: 3000
   custom_request_headers:
   - key: X-WEBAUTH-USER
     value: learner
-- title: Lab Topology
+- id: lnly30pcn19s
+  title: Lab Topology
   type: service
   hostname: lab
   port: 5050
 difficulty: intermediate
 timelimit: 2700
+enhanced_loading: null
 ---
 
 # Day 2: audit with Forge, change through git

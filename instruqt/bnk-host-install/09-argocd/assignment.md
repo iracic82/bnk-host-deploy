@@ -1,9 +1,11 @@
 ---
 slug: argocd
+id: p5axqk0wfwew
 type: challenge
-title: "Path C, Argo CD: GitOps installs BNK from inside the cluster"
-teaser: Install Argo CD, declare the cluster in git, and press Sync. Argo renders the install from the
-  repository and runs your pinned installer as a Job inside the cluster.
+title: 'Path C, Argo CD: GitOps installs BNK from inside the cluster'
+teaser: Install Argo CD, declare the cluster in git, and press Sync. Argo renders
+  the install from the repository and runs your pinned installer as a Job inside the
+  cluster.
 notes:
 - type: text
   contents: |-
@@ -23,30 +25,36 @@ notes:
 
     **On path A or B?** Press **Skip**.
 tabs:
-- title: Terminal
+- id: 3b2yt7qcdy1h
+  title: Terminal
   type: terminal
   hostname: lab
-- title: Argo CD
+- id: cnrxhtqwiipp
+  title: Argo CD
   type: service
   hostname: lab
   port: 8091
-- title: VS Code
+- id: ylekx7nrifnj
+  title: VS Code
   type: service
   hostname: lab
   port: 8444
-- title: Gitea
+- id: dfkkazlpxqod
+  title: Gitea
   type: service
   hostname: lab
   port: 3000
   custom_request_headers:
   - key: X-WEBAUTH-USER
     value: learner
-- title: Lab Topology
+- id: imz1a4ojnfch
+  title: Lab Topology
   type: service
   hostname: lab
   port: 5050
 difficulty: advanced
 timelimit: 4200
+enhanced_loading: null
 ---
 
 # Path C, Argo CD: GitOps installs BNK from inside the cluster

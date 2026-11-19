@@ -1,9 +1,10 @@
 ---
 slug: cicd-deploy
+id: 8yekglxwxkpa
 type: challenge
-title: "Path A, CI/CD (2/2): merge, and watch the pipeline install BNK"
-teaser: The merge is the approval. Follow the install phase by phase in the pipeline log while the
-  cluster fills up, and learn what every BNK component you see is for.
+title: 'Path A, CI/CD (2/2): merge, and watch the pipeline install BNK'
+teaser: The merge is the approval. Follow the install phase by phase in the pipeline
+  log while the cluster fills up, and learn what every BNK component you see is for.
 notes:
 - type: text
   contents: |-
@@ -18,26 +19,31 @@ notes:
 
     **On path B or C?** Press **Skip**.
 tabs:
-- title: Gitea
+- id: 5uzpoeyw0ykb
+  title: Gitea
   type: service
   hostname: lab
   port: 3000
   custom_request_headers:
   - key: X-WEBAUTH-USER
     value: learner
-- title: Terminal
+- id: iqyqd1yqmtvs
+  title: Terminal
   type: terminal
   hostname: lab
-- title: Lab Topology
+- id: 6tflwyjnco7s
+  title: Lab Topology
   type: service
   hostname: lab
   port: 5050
-- title: VS Code
+- id: yphentt15zhy
+  title: VS Code
   type: service
   hostname: lab
   port: 8444
 difficulty: intermediate
 timelimit: 3600
+enhanced_loading: null
 ---
 
 # Path A, CI/CD (2/2): merge, and watch the pipeline install BNK

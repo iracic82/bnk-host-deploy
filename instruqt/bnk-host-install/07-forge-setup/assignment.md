@@ -1,9 +1,11 @@
 ---
 slug: forge-setup
+id: y2zfvcufooa1
 type: challenge
-title: "Path B, BNK Forge (1/2): install Forge and load the installer into it"
-teaser: Install F5's BNK Forge, then teach it your installer. The repository becomes a Forge module
-  source; the module runs your pinned image, one Forge step per install phase.
+title: 'Path B, BNK Forge (1/2): install Forge and load the installer into it'
+teaser: Install F5's BNK Forge, then teach it your installer. The repository becomes
+  a Forge module source; the module runs your pinned image, one Forge step per install
+  phase.
 notes:
 - type: text
   contents: |-
@@ -21,23 +23,28 @@ notes:
 
     **On path A or C?** Press **Skip** (here and on the next challenge).
 tabs:
-- title: Terminal
+- id: i30x8wwnx9cn
+  title: Terminal
   type: terminal
   hostname: lab
-- title: BNK Forge
+- id: yerh10eu40gb
+  title: BNK Forge
   type: service
   hostname: lab
   port: 8090
-- title: VS Code
+- id: z6pnhipuzq73
+  title: VS Code
   type: service
   hostname: lab
   port: 8444
-- title: Lab Topology
+- id: bid8qyy9ax6o
+  title: Lab Topology
   type: service
   hostname: lab
   port: 5050
 difficulty: intermediate
 timelimit: 3000
+enhanced_loading: null
 ---
 
 # Path B, BNK Forge (1/2): install Forge and load the installer into it

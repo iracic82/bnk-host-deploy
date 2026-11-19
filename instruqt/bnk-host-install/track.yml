@@ -1,7 +1,10 @@
 slug: bnk-host-install
-title: 'Install BIG-IP Next for Kubernetes the way platform teams do: CI/CD, Forge or Argo CD'
-teaser: Take a bare Kubernetes cluster to a licensed F5 BIG-IP Next for Kubernetes 2.4.2 serving
-  real traffic, without typing a single install command. Pick a pipeline, BNK Forge or Argo CD.
+id: vdtoafldxxri
+title: 'Install BIG-IP Next for Kubernetes the way platform teams do: CI/CD, Forge
+  or Argo CD'
+teaser: Take a bare Kubernetes cluster to a licensed F5 BIG-IP Next for Kubernetes
+  2.4.2 serving real traffic, without typing a single install command. Pick a pipeline,
+  BNK Forge or Argo CD.
 description: |-
   F5's install guide for **BIG-IP Next for Kubernetes (Host)** is a page of steps: label a node,
   install cert-manager, create pull secrets, install the F5 Lifecycle Operator, generate
@@ -26,17 +29,17 @@ description: |-
   replaces. About two and a half hours. No F5 or GitHub account needed.
 icon: ""
 tags:
-- f5
+- gitops
 - bnk
 - kubernetes
 - cicd
-- gitops
+- f5
 owner: f5
 developers:
 - iracic@infoblox.com
+skipping_enabled: true
 idle_timeout: 7200
 timelimit: 14400
-skipping_enabled: true
 lab_config:
   sidebar_enabled: true
   feedback_recap_enabled: true
@@ -44,4 +47,5 @@ lab_config:
   loadingMessages: true
   override_challenge_layout: false
   hideStopButton: false
+checksum: "15834422067457388984"
 enhanced_loading: false

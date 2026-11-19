@@ -1,9 +1,10 @@
 ---
 slug: data-center-edge
+id: 0q09dohbcb8y
 type: challenge
 title: Build the data-center edge BNK will serve
-teaser: A router, a client and two networks. Learn why TMM needs its own network legs, what Multus
-  and macvlan do, and how a VIP gets routed to a pod.
+teaser: A router, a client and two networks. Learn why TMM needs its own network legs,
+  what Multus and macvlan do, and how a VIP gets routed to a pod.
 notes:
 - type: text
   contents: |-
@@ -17,19 +18,23 @@ notes:
     VLAN for your load balancers. Here you create a small copy of it with containers, so you can see
     every hop.
 tabs:
-- title: Terminal
+- id: k1ghiw7e903w
+  title: Terminal
   type: terminal
   hostname: lab
-- title: Lab Topology
+- id: wicyf4tjdkax
+  title: Lab Topology
   type: service
   hostname: lab
   port: 5050
-- title: VS Code
+- id: dqpfs1b1xsxc
+  title: VS Code
   type: service
   hostname: lab
   port: 8444
 difficulty: basic
 timelimit: 1500
+enhanced_loading: null
 ---
 
 # Build the data-center edge BNK will serve

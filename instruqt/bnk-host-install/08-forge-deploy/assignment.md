@@ -1,9 +1,10 @@
 ---
 slug: forge-deploy
+id: 8tiftu0mx7ps
 type: challenge
-title: "Path B, BNK Forge (2/2): deploy from Forge, step by step"
-teaser: Press Deploy and watch Forge run your pinned installer as ten visible steps, each with its own
-  log, then find the cluster registered on Forge's Kubernetes page.
+title: 'Path B, BNK Forge (2/2): deploy from Forge, step by step'
+teaser: Press Deploy and watch Forge run your pinned installer as ten visible steps,
+  each with its own log, then find the cluster registered on Forge's Kubernetes page.
 notes:
 - type: text
   contents: |-
@@ -22,19 +23,23 @@ notes:
 
     **On path A or C?** Press **Skip**.
 tabs:
-- title: BNK Forge
+- id: hzxvzqaxkaa3
+  title: BNK Forge
   type: service
   hostname: lab
   port: 8090
-- title: Terminal
+- id: 6a4d353cjcir
+  title: Terminal
   type: terminal
   hostname: lab
-- title: Lab Topology
+- id: lqwxqtxtq9yz
+  title: Lab Topology
   type: service
   hostname: lab
   port: 5050
 difficulty: intermediate
 timelimit: 3600
+enhanced_loading: null
 ---
 
 # Path B, BNK Forge (2/2): deploy from Forge, step by step

@@ -1,9 +1,11 @@
 ---
 slug: pin-the-runner
+id: yrjhl4348d59
 type: challenge
 title: Build the installer image and land your first pull request
-teaser: Package the installer as a container image, pin it by digest, and get the change into main
-  the way every change will go in from now on, through a pull request and CI.
+teaser: Package the installer as a container image, pin it by digest, and get the
+  change into main the way every change will go in from now on, through a pull request
+  and CI.
 notes:
 - type: text
   contents: |-
@@ -18,26 +20,31 @@ notes:
     that change. It is the smallest real change you can make, which makes it the right one to learn
     the pull-request flow on.
 tabs:
-- title: Terminal
+- id: 4hbviokx19qn
+  title: Terminal
   type: terminal
   hostname: lab
-- title: VS Code
+- id: ldljmwzkhosi
+  title: VS Code
   type: service
   hostname: lab
   port: 8444
-- title: Gitea
+- id: pxp2qvv7jsxy
+  title: Gitea
   type: service
   hostname: lab
   port: 3000
   custom_request_headers:
   - key: X-WEBAUTH-USER
     value: learner
-- title: Lab Topology
+- id: 1zkscrjusaok
+  title: Lab Topology
   type: service
   hostname: lab
   port: 5050
 difficulty: intermediate
 timelimit: 2400
+enhanced_loading: null
 ---
 
 # Build the installer image and land your first pull request
