@@ -27,7 +27,7 @@ description: |-
 
   Each step explains what the automation does and why, mapped to the page of F5's guide it
   replaces. About two and a half hours. No F5 or GitHub account needed.
-icon: ""
+icon: ./assets/f5-logo.png
 tags:
 - gitops
 - bnk

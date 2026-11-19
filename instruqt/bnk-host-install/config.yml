@@ -1,31 +1,15 @@
 version: "3"
-# One VM per learner: a 3-node kind cluster (no BNK), Gitea, VS Code and the topology page from
-# setup; the learner builds the rest. Every learner has a private sandbox: nothing is shared.
-#
-# Sizing is BNK's: ~22.5 vCPU of requests (TMM alone 4.6 vCPU and 2 GiB of 2Mi hugepages), all on
-# one kernel because kind nodes are containers; plus Forge (~2 vCPU) and Argo CD. f5/aibnk is the
-# custom image the BNK tracks share: 100 GB disk, docker/kind/kubectl/helm, and registry mirrors
-# already holding the BNK 2.4.x images, so installs pull from local disk.
 virtualmachines:
 - name: lab
   image: f5/aibnk
-  machine_type: n2-standard-32
   shell: /bin/bash
-  ports:
-  - 3000   # Gitea
-  - 8444   # VS Code
-  - 8090   # BNK Forge (HTTP front for its TLS proxy)
-  - 8091   # Argo CD
-  - 5050   # Lab Topology
   environment:
     KUBECONFIG: /root/.kube/config
-    WORKSPACE: /root/workspace/bnk-host-deploy
-    LAB_REPO: github.com/iracic82/bnk-host-deploy.git
     LAB_REF: main
+    LAB_REPO: github.com/iracic82/bnk-host-deploy.git
+    WORKSPACE: /root/workspace/bnk-host-deploy
+  memory: 131072
+  cpus: 32
 secrets:
-# Team secrets on the f5 team, write only. Setup moves both into the in-cluster lab vault and
-# shreds the files; learners never see them.
 - name: FAR_PULL_B64
-  key: FAR_PULL_B64
 - name: BNK_HOST_LAB_JWT
-  key: BNK_HOST_LAB_JWT
