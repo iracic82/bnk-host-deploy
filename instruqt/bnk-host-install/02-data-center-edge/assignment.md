@@ -3,8 +3,8 @@ slug: data-center-edge
 id: 0q09dohbcb8y
 type: challenge
 title: 'Monday, 10:30: Sam builds the edge, and lets you hold the cables'
-teaser: A load balancer needs somewhere to stand. Build the data-center edge BNK will serve, as a containerlab
-  topology file, and learn how TMM gets its own network legs.
+teaser: A load balancer needs somewhere to stand. Build the data-center edge BNK will
+  serve, as a containerlab topology file, and learn how TMM gets its own network legs.
 notes:
 - type: text
   contents: |
@@ -38,7 +38,8 @@ tabs:
   title: Terminal
   type: terminal
   hostname: lab
-- title: Terminal 2
+- id: 3mchliyhxlzo
+  title: Terminal 2
   type: terminal
   hostname: lab
 - id: wicyf4tjdkax

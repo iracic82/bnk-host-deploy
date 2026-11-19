@@ -3,9 +3,9 @@ slug: first-traffic
 id: x28zyoh5bjug
 type: challenge
 title: 'Monday, 16:00: the first request through BIG-IP Next'
-teaser: Ship an app through git, ask BNK for a VIP with the Kubernetes Gateway API, and send a request
-  from a user behind Sam's router, through TMM, to a pod. Then watch the load spread, and survive a pod
-  dying.
+teaser: Ship an app through git, ask BNK for a VIP with the Kubernetes Gateway API,
+  and send a request from a user behind Sam's router, through TMM, to a pod. Then
+  watch the load spread, and survive a pod dying.
 notes:
 - type: text
   contents: |
@@ -46,7 +46,8 @@ tabs:
   title: Terminal
   type: terminal
   hostname: lab
-- title: Terminal 2
+- id: pif9c3zjztjx
+  title: Terminal 2
   type: terminal
   hostname: lab
 - id: mhduhjfvvj8z

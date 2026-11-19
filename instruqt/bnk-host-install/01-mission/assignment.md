@@ -3,8 +3,9 @@ slug: mission
 id: if1yav9gaw8w
 type: challenge
 title: 'Monday, 09:00: a new cluster, and nothing on it'
-teaser: Join Northwind's platform team on the morning cluster six arrives. Meet the cluster, learn how
-  its pods talk, and find out what BIG-IP Next for Kubernetes will add to it.
+teaser: Join Northwind's platform team on the morning cluster six arrives. Meet the
+  cluster, learn how its pods talk, and find out what BIG-IP Next for Kubernetes will
+  add to it.
 notes:
 - type: text
   contents: |
@@ -52,7 +53,8 @@ tabs:
   title: Terminal
   type: terminal
   hostname: lab
-- title: Terminal 2
+- id: qwgiwrsevdwj
+  title: Terminal 2
   type: terminal
   hostname: lab
 - id: wg8mkp63bygn

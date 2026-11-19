@@ -3,8 +3,9 @@ slug: the-repository
 id: 3kclkdrnivaa
 type: challenge
 title: 'Monday, 11:30: reading the install guide that runs itself'
-teaser: Priya hands you the repository that holds F5's install guide as code. Read it like a reviewer,
-  run its tests, and give the team's pipeline a runner that sits beside the cluster.
+teaser: Priya hands you the repository that holds F5's install guide as code. Read
+  it like a reviewer, run its tests, and give the team's pipeline a runner that sits
+  beside the cluster.
 notes:
 - type: text
   contents: |
@@ -41,7 +42,8 @@ tabs:
   title: Terminal
   type: terminal
   hostname: lab
-- title: Terminal 2
+- id: ztwta04kxpcf
+  title: Terminal 2
   type: terminal
   hostname: lab
 - id: 3xefvn3o8xif

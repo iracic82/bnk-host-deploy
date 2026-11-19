@@ -3,8 +3,9 @@ slug: cicd-deploy
 id: 8yekglxwxkpa
 type: challenge
 title: 'Path A, Monday 14:30: the merge is the install'
-teaser: Press Merge and follow BNK's install phase by phase in the pipeline log while the cluster fills
-  up. Learn what every component is for, then look inside TMM and prove the install repeats safely.
+teaser: Press Merge and follow BNK's install phase by phase in the pipeline log while
+  the cluster fills up. Learn what every component is for, then look inside TMM and
+  prove the install repeats safely.
 notes:
 - type: text
   contents: |
@@ -46,7 +47,8 @@ tabs:
   title: Terminal
   type: terminal
   hostname: lab
-- title: Terminal 2
+- id: r95unylyganw
+  title: Terminal 2
   type: terminal
   hostname: lab
 - id: 6tflwyjnco7s

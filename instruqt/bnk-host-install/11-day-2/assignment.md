@@ -3,8 +3,9 @@ slug: day-2
 id: qgmadlxp5z0a
 type: challenge
 title: 'Four weeks later: Jonas comes to audit'
-teaser: Install is day one. Point BNK Forge at the running cluster to audit what is deployed, prove the
-  cluster still matches git and who put it there, then make a change the only way changes should happen.
+teaser: Install is day one. Point BNK Forge at the running cluster to audit what is
+  deployed, prove the cluster still matches git and who put it there, then make a
+  change the only way changes should happen.
 notes:
 - type: text
   contents: |
@@ -48,7 +49,8 @@ tabs:
   title: Terminal
   type: terminal
   hostname: lab
-- title: Terminal 2
+- id: fwwi3yhhtdfj
+  title: Terminal 2
   type: terminal
   hostname: lab
 - id: 9iuzmyvx99q6

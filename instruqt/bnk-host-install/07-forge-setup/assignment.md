@@ -3,8 +3,9 @@ slug: forge-setup
 id: y2zfvcufooa1
 type: challenge
 title: 'Path B, Monday 14:00: teach BNK Forge your installer'
-teaser: Install F5's BNK Forge, load the pinned installer into its catalog from git, and create the project
-  that will install cluster six, with its credentials attached but never shown.
+teaser: Install F5's BNK Forge, load the pinned installer into its catalog from git,
+  and create the project that will install cluster six, with its credentials attached
+  but never shown.
 notes:
 - type: text
   contents: |
@@ -43,7 +44,8 @@ tabs:
   title: Terminal
   type: terminal
   hostname: lab
-- title: Terminal 2
+- id: 1tpgoieazo6n
+  title: Terminal 2
   type: terminal
   hostname: lab
 - id: yerh10eu40gb
@@ -61,7 +63,8 @@ tabs:
   type: service
   hostname: lab
   port: 5050
-- title: Gitea
+- id: hkmyveuyacrn
+  title: Gitea
   type: service
   hostname: lab
   port: 3000

@@ -3,8 +3,9 @@ slug: argocd
 id: p5axqk0wfwew
 type: challenge
 title: 'Path C, Monday 14:00: let the cluster pull its own install'
-teaser: Install Argo CD, declare the cluster in git, and press Sync. Argo renders the install from the
-  repository and runs your pinned installer as a Job inside the cluster, with no credentials leaving it.
+teaser: Install Argo CD, declare the cluster in git, and press Sync. Argo renders
+  the install from the repository and runs your pinned installer as a Job inside the
+  cluster, with no credentials leaving it.
 notes:
 - type: text
   contents: |
@@ -42,7 +43,8 @@ tabs:
   title: Terminal
   type: terminal
   hostname: lab
-- title: Terminal 2
+- id: ntoxninqnih1
+  title: Terminal 2
   type: terminal
   hostname: lab
 - id: cnrxhtqwiipp

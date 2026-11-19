@@ -3,8 +3,9 @@ slug: pin-the-runner
 id: yrjhl4348d59
 type: challenge
 title: 'Monday, 13:30: one installer, sealed, and your first pull request'
-teaser: Package the installer as a container image, seal it with its digest, and land the change the way
-  every change lands at Northwind, through a pull request that CI checks first.
+teaser: Package the installer as a container image, seal it with its digest, and land
+  the change the way every change lands at Northwind, through a pull request that
+  CI checks first.
 notes:
 - type: text
   contents: |
@@ -40,7 +41,8 @@ tabs:
   title: Terminal
   type: terminal
   hostname: lab
-- title: Terminal 2
+- id: fwebk4sy2wqa
+  title: Terminal 2
   type: terminal
   hostname: lab
 - id: ldljmwzkhosi

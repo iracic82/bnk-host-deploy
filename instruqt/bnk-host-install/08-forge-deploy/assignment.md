@@ -3,8 +3,9 @@ slug: forge-deploy
 id: 8tiftu0mx7ps
 type: challenge
 title: 'Path B, Monday 14:45: press Deploy, watch ten steps'
-teaser: Forge runs your pinned installer as ten visible steps, each in its own container with its own
-  log. Then see the cluster through Forge's eyes, and learn how a new installer version reaches it.
+teaser: Forge runs your pinned installer as ten visible steps, each in its own container
+  with its own log. Then see the cluster through Forge's eyes, and learn how a new
+  installer version reaches it.
 notes:
 - type: text
   contents: |
@@ -43,7 +44,8 @@ tabs:
   title: Terminal
   type: terminal
   hostname: lab
-- title: Terminal 2
+- id: mioevrnnbz52
+  title: Terminal 2
   type: terminal
   hostname: lab
 - id: lqwxqtxtq9yz
@@ -51,7 +53,8 @@ tabs:
   type: service
   hostname: lab
   port: 5050
-- title: Gitea
+- id: etojvbvt8bkq
+  title: Gitea
   type: service
   hostname: lab
   port: 3000

@@ -3,8 +3,9 @@ slug: cicd-plan
 id: lhq3adxfqyhi
 type: challenge
 title: 'Path A, Monday 14:00: say it in a pull request, read the plan'
-teaser: Declare in git that cluster six should run BNK, on which node, and let the pipeline show you exactly
-  what an install would do to the real cluster before anything changes.
+teaser: Declare in git that cluster six should run BNK, on which node, and let the
+  pipeline show you exactly what an install would do to the real cluster before anything
+  changes.
 notes:
 - type: text
   contents: |
@@ -59,7 +60,8 @@ tabs:
   title: Terminal
   type: terminal
   hostname: lab
-- title: Terminal 2
+- id: ud4wysqcy5la
+  title: Terminal 2
   type: terminal
   hostname: lab
 - id: iauxt23pnexn
