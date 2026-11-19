@@ -311,6 +311,10 @@ Press **Send 48 requests** under *BNK endpoint picker*. 48 requests from the twe
 fixed random order, go through VIP `.11`. Then press **Send the same 48 requests** under *Round robin*:
 the identical sequence through `.12`.
 
+Here is a run on this very lab, BNK's picker on the left, round robin on the right:
+
+![AI Inference console: BNK endpoint picker 37 of 48 warm KV-cache hits with every customer on one GPU, round robin 20 of 48 with customers spread across all three GPUs](../assets/inference-console.png)
+
 Read the two panels side by side:
 
 | | Look for |
