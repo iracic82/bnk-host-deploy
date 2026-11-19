@@ -161,8 +161,7 @@ git add apps/hello && git commit -m "apps: hello, the first app behind BNK" && g
 1. In the **Gitea** tab, open the repository **platform/bnk-host-deploy**: click its name in the
    repository list on the right of the Gitea home page. Under its name you see the repository's tabs,
    among them **Pull Requests** and **Actions**.
-2. Click **New Pull Request** on the green banner *You pushed on branch …*, check that it merges into
-   `main`, and press **Create Pull Request**.
+2. Click **New Pull Request** on the green banner *You pushed on branch …*.
 3. **Wait for the checks.** Open the **Actions** tab. Every run for your branch (`ci`, and `plan` when
    a cluster file changed) shows a yellow dot while it runs and a green tick when it is done. Do not
    merge while any of them is still yellow.

@@ -175,8 +175,7 @@ repository list on the right of the Gitea home page. Under its name you see the 
 Two of them you will use for every change from now on: **Pull Requests**, where changes are proposed
 and merged, and **Actions**, where the pipeline's runs show up. A banner offers to create a pull request from
 `pin-runner-image`. Click the green **New Pull Request** button in that banner (top right in the
-screenshot below), check that it merges into `main`, give it the title
-*Pin the installer image*, and create it.
+screenshot below), and the pull request is open.
 
 ![Gitea Pull Requests page: a green banner says you pushed on branch pin-runner-image, with a New Pull Request button](../assets/gitea-pr-banner.png)
 
