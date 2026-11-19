@@ -355,14 +355,14 @@ the identical sequence through `.12`.
 
 Here is a run on this very lab, BNK's picker on the left, round robin on the right:
 
-![AI Inference console: BNK endpoint picker 37 of 48 warm KV-cache hits with every customer on one GPU, round robin 20 of 48 with customers spread across all three GPUs](../assets/inference-console.png)
+![AI Inference console: BNK endpoint picker 37 of 48 warm KV-cache hits and 64 percent of prefill saved, every customer on one GPU, round robin 22 of 48 and 37 percent, customers spread across the GPUs](../assets/inference-console.png)
 
 Read the two panels side by side:
 
 | | Look for |
 |---|---|
-| **warm KV-cache hits** | how many of the 48 found their prompt already cached. On BNK in this lab: about **37** with the picker, about **20** with round robin |
-| **prefill saved** | the share of all prompt tokens served from KV cache instead of computed again |
+| **warm KV-cache hits** | how many of the 48 found their prompt already cached. On BNK in this lab: about **37** with the picker, about **20 to 22** with round robin |
+| **prefill saved** | the share of all prompt tokens served from KV cache instead of computed again: about **64%** with the picker against about **37%** with round robin. Nearly two thirds of the prefill work disappears |
 | **average latency** | about the same on both sides here, and that is honest: Mocker models a fast data-center GPU, where a few hundred tokens of prefill take milliseconds. The saving shows as latency with long contexts and under load, and as capacity always |
 | **the strip** | one square per request, coloured by the GPU that answered. Filled is warm, hollow is cold |
 | **the customer grid** | with the picker, each customer sits in **one** GPU column. With round robin, every customer is smeared across all three, and every GPU keeps evicting prompts it will need again |
