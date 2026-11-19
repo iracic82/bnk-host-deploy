@@ -82,4 +82,4 @@ docker run -d --name forge-tab --restart unless-stopped --network host -v /root/
 for _ in $(seq 1 30); do curl -fsS -o /dev/null "http://127.0.0.1:${PORT_FORGE_TAB}/" 2>/dev/null && break; sleep 1; done
 curl -fsS -o /dev/null "http://127.0.0.1:${PORT_FORGE_TAB}/" 2>/dev/null || fail "the Forge tab front-end on :${PORT_FORGE_TAB} does not answer: docker logs forge-tab"
 ok "open the BNK Forge tab and sign in as admin"
-set_owner forge
+if [[ "${LAB_KEEP_OWNER:-0}" == 1 ]]; then ok "owner left unchanged (Forge installed for operations only)"; else set_owner forge; fi
