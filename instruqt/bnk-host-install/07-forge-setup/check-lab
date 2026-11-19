@@ -4,8 +4,8 @@ source /opt/lab/lib.sh
 curl -fsSk -o /dev/null https://127.0.0.1:8443/api/system/health || { fail-message "Forge is not running. Run 'lab forge' (step 1)."; exit 1; }
 forge_api GET /api/blueprint-catalog/releases 2>/dev/null | jq -e '[.[]? | select(.blueprint_id=="bnk-host-2-4" and .release_state=="imported")] | length > 0' >/dev/null \
   || { fail-message "The blueprint 'BNK 2.4.2 Host on an existing cluster' is not imported yet (step 3)."; exit 1; }
-pid=$(forge_api GET /api/projects | jq -r '(.projects // .items // .)[]? | select(.name=="bnk-lab") | .id' | head -1)
+pid=$(forge_api GET /api/projects | jq -r '(if type=="array" then . else (.items // .sources // .projects // .clusters // .modules // .secrets // []) end)[] | select(.name=="bnk-lab") | .id' | head -1)
 [[ -n "$pid" ]] || { fail-message "No Forge project named bnk-lab yet (step 4)."; exit 1; }
-n=$(forge_api GET "/api/projects/${pid}/secrets" | jq -r '[(.secrets // .items // .)[]?.name] | map(select(. == "kubeconfig" or . == "far_service_account_key" or . == "bnk_license_jwt")) | length')
+n=$(forge_api GET "/api/projects/${pid}/secrets" | jq -r '[(if type=="array" then . else (.items // .sources // .projects // .clusters // .modules // .secrets // []) end)[].name] | map(select(. == "kubeconfig" or . == "far_service_account_key" or . == "bnk_license_jwt")) | length')
 [[ "$n" == 3 ]] || { fail-message "Project bnk-lab has $n of its 3 secrets. Run 'lab forge-secrets bnk-lab'."; exit 1; }
 exit 0

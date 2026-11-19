@@ -4,9 +4,9 @@
 # cluster's BNK objects (versions, health, gateways, licence), takes snapshots and detects drift.
 source "$(dirname "$0")/../lib.sh"
 curl -fsSk -o /dev/null https://127.0.0.1:8443/api/system/health || fail "Forge is not installed: run 'lab forge' first"
-existing=$(forge_api GET /api/k8s/clusters | jq -r '(.clusters // .items // .)[]? | select(.name=="lab") | .id' | head -1)
+existing=$(forge_api GET /api/k8s/clusters | jq -r '(if type=="array" then . else (.items // .sources // .projects // .clusters // .modules // .secrets // []) end)[] | select(.name=="lab") | .id' | head -1)
 if [[ -n "$existing" ]]; then ok "cluster 'lab' already registered (#$existing)"; exit 0; fi
-pid=$(forge_api GET /api/projects | jq -r '(.projects // .items // .)[]? | select(.name=="operations" or .name=="bnk-lab") | .id' | head -1)
+pid=$(forge_api GET /api/projects | jq -r '(if type=="array" then . else (.items // .sources // .projects // .clusters // .modules // .secrets // []) end)[] | select(.name=="operations" or .name=="bnk-lab") | .id' | head -1)
 if [[ -z "$pid" ]]; then
   pid=$(forge_api POST /api/projects '{"name":"operations","description":"Day-2 operations for the lab cluster","environment":"lab"}' | jq -r '.id // .project.id // .project_id')
   ok "project 'operations' (#$pid) created"

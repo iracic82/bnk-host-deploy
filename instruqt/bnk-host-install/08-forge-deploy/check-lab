@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -uo pipefail
 source /opt/lab/lib.sh; source /opt/lab/ci-helpers.sh
-pid=$(forge_api GET /api/projects 2>/dev/null | jq -r '(.projects // .items // .)[]? | select(.name=="bnk-lab") | .id' | head -1)
+pid=$(forge_api GET /api/projects 2>/dev/null | jq -r '(if type=="array" then . else (.items // .sources // .projects // .clusters // .modules // .secrets // []) end)[] | select(.name=="bnk-lab") | .id' | head -1)
 [[ -n "$pid" ]] || { fail-message "No Forge project bnk-lab. Finish the previous challenge first."; exit 1; }
-s=$(forge_api GET "/api/project-modules/project/${pid}" | jq -r '[(.modules // .items // .)[]? | (.status // .state)] | first // "none"')
+s=$(forge_api GET "/api/project-modules/project/${pid}" | jq -r '[(if type=="array" then . else (.items // .sources // .projects // .clusters // .modules // .secrets // []) end)[] | (.status // .state)] | first // "none"')
 case "$s" in
   applied|deployed|success|completed) ;;
   failed|error) fail-message "The Forge deployment failed. Open the module's log in Forge, fix, and press Retry."; exit 1 ;;
