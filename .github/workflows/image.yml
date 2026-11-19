@@ -1,0 +1,42 @@
+name: image
+
+# Builds the runner image (the installer, kubectl, helm, yq) and publishes it to GHCR on a version
+# tag. BNK Forge pins it by digest in forge/bnk-host/bnkforge.artifact.json; after a release, copy
+# the digest this job prints into that file and bump the module version.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    # GHCR publishing only makes sense on GitHub; a Gitea mirror of this repo skips it.
+    if: github.server_url == 'https://github.com'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: versions
+        run: grep -E '^(KUBECTL|HELM|YQ)_VERSION=' versions.env >> "$GITHUB_ENV"
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        id: push
+        with:
+          context: .
+          push: true
+          build-args: |
+            KUBECTL_VERSION=${{ env.KUBECTL_VERSION }}
+            HELM_VERSION=${{ env.HELM_VERSION }}
+            YQ_VERSION=${{ env.YQ_VERSION }}
+          tags: |
+            ghcr.io/${{ github.repository }}:${{ github.ref_name }}
+            ghcr.io/${{ github.repository }}:latest
+      - name: digest for the Forge module
+        run: echo "pin this in forge/bnk-host/bnkforge.artifact.json -> ${{ steps.push.outputs.digest }}"

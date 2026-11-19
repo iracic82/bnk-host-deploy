@@ -1,0 +1,47 @@
+slug: bnk-host-install
+title: 'Install BIG-IP Next for Kubernetes the way platform teams do: CI/CD, Forge or Argo CD'
+teaser: Take a bare Kubernetes cluster to a licensed F5 BIG-IP Next for Kubernetes 2.4.2 serving
+  real traffic, without typing a single install command. Pick a pipeline, BNK Forge or Argo CD.
+description: |-
+  F5's install guide for **BIG-IP Next for Kubernetes (Host)** is a page of steps: label a node,
+  install cert-manager, create pull secrets, install the F5 Lifecycle Operator, generate
+  certificates, apply a CNEInstance, license it. Do that by hand on one cluster and it works. Do it
+  on twenty, every quarter, and you need it to be code.
+
+  In this lab you start with a three-node Kubernetes cluster and nothing F5 on it. You build what a
+  platform team builds around it: the data-center edge BNK will serve, a CI runner beside the
+  cluster, a pinned installer image. Then you install BNK 2.4.2 **one of three ways**:
+
+  1. **CI/CD (recommended).** A pull request declares the cluster. The pipeline plans, you review,
+     you merge, the pipeline installs.
+  2. **BNK Forge.** F5's deployment and lifecycle tool runs the same installer as a container
+     module, step by step, with a UI.
+  3. **Argo CD.** GitOps: the cluster pulls its desired state from git and Argo runs the install.
+
+  Every path runs the same installer from the same repository, so you see that the tool changes
+  and the install does not. You finish by sending a real request from a client, through an edge
+  router, into TMM and onto a pod, and by making a Day-2 change through git.
+
+  Each step explains what the automation does and why, mapped to the page of F5's guide it
+  replaces. About two and a half hours. No F5 or GitHub account needed.
+icon: ""
+tags:
+- f5
+- bnk
+- kubernetes
+- cicd
+- gitops
+owner: f5
+developers:
+- iracic@infoblox.com
+idle_timeout: 7200
+timelimit: 14400
+skipping_enabled: true
+lab_config:
+  sidebar_enabled: true
+  feedback_recap_enabled: true
+  feedback_tab_enabled: false
+  loadingMessages: true
+  override_challenge_layout: false
+  hideStopButton: false
+enhanced_loading: false

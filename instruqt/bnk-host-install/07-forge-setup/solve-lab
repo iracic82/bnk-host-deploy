@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+export PATH=/usr/local/bin:$PATH KUBECONFIG=/root/.kube/config
+source /opt/lab/lib.sh
+lab forge
+lab forge-catalog
+rid=$(forge_api GET /api/blueprint-catalog/releases | jq -r '[.[]? | select(.blueprint_id=="bnk-host-2-4" and .release_state=="imported")] | sort_by(.id) | last | .id')
+pid=$(forge_api GET /api/projects | jq -r '(.projects // .items // .)[]? | select(.name=="bnk-lab") | .id' | head -1)
+[[ -n "$pid" ]] || forge_api POST "/api/stacks/releases/${rid}/projects" '{"name":"bnk-lab","environment":"lab","variables":{"tmm_node":"bnk-worker","cluster_name":"lab"}}' >/dev/null
+lab forge-secrets bnk-lab

@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "name": "bnk-host-install",
+  "version": "1.0.0",
+  "kind": "container_image",
+  "description": "Installs F5 BIG-IP Next for Kubernetes 2.4.2 in Host mode on an existing cluster, one Forge step per step of F5's install guide. The image is this repository's installer: the same code the CI pipeline runs.",
+  "container_image": {
+    "registry_host": "ghcr.io",
+    "repository": "iracic82/bnk-host-deploy",
+    "digest": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "lifecycle": {
+    "supports_plan": true,
+    "supports_apply": true,
+    "supports_destroy": true
+  },
+  "state": {
+    "mount_path": "/work",
+    "outputs_file": "outputs.json",
+    "home_env": {
+      "WORK": "/work",
+      "HOME_OVERRIDE": "/work/.home"
+    }
+  },
+  "execution": {
+    "engine": "container",
+    "limits": { "cpus": "1", "memory": "1g", "pids": 512 }
+  },
+  "secret_files": [
+    { "secret_name": "kubeconfig", "path": "secrets/kubeconfig" },
+    { "secret_name": "far_service_account_key", "path": "secrets/cne_pull_64.json" },
+    { "secret_name": "bnk_license_jwt", "path": "secrets/license.jwt" }
+  ],
+  "steps": {
+    "plan": [
+      { "name": "plan", "args": ["bnk-host", "plan"], "timeout_seconds": 600,
+        "env": { "TMM_NODE": "{{inputs.tmm_node}}", "CLUSTER_NAME": "{{inputs.cluster_name}}", "BNK_ENVIRONMENT": "{{inputs.environment}}", "STORAGE_CLASS": "{{inputs.storage_class}}" } }
+    ],
+    "apply": [
+      { "name": "00 preflight",            "args": ["bnk-host", "preflight"],   "timeout_seconds": 300,
+        "env": { "TMM_NODE": "{{inputs.tmm_node}}", "CLUSTER_NAME": "{{inputs.cluster_name}}", "BNK_ENVIRONMENT": "{{inputs.environment}}", "STORAGE_CLASS": "{{inputs.storage_class}}" } },
+      { "name": "05 label the TMM node",   "args": ["bnk-host", "nodes"],       "timeout_seconds": 300,
+        "env": { "TMM_NODE": "{{inputs.tmm_node}}", "CLUSTER_NAME": "{{inputs.cluster_name}}", "BNK_ENVIRONMENT": "{{inputs.environment}}", "STORAGE_CLASS": "{{inputs.storage_class}}" } },
+      { "name": "10 multus + cert-manager","args": ["bnk-host", "prereqs"],     "timeout_seconds": 900,
+        "env": { "TMM_NODE": "{{inputs.tmm_node}}", "CLUSTER_NAME": "{{inputs.cluster_name}}", "BNK_ENVIRONMENT": "{{inputs.environment}}", "STORAGE_CLASS": "{{inputs.storage_class}}" },
+        "retry": { "max_attempts": 2, "backoff_seconds": 30 } },
+      { "name": "20 registry + pull secret","args": ["bnk-host", "registry"],   "timeout_seconds": 300,
+        "env": { "TMM_NODE": "{{inputs.tmm_node}}", "CLUSTER_NAME": "{{inputs.cluster_name}}", "BNK_ENVIRONMENT": "{{inputs.environment}}", "STORAGE_CLASS": "{{inputs.storage_class}}" } },
+      { "name": "30 lifecycle operator",   "args": ["bnk-host", "flo"],         "timeout_seconds": 900,
+        "env": { "TMM_NODE": "{{inputs.tmm_node}}", "CLUSTER_NAME": "{{inputs.cluster_name}}", "BNK_ENVIRONMENT": "{{inputs.environment}}", "STORAGE_CLASS": "{{inputs.storage_class}}" } },
+      { "name": "40 CWC + OTEL certs",     "args": ["bnk-host", "certs"],       "timeout_seconds": 600,
+        "env": { "TMM_NODE": "{{inputs.tmm_node}}", "CLUSTER_NAME": "{{inputs.cluster_name}}", "BNK_ENVIRONMENT": "{{inputs.environment}}", "STORAGE_CLASS": "{{inputs.storage_class}}" } },
+      { "name": "50 CNEInstance",          "args": ["bnk-host", "cneinstance"], "timeout_seconds": 2700,
+        "env": { "TMM_NODE": "{{inputs.tmm_node}}", "CLUSTER_NAME": "{{inputs.cluster_name}}", "BNK_ENVIRONMENT": "{{inputs.environment}}", "STORAGE_CLASS": "{{inputs.storage_class}}" } },
+      { "name": "60 licence",              "args": ["bnk-host", "license"],     "timeout_seconds": 900,
+        "env": { "TMM_NODE": "{{inputs.tmm_node}}", "CLUSTER_NAME": "{{inputs.cluster_name}}", "BNK_ENVIRONMENT": "{{inputs.environment}}", "STORAGE_CLASS": "{{inputs.storage_class}}" } },
+      { "name": "65 wait for the data plane","args": ["bnk-host", "ready"],     "timeout_seconds": 2700,
+        "env": { "TMM_NODE": "{{inputs.tmm_node}}", "CLUSTER_NAME": "{{inputs.cluster_name}}", "BNK_ENVIRONMENT": "{{inputs.environment}}", "STORAGE_CLASS": "{{inputs.storage_class}}" } },
+      { "name": "70 verify",               "args": ["bnk-host", "verify"],      "timeout_seconds": 300,
+        "env": { "TMM_NODE": "{{inputs.tmm_node}}", "CLUSTER_NAME": "{{inputs.cluster_name}}", "BNK_ENVIRONMENT": "{{inputs.environment}}", "STORAGE_CLASS": "{{inputs.storage_class}}" } }
+    ],
+    "destroy": [
+      { "name": "uninstall", "args": ["bnk-host", "uninstall"], "timeout_seconds": 900 }
+    ]
+  },
+  "inputs": {
+    "required": [
+      { "name": "tmm_node", "type": "string", "source": "user", "example": "bnk-worker",
+        "description": "The node TMM runs on (kubectl get nodes). It must offer 2Mi hugepages. The same field as tmm.nodes in clusters/<name>.yaml." }
+    ],
+    "optional": [
+      { "name": "cluster_name", "type": "string", "source": "user", "default": "lab",
+        "description": "A name for the cluster. Forge registers it on the Kubernetes page under this name." },
+      { "name": "environment", "type": "string", "source": "user", "default": "lab",
+        "description": "lab, staging or production: the policy file in environments/ (timeouts, strictness, licence rules)." },
+      { "name": "storage_class", "type": "string", "source": "user", "default": "standard",
+        "description": "StorageClass for BNK's stateful components." }
+    ]
+  },
+  "cluster": {
+    "name_output": "cluster_name",
+    "api_server_output": "api_server",
+    "cloud_provider": "generic",
+    "kubeconfig_file": "secrets/kubeconfig"
+  },
+  "references": []
+}

@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "module": {
+    "name": "BNK 2.4.2 Host install",
+    "path": "forge/bnk-host",
+    "version": "1.0.0",
+    "category": "bnk",
+    "provider": "kubernetes",
+    "description": "F5 BIG-IP Next for Kubernetes 2.4.2, Host mode, onto an existing cluster: Multus, cert-manager, FLO, certificates, CNEInstance, licence, verification."
+  },
+  "deployment_pack": {
+    "engine": "container",
+    "runner_profile": "container-default",
+    "working_directory": ".",
+    "lifecycle": {
+      "supports_init": false,
+      "supports_plan": true,
+      "supports_apply": true,
+      "supports_destroy": true,
+      "supports_refresh": false,
+      "supports_drift": false
+    },
+    "entrypoints": {}
+  },
+  "inputs": {
+    "required": [
+      {
+        "name": "tmm_node",
+        "type": "string",
+        "source": "user",
+        "description": "The node TMM runs on."
+      }
+    ],
+    "optional": [
+      {
+        "name": "cluster_name",
+        "type": "string",
+        "source": "user",
+        "default": "lab",
+        "description": "Cluster name."
+      },
+      {
+        "name": "environment",
+        "type": "string",
+        "source": "user",
+        "default": "lab",
+        "description": "Policy environment."
+      },
+      {
+        "name": "storage_class",
+        "type": "string",
+        "source": "user",
+        "default": "standard",
+        "description": "StorageClass."
+      }
+    ]
+  },
+  "outputs": {
+    "key_outputs": [
+      {
+        "name": "bnk_manifest_version",
+        "type": "string",
+        "description": "The BNK release manifest the CNEInstance runs."
+      },
+      {
+        "name": "cneinstance_available",
+        "type": "string",
+        "description": "True once TMM is up and configured."
+      },
+      {
+        "name": "license_state",
+        "type": "string",
+        "description": "Active when the licence validated."
+      },
+      {
+        "name": "tmm_node",
+        "type": "string",
+        "description": "Where TMM runs."
+      }
+    ]
+  },
+  "dependencies": {
+    "required": [],
+    "optional": []
+  }
+}

@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -uo pipefail
+source /opt/lab/lib.sh; source /opt/lab/ci-helpers.sh
+st=$(run_state deploy.yml)
+case "$st" in
+  none) fail-message "No deploy has run yet. Merge your pull request in Gitea (step 1)."; exit 1 ;;
+  completed/success) ;;
+  completed/*) fail-message "The last deploy run failed ($st). Open it in Gitea > Actions; the diagnostics step at the end says why."; exit 1 ;;
+  *) fail-message "The deploy is still running. A cold install takes 15-25 minutes; follow it in Gitea > Actions."; exit 1 ;;
+esac
+bnk_available || { fail-message "The deploy finished but the CNEInstance is not Available. Run: kubectl -n f5-bnk get cneinstance f5-bnk-instance -o yaml"; exit 1; }
+exit 0

@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+export PATH=/usr/local/bin:$PATH KUBECONFIG=/root/.kube/config
+source /opt/lab/lib.sh; source /opt/lab/ci-helpers.sh
+lab forge-deploy bnk-lab bnk-worker
+wait_bnk 900

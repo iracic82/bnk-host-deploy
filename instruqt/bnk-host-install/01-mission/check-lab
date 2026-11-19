@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -uo pipefail
+[[ -f /root/.lab/seen-status ]] || { fail-message "Run 'lab status' in the Terminal tab (step 5) and press Check again."; exit 1; }
+exit 0

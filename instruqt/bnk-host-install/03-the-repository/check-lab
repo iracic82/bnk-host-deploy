@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -uo pipefail
+systemctl is-active --quiet gitea-runner || { fail-message "The CI runner is not running. Run 'lab runner' (step 6)."; exit 1; }
+[[ -s /var/lib/gitea-runner/.runner ]] || { fail-message "The runner is not registered with Gitea. Run 'lab runner' again."; exit 1; }
+exit 0

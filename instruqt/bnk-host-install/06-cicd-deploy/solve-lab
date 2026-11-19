@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+export PATH=/usr/local/bin:$PATH KUBECONFIG=/root/.kube/config
+source /opt/lab/lib.sh; source /opt/lab/ci-helpers.sh
+n=$(pr_for_branch enable-lab-cluster open)
+[[ -n "$n" ]] && merge_pr "$n"
+sleep 10
+sha=$(main_sha)
+echo "deploy: $(wait_run deploy.yml "$sha" 3300 || true)"
+wait_bnk 600
+cd "$WORKSPACE" && git checkout -q main && git pull -q

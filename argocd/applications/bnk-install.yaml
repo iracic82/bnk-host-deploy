@@ -1,0 +1,16 @@
+# Argo CD installs BNK: it renders argocd/bnk-install and runs its Sync hook Job.
+# Manual sync on purpose: installing a data plane is a decision, not a side effect of a merge.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: bnk-install
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: REPO_URL
+    targetRevision: main
+    path: argocd/bnk-install
+  destination: {server: https://kubernetes.default.svc}
+  syncPolicy:
+    syncOptions: [CreateNamespace=false]

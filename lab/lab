@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# lab: the student's helper for building the environment around BNK. Every step prints what it is
+# doing and why; read the output, it is part of the lesson. BNK itself is never installed by this
+# command: that is the job of the pipeline, Forge or Argo CD.
+set -euo pipefail
+HERE="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
+cmd="${1:-help}"; shift || true
+case "$cmd" in
+  network|runner|ci-secrets|image|forge|forge-secrets|forge-catalog|forge-deploy|forge-register|plan|argocd) exec bash "$HERE/steps/${cmd}.sh" "$@" ;;
+  status)  exec bash "$HERE/steps/status.sh" "$@" ;;
+  curl)    exec docker exec client curl -s -m 5 "$@" ;;
+  client)  exec docker exec -it client bash ;;
+  router)  exec docker exec -it edge-router vtysh ;;
+  help|-h|--help) cat <<'TXT'
+lab <command>
+
+  Build the environment (each step explains itself):
+    network         the edge router and a client: the data-center side BNK serves
+    image           build the installer's runner image, push it, pin its digest
+    runner          register a CI runner beside the cluster        (CI/CD path)
+    ci-secrets      copy the F5 credentials into the CI secrets    (CI/CD path)
+    forge           install BNK Forge                              (Forge path)
+    forge-catalog   load this repository into Forge (the UI clicks, via API)
+    forge-secrets   attach the credentials to a Forge project      (Forge path)
+    forge-deploy    create the project and deploy (the UI clicks, via API)
+    forge-register  register the running cluster in Forge for Day-2 (any path)
+    plan            plan main against the live cluster (read-only, any path)
+    argocd          install Argo CD and its Applications           (Argo CD path)
+
+  Look around:
+    status          the state of everything, one screen
+    curl <url>      run curl from the client container (a user behind the edge router)
+    client          a shell on the client
+    router          the edge router's CLI (vtysh)
+TXT
+  ;;
+  *) echo "unknown command '$cmd' (lab help)"; exit 2 ;;
+esac

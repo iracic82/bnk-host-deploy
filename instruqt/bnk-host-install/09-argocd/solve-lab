@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -euo pipefail
+export PATH=/usr/local/bin:$PATH KUBECONFIG=/root/.kube/config
+source /opt/lab/lib.sh; source /opt/lab/ci-helpers.sh
+lab argocd
+cd "$WORKSPACE"; git checkout -q main; git pull -q
+if [[ "$(yq -r .enabled clusters/lab.yaml)" != true ]]; then
+  git checkout -q -B enable-lab-cluster
+  yq -i '.tmm.nodes = ["bnk-worker"] | .enabled = true' clusters/lab.yaml
+  git commit -qam "clusters/lab: install BNK, TMM on bnk-worker"; git push -q -f -u origin enable-lab-cluster
+  merge_pr "$(open_pr enable-lab-cluster 'Install BNK on the lab cluster')"
+  git checkout -q main; git pull -q
+fi
+# refresh, then sync (the same as pressing Refresh and Sync in the UI)
+kubectl -n argocd annotate application bnk-install argocd.argoproj.io/refresh=hard --overwrite >/dev/null
+sleep 20
+kubectl -n argocd patch application bnk-install --type merge -p '{"operation":{"initiatedBy":{"username":"admin"},"sync":{"revision":"main","prune":false}}}' >/dev/null
+for _ in $(seq 1 200); do
+  ph=$(kubectl -n argocd get application bnk-install -o jsonpath='{.status.operationState.phase}' 2>/dev/null)
+  [[ "$ph" == Succeeded || "$ph" == Failed || "$ph" == Error ]] && break; sleep 15
+done
+echo "sync: $ph"; wait_bnk 600

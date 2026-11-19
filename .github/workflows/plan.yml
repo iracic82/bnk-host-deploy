@@ -1,0 +1,90 @@
+name: plan
+
+# On a pull request that changes how or where BNK is installed, show what merging would do, per
+# affected cluster, against the live cluster: every object validated server-side (CRD schemas and
+# F5's admission webhook included), the F5 registry login proven with the real key, and a diff of
+# the CNEInstance and TMM network against what is running. Nothing is changed. The result is one
+# comment on the pull request, updated in place on every push.
+on:
+  pull_request:
+    paths:
+      - clusters/**
+      - environments/**
+      - profiles/**
+      - lib/**
+      - versions.env
+      - install.sh
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: plan-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  plan:
+    # One owner per cluster: these workflows act only when the repository says the pipeline owns
+    # BNK installs (variable BNK_INSTALLER=pipeline). Forge or Argo CD owners never race them.
+    if: vars.BNK_INSTALLER == 'pipeline'
+    runs-on: [self-hosted, bnk]
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: pinned tools
+        run: ./ci/tools.sh
+
+      - name: which clusters does this change affect?
+        run: |
+          base="$(git merge-base "origin/${{ github.base_ref }}" HEAD)"
+          echo "comparing $(git rev-parse --short "$base")..$(git rev-parse --short HEAD):"
+          git diff --stat "$base" HEAD | sed 's/^/  /'
+          ./ci/targets.sh "$base" HEAD | tee "$RUNNER_TEMP/targets"
+          [ -s "$RUNNER_TEMP/targets" ] || echo "no cluster is affected by this change"
+
+      - name: plan each cluster
+        env:
+          FAR_PULL_B64: ${{ secrets.FAR_PULL_B64 }}
+        run: |
+          [ -s "$RUNNER_TEMP/targets" ] || exit 0
+          [ -n "$FAR_PULL_B64" ] || { echo "::error::repository secret FAR_PULL_B64 is not set"; exit 1; }
+          umask 077; printf '%s' "$FAR_PULL_B64" > "$RUNNER_TEMP/far.json"
+          export FAR_PULL_JSON="$RUNNER_TEMP/far.json"
+          out="$RUNNER_TEMP/plan.md"; rc=0; n=0
+          {
+            echo "## BNK plan for \`${{ github.head_ref }}\` at \`$(git rev-parse --short HEAD)\`"
+            echo
+            echo "| Cluster | Environment | Release | Result | Changes |"
+            echo "|---|---|---|---|---|"
+          } > "$out"
+          : > "$RUNNER_TEMP/details.md"
+          while read -r f; do
+            n=$((n+1)); name="$(yq -r .name "$f")"
+            export BNK_REPORT_MD="$RUNNER_TEMP/report-$n.md" BNK_CHANGES_FILE="$RUNNER_TEMP/changes-$n.txt"
+            echo "::group::plan $f"
+            if ./install.sh --cluster "$f" --plan; then res="✅ plan ok"; else res="❌ plan failed"; rc=1; fi
+            echo "::endgroup::"
+            ch=$(grep -c . "$BNK_CHANGES_FILE" 2>/dev/null) || ch=0
+            [ "$(yq -r .enabled "$f")" = "true" ] || { res="⏸️ enabled: false"; }
+            echo "| \`$name\` | $(yq -r .environment "$f") | $(sed -n 's/^BNK_VERSION=//p' versions.env) | $res | $ch |" >> "$out"
+            { echo; echo "<details><summary><b>$name</b>: full plan</summary>"; echo; cat "$BNK_REPORT_MD" 2>/dev/null; echo; echo "</details>"; } >> "$RUNNER_TEMP/details.md"
+          done < "$RUNNER_TEMP/targets"
+          { cat "$RUNNER_TEMP/details.md"; echo; echo "_Merging applies this plan. Re-plans on every push. Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}_"; } >> "$out"
+          cat "$out" >> "${GITHUB_STEP_SUMMARY:-/dev/null}" 2>/dev/null || true
+          exit $rc
+
+      - name: post the plan on the pull request
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          [ -f "$RUNNER_TEMP/plan.md" ] || exit 0
+          ./ci/comment.sh "${{ github.event.pull_request.number }}" "$RUNNER_TEMP/plan.md"
+
+      - name: wipe credentials
+        if: always()
+        run: rm -f "$RUNNER_TEMP/far.json"

@@ -1,0 +1,10 @@
+.git
+.github
+instruqt
+lab
+docs
+argocd
+forge
+*.md
+!README.md
+work/

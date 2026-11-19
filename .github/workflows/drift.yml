@@ -1,0 +1,50 @@
+name: drift
+
+# Day 2 in CI. Every morning (and on demand) plan every enabled cluster against main. A plan with
+# changes means the cluster is no longer what main says: someone edited it by hand, or an install
+# never finished. Drift opens an issue (or updates the open one) with the diff, and a clean run
+# closes it. Then the verification phase re-checks health.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 6 * * *"
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  drift:
+    if: vars.BNK_INSTALLER == 'pipeline'
+    runs-on: [self-hosted, bnk]
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: pinned tools
+        run: ./ci/tools.sh
+      - name: plan against main, verify health
+        env:
+          FAR_PULL_B64: ${{ secrets.FAR_PULL_B64 }}
+        run: |
+          umask 077; printf '%s' "$FAR_PULL_B64" > "$RUNNER_TEMP/far.json"
+          export FAR_PULL_JSON="$RUNNER_TEMP/far.json"
+          : > "$RUNNER_TEMP/drift.md"; drifted=0; unhealthy=0
+          for f in $(./ci/targets.sh --all); do
+            name="$(yq -r .name "$f")"
+            export BNK_REPORT_MD="$RUNNER_TEMP/report-$name.md" BNK_CHANGES_FILE="$RUNNER_TEMP/changes-$name.txt"
+            ./install.sh --cluster "$f" --plan >/dev/null 2>&1 || true
+            if [ -s "$BNK_CHANGES_FILE" ]; then
+              drifted=1
+              { echo "### \`$name\` differs from main"; echo; cat "$BNK_REPORT_MD"; echo; } >> "$RUNNER_TEMP/drift.md"
+            fi
+            unset BNK_REPORT_MD BNK_CHANGES_FILE
+            ./install.sh --cluster "$f" --phase 70 || unhealthy=1
+          done
+          echo "drifted=$drifted" >> "$GITHUB_ENV"; echo "unhealthy=$unhealthy" >> "$GITHUB_ENV"
+          rm -f "$RUNNER_TEMP/far.json"
+      - name: open, update or close the drift issue
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./ci/drift-issue.sh "$drifted" "$RUNNER_TEMP/drift.md"
+      - name: fail when unhealthy
+        run: '[ "$unhealthy" = 0 ] || { echo "::error::a cluster failed verification"; exit 1; }'

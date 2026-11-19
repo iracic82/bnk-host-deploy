@@ -1,0 +1,34 @@
+name: ci
+
+# Static checks on every pull request and every push. Needs no cluster and no secrets, so it runs
+# on any runner, and it is the gate every other workflow sits behind.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  static:
+    name: lint, render, cluster files
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: pinned tools
+        run: ./ci/tools.sh
+      - name: shell and YAML lint
+        run: ./tests/lint.sh
+      - name: CNEInstance renders with the pinned versions
+        run: ./tests/render.sh
+      - name: cluster files are valid
+        run: ./tests/cluster.sh
+
+  forge-module:
+    name: Forge module (Forge's own validator)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: validate forge/ exactly as a Forge sync would
+        run: ./tests/forge.sh

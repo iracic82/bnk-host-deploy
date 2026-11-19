@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "blueprint": {
+    "id": "bnk-host-2-4",
+    "version": "1.0.0",
+    "name": "BNK 2.4.2 Host on an existing cluster",
+    "description": "Installs F5 BIG-IP Next for Kubernetes 2.4.2 in Host mode on a cluster you already run, with the installer from the bnk-host-deploy repository."
+  },
+  "category": "bnk",
+  "cloud_provider": "any",
+  "bnk_version": "2.4",
+  "estimated_time": "20-30 minutes",
+  "difficulty": "intermediate",
+  "maturity": "reference",
+  "tags": ["bnk", "host", "2.4", "flo", "self-managed"],
+  "outcomes": [
+    "Multus and cert-manager, with the CA issuer BNK signs from",
+    "F5 Lifecycle Operator v2.30.0-0.11.4",
+    "CNEInstance on release manifest 2.4.2, TMM on the node you name",
+    "Licence Active, verification passed, the cluster registered in Forge"
+  ],
+  "prerequisites": [
+    { "type": "project_secret", "name": "kubeconfig", "description": "A kubeconfig for the target cluster, reachable from Forge's runner containers." },
+    { "type": "project_secret", "name": "far_service_account_key", "description": "The F5 Artifact Registry service-account key (cne_pull_64.json)." },
+    { "type": "project_secret", "name": "bnk_license_jwt", "description": "The BNK licence token from MyF5." }
+  ],
+  "inputs": {
+    "required": [
+      { "name": "tmm_node", "type": "string", "source": "user", "description": "The node TMM runs on (kubectl get nodes)." }
+    ],
+    "optional": [
+      { "name": "cluster_name", "type": "string", "source": "user", "default": "lab", "description": "Cluster name." }
+    ]
+  },
+  "modules": [
+    { "id": "bnk", "module": "forge/bnk-host", "version": "1.0.0", "depends_on": [],
+      "inputs": { "tmm_node": "${tmm_node}", "cluster_name": "${cluster_name}" } }
+  ]
+}

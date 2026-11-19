@@ -1,0 +1,19 @@
+# TMM's legs. Multus reads these when the TMM pod starts and plugs one macvlan per entry into it.
+# macvlan in bridge mode gives TMM its own MAC on the node's NIC, like a VM on a physical port.
+#
+#   external-net  on eth1: the node's NIC into the dc-edge network, where the edge router lives
+#   internal-net  on eth2: a second NIC of the same node into the kind network. A macvlan child
+#                 cannot talk to its own parent, so TMM needs a parent other than eth0 to reach
+#                 the node it runs on (and the pods behind it).
+# "ipam": {} because TMM owns its addressing: self IPs come from lab.network.yaml, not from CNI.
+apiVersion: k8s.cni.cncf.io/v1
+kind: NetworkAttachmentDefinition
+metadata: {name: external-net}
+spec:
+  config: '{"cniVersion":"0.3.1","type":"macvlan","master":"eth1","mode":"bridge","ipam":{}}'
+---
+apiVersion: k8s.cni.cncf.io/v1
+kind: NetworkAttachmentDefinition
+metadata: {name: internal-net}
+spec:
+  config: '{"cniVersion":"0.3.1","type":"macvlan","master":"eth2","mode":"bridge","ipam":{}}'

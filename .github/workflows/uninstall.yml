@@ -1,0 +1,31 @@
+name: uninstall
+
+# Removes BNK from one cluster. Manual only, and it asks you to type the cluster name back.
+on:
+  workflow_dispatch:
+    inputs:
+      cluster:
+        description: "Cluster file, e.g. clusters/lab.yaml"
+        required: true
+      confirm:
+        description: "Type the cluster name (e.g. lab) to confirm"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  uninstall:
+    runs-on: [self-hosted, bnk]
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: pinned tools
+        run: ./ci/tools.sh
+      - name: uninstall
+        run: |
+          name="$(yq -r .name "${{ inputs.cluster }}")"
+          [ "$name" = "${{ inputs.confirm }}" ] || { echo "::error::confirmation '${{ inputs.confirm }}' does not match cluster '$name'"; exit 1; }
+          ctx="$(yq -r '.kube_context // ""' "${{ inputs.cluster }}")"
+          [ -n "$ctx" ] && kubectl config use-context "$ctx"
+          ./uninstall.sh

@@ -1,0 +1,26 @@
+name: apps
+
+# Application delivery for the pipeline path: whatever is merged under apps/ is applied to the
+# cluster. (On the Argo CD path the "apps" Application does this continuously, with self-heal.)
+on:
+  push:
+    branches: [main]
+    paths: [apps/**]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  apply:
+    if: vars.BNK_INSTALLER == 'pipeline'
+    runs-on: [self-hosted, bnk]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: server-side dry run first
+        run: kubectl apply -R -f apps/ --dry-run=server
+      - name: apply
+        run: kubectl apply -R -f apps/
+      - name: what is running
+        run: kubectl get deploy,svc,gateway,httproute -A -l app.kubernetes.io/part-of=apps 2>/dev/null || true

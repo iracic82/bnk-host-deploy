@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Nothing leaves the sandbox; make sure no credential copy survives on disk either way.
+shred -u /root/.bnk/* 2>/dev/null || true
+exit 0

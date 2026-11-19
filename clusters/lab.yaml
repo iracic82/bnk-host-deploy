@@ -1,0 +1,31 @@
+# The lab cluster: three kind nodes on one VM, Calico, kind's local-path "standard" StorageClass.
+#
+# This file is the desired state of one cluster. Change it in a pull request:
+#   - the plan job validates it and shows the exact objects an install would create
+#   - merging to main runs the deploy job, which installs (or re-converges) BNK here
+#
+# Companion files, applied by the installer in order:
+#   lab.attachments.yaml   the Multus legs TMM plugs into (phase 45, before the CNEInstance)
+#   lab.network.yaml       TMM's VLANs, self IPs, VIP pool and GatewayClass (phase 55, after it)
+name: lab
+description: Training cluster, three kind nodes, BNK in host mode with an external and an internal leg.
+
+environment: lab              # policy from environments/lab.env (timeouts, licence rules, size)
+kube_context: kind-bnk        # the context in the runner's kubeconfig
+storage_class: standard
+pod_cidr: 192.168.0.0/16      # Calico's pool
+pseudo_cni_exclude:           # never steer these through TMM: services, the node network, the VIP pool
+  - 10.96.0.0/12
+  - 172.18.0.0/16
+  - 10.30.30.0/24
+
+tmm:
+  nodes: []                   # TODO: the node TMM runs on, e.g. [bnk-worker] (kubectl get nodes)
+  manage_labels: true         # the installer applies app=f5-tmm to it
+  networks:                   # TMM interfaces in order: 1.1, 1.2 (defined in lab.attachments.yaml)
+    - external-net            # 1.1: toward the data-center router, where clients come from
+    - internal-net            # 1.2: toward the nodes and their pods
+
+legacy_network_model: true    # VIPs from an F5BnkGateway pool, VLANs as F5SPKVlan (see lab.network.yaml)
+
+enabled: false                # TODO: true = "this cluster should have BNK"

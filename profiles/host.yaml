@@ -1,0 +1,54 @@
+# BNK on Host. TMM runs as a software pod on host CPU.
+# No scalable functions, no SR-IOV, no VFIO, no NetworkAttachmentDefinitions. Verified against
+# the f5-tmm chart, whose defaults are network.attachment empty and vfio.enabled false, and
+# against the CNEInstance CRD schema, which requires only certificate, deploymentSize,
+# manifestVersion, product and registry.
+apiVersion: k8s.f5.com/v1
+kind: CNEInstance
+metadata:
+  name: f5-bnk-instance
+spec:
+  product:
+    gatewayAPI: true
+    type: BNK
+  manifestVersion: "__MANIFEST__"
+__CLUSTERSCOPE__
+__ATTACHMENTS__
+__EPPNAMESPACES__
+  dpu:
+    enabled: __DPUENABLED__
+  telemetry:
+    loggingSubsystem: { enabled: true }
+    metricSubsystem: { enabled: true }
+  certificate:
+    clusterIssuer: __ISSUER__
+  deploymentSize: __SIZE__
+  registry:
+    uri: __REPO__
+    imagePullSecrets:
+      - name: far-pull-secret
+    imagePullPolicy: IfNotPresent
+  storageClassName: __STORAGECLASS__
+  dynamicRouting: { enabled: __DYNROUTE__ }
+  firewallACL: { enabled: true }
+  pseudoCNI: { enabled: true }
+  coreCollection: { enabled: __CORECOLLECT__ }
+  advanced:
+__CNECONTROLLER__
+    tmm:
+      env:
+__CALICOROUTER__
+        - name: TMM_DEFAULT_MTU
+          value: "__MTU__"
+        # true only when networkAttachments are used (BNK_TMM_MAPRES): maps the extra macvlan legs
+        # onto TMM's data plane so interfaces 1.1/1.2 appear. Harmless ("false") without attachments.
+        - name: TMM_MAPRES_ADDL_VETHS_ON_DP
+          value: "__MAPRES__"
+    pseudoCNI:
+      env:
+        - name: EXCLUDE_CIDR
+          value: "__PODCIDR__"
+        # disable checksum offload on TMM's interfaces - required when the data NICs ride a gretap
+        # overlay (offloaded checksums are wrong after GRE encap, so packets drop). false by default.
+        - name: DISABLE_CHECKSUM_OFFLOAD
+          value: "__CHKOFF__"

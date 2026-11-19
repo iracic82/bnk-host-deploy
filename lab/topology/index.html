@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lab Topology</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --panel: #ffffff; --ink: #1d2433; --muted: #6b7385; --line: #c9ced8;
+    --on: #1f9d55; --on-bg: #e6f6ed; --off: #9aa3b2; --off-bg: #eef0f4; --warn: #c27c0e; --warn-bg: #fdf3e1;
+    --accent: #e4002b; --wire: #5b6b8c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #11151c; --panel: #1a202b; --ink: #e6e9ef; --muted: #8d96a8; --line: #2e3646;
+      --on: #3ccf7e; --on-bg: #143222; --off: #6c7587; --off-bg: #222a37; --warn: #f0b44c; --warn-bg: #3a2c12;
+      --accent: #ff4d6a; --wire: #7f8fb0; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { display: flex; align-items: baseline; gap: 12px; padding: 14px 20px 4px; flex-wrap: wrap; }
+  header h1 { font-size: 18px; margin: 0; }
+  header .sub { color: var(--muted); }
+  #ts { margin-left: auto; color: var(--muted); font-size: 12px; }
+  main { padding: 8px 16px 20px; }
+  svg { width: 100%; height: auto; display: block; }
+  .box { fill: var(--panel); stroke: var(--line); stroke-width: 1.5; }
+  .zone { fill: none; stroke: var(--line); stroke-dasharray: 6 5; stroke-width: 1.5; }
+  .zl { fill: var(--muted); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; }
+  .t { fill: var(--ink); font-size: 14px; font-weight: 600; }
+  .s { fill: var(--muted); font-size: 12px; }
+  .wire { stroke: var(--wire); stroke-width: 2; fill: none; }
+  .wire.dash { stroke-dasharray: 5 5; }
+  .dot { r: 6; }
+  .on .dot, .dot.on { fill: var(--on); }
+  .off .dot, .dot.off { fill: var(--off); }
+  .on .box { stroke: var(--on); fill: var(--on-bg); }
+  .tmm .box { stroke: var(--accent); }
+  .pill { font-size: 12px; }
+  .legend { display: flex; gap: 18px; color: var(--muted); font-size: 12px; padding: 4px 20px; flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
+  .legend .l-on::before { background: var(--on); } .legend .l-off::before { background: var(--off); }
+  .legend .l-tmm::before { background: var(--accent); }
+  table { border-collapse: collapse; margin: 6px 4px 0; font-size: 13px; }
+  td { padding: 3px 14px 3px 0; } td:first-child { color: var(--muted); }
+</style>
+</head>
+<body>
+<header>
+  <h1>BIG-IP Next for Kubernetes: lab topology</h1>
+  <span class="sub">one sandbox, live. Boxes turn green as you build them.</span>
+  <span id="ts">connecting...</span>
+</header>
+<div class="legend"><span class="l-on">running</span><span class="l-off">not built yet</span><span class="l-tmm">BNK data plane (TMM)</span></div>
+<main>
+<svg viewBox="0 0 1200 640" role="img" aria-label="Lab topology diagram">
+  <!-- zones -->
+  <rect class="zone" x="10" y="20" width="270" height="470" rx="14"/><text class="zl" x="26" y="42">Data center edge</text>
+  <rect class="zone" x="300" y="20" width="560" height="470" rx="14"/><text class="zl" x="316" y="42">Kubernetes cluster "bnk" (kind, Calico)</text>
+  <rect class="zone" x="880" y="20" width="310" height="470" rx="14"/><text class="zl" x="896" y="42">Platform tooling</text>
+
+  <!-- wires -->
+  <path class="wire" d="M145 140 V200"/>
+  <path class="wire" d="M145 280 V380 H300"/><text class="s" x="160" y="372">dc-edge 10.10.10.0/24</text>
+  <path class="wire" d="M300 380 H560 V330"/>
+  <path class="wire dash" d="M880 120 H860"/><path class="wire dash" d="M880 230 H860"/><path class="wire dash" d="M880 340 H860"/>
+  <text class="s" x="866" y="108" text-anchor="end">kubectl / API</text>
+
+  <!-- client + router -->
+  <g id="client" class="off"><rect class="box" x="40" y="70" width="210" height="70" rx="10"/><circle class="dot" cx="230" cy="88"/>
+    <text class="t" x="56" y="98">client</text><text class="s" x="56" y="120">10.20.20.10, a user</text></g>
+  <g id="router" class="off"><rect class="box" x="40" y="200" width="210" height="80" rx="10"/><circle class="dot" cx="230" cy="218"/>
+    <text class="t" x="56" y="228">edge-router (FRR)</text><text class="s" x="56" y="248">.254 on both networks</text>
+    <text class="s" x="56" y="266" id="router-mode">VIPs 10.30.30.0/24 → .11</text></g>
+
+  <!-- nodes -->
+  <g id="node-bnk-control-plane" class="off"><rect class="box" x="320" y="60" width="160" height="90" rx="10"/><circle class="dot" cx="462" cy="78"/>
+    <text class="t" x="336" y="88">control-plane</text><text class="s" x="336" y="110">bnk-control-plane</text><text class="s nodehp" x="336" y="130"></text></g>
+  <g id="node-bnk-worker2" class="off"><rect class="box" x="320" y="170" width="160" height="90" rx="10"/><circle class="dot" cx="462" cy="188"/>
+    <text class="t" x="336" y="198">worker</text><text class="s" x="336" y="220">bnk-worker2</text><text class="s nodehp" x="336" y="240"></text></g>
+  <g id="node-bnk-worker" class="off"><rect class="box" x="500" y="60" width="340" height="270" rx="10"/><circle class="dot" cx="822" cy="78"/>
+    <text class="t" x="516" y="88">worker (TMM node)</text><text class="s" x="516" y="110">bnk-worker</text><text class="s nodehp" x="516" y="130"></text></g>
+  <g id="tmm" class="off tmm"><rect class="box" x="520" y="200" width="300" height="110" rx="10"/><circle class="dot" cx="802" cy="218"/>
+    <text class="t" x="536" y="228">TMM, BNK's data plane</text>
+    <text class="s" x="536" y="250">1.1 external 10.10.10.11 (eth1)</text>
+    <text class="s" x="536" y="270">1.2 internal 172.18.0.250 (eth2)</text>
+    <text class="s" x="536" y="290" id="tmm-state">not installed</text></g>
+  <g id="cp" class="off"><rect class="box" x="320" y="350" width="520" height="120" rx="10"/><circle class="dot" cx="822" cy="368"/>
+    <text class="t" x="336" y="378">BNK control plane</text>
+    <text class="s" x="336" y="400" id="cp-flo">F5 Lifecycle Operator: -</text>
+    <text class="s" x="336" y="420" id="cp-cne">CNEInstance: -</text>
+    <text class="s" x="336" y="440" id="cp-lic">Licence: -</text>
+    <text class="s" x="336" y="460" id="cp-gw">GatewayClass: -</text></g>
+
+  <!-- tooling -->
+  <g id="gitea" class="off"><rect class="box" x="900" y="70" width="270" height="90" rx="10"/><circle class="dot" cx="1152" cy="88"/>
+    <text class="t" x="916" y="98">Gitea + Actions</text><text class="s" x="916" y="120">platform/bnk-host-deploy</text>
+    <text class="s" x="916" y="140" id="runner">runner: not registered</text></g>
+  <g id="forge" class="off"><rect class="box" x="900" y="190" width="270" height="70" rx="10"/><circle class="dot" cx="1152" cy="208"/>
+    <text class="t" x="916" y="218">BNK Forge</text><text class="s" x="916" y="240">deploy + Day-2, container modules</text></g>
+  <g id="argocd" class="off"><rect class="box" x="900" y="290" width="270" height="90" rx="10"/><circle class="dot" cx="1152" cy="308"/>
+    <text class="t" x="916" y="318">Argo CD</text><text class="s" x="916" y="340" id="argo-apps">not installed</text></g>
+  <g id="registry" class="off"><rect class="box" x="900" y="400" width="270" height="70" rx="10"/><circle class="dot" cx="1152" cy="418"/>
+    <text class="t" x="916" y="428">Lab registry :5000</text><text class="s" x="916" y="450">the installer's runner image</text></g>
+
+  <!-- gateways strip -->
+  <text class="zl" x="26" y="530">Gateways (VIPs from 10.30.30.0/24)</text>
+  <text class="s" x="26" y="556" id="gws">none yet</text>
+</svg>
+<table id="details"></table>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const set = (id, on) => { const e = $(id); if (e) { e.classList.toggle('on', !!on); e.classList.toggle('off', !on); } };
+async function tick() {
+  try {
+    const s = await (await fetch('api/status', {cache: 'no-store'})).json();
+    if (!s.ts) { $('ts').textContent = 'collecting...'; return; }
+    $('ts').textContent = 'updated ' + new Date(s.ts * 1000).toLocaleTimeString();
+    (s.nodes || []).forEach(n => {
+      set('node-' + n.name, n.ready);
+      const g = $('node-' + n.name); if (g) g.querySelector('.nodehp').textContent =
+        'hugepages ' + n.hugepages + (n.tmm ? ', label app=f5-tmm' : '');
+    });
+    const c = s.containers || {};
+    set('client', c.client); set('router', c['edge-router']); set('gitea', c.gitea);
+    set('registry', c['lab-registry']); set('forge', c['bnk-forge-backend']);
+    $('runner').textContent = 'runner: ' + (s.runner ? 'online beside the cluster' : 'not registered');
+    $('router-mode').textContent = s.bgp ? 'BGP with TMM: Established' : 'VIPs 10.30.30.0/24 → .11 (static)';
+    const tmmOk = (s.tmm || []).some(t => t.ready);
+    set('tmm', tmmOk);
+    $('tmm-state').textContent = (s.tmm || []).length ? ((tmmOk ? 'running on ' : 'starting on ') + s.tmm[0].node) : 'not installed';
+    set('cp', s.flo);
+    $('cp-flo').textContent = 'F5 Lifecycle Operator: ' + (s.flo ? 'running' : 'not installed');
+    $('cp-cne').textContent = 'CNEInstance: ' + (s.cne.present ? (s.cne.version + (s.cne.available ? ', Available' : ', reconciling')) : 'none');
+    $('cp-lic').textContent = 'Licence: ' + (s.license || 'none');
+    $('cp-gw').textContent = 'GatewayClass f5-gateway-class: ' + (s.gatewayclass ? 'Accepted' : '-');
+    const a = s.argocd || {}; set('argocd', a.installed);
+    $('argo-apps').textContent = a.installed ? ((a.apps || []).map(x => x.name + ': ' + (x.sync || '?') + '/' + (x.health || '?')).join('   ') || 'no applications') : 'not installed';
+    $('gws').textContent = (s.gateways || []).length ? s.gateways.map(g => g.name + ' @ ' + (g.address || 'pending') + (g.programmed ? ' (programmed)' : '')).join('    ') : 'none yet';
+  } catch (e) { $('ts').textContent = 'status unavailable'; }
+}
+tick(); setInterval(tick, 5000);
+</script>
+</body>
+</html>

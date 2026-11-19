@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -uo pipefail
+source /opt/lab/lib.sh; source /opt/lab/ci-helpers.sh
+pid=$(forge_api GET /api/projects 2>/dev/null | jq -r '(.projects // .items // .)[]? | select(.name=="bnk-lab") | .id' | head -1)
+[[ -n "$pid" ]] || { fail-message "No Forge project bnk-lab. Finish the previous challenge first."; exit 1; }
+s=$(forge_api GET "/api/project-modules/project/${pid}" | jq -r '[(.modules // .items // .)[]? | (.status // .state)] | first // "none"')
+case "$s" in
+  applied|deployed|success|completed) ;;
+  failed|error) fail-message "The Forge deployment failed. Open the module's log in Forge, fix, and press Retry."; exit 1 ;;
+  *) fail-message "The Forge deployment is '$s'. A cold install takes 15-25 minutes; follow it in Forge."; exit 1 ;;
+esac
+bnk_available || { fail-message "Forge says applied but the CNEInstance is not Available yet. kubectl -n f5-bnk get cneinstance f5-bnk-instance -o yaml"; exit 1; }
+exit 0

@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+export PATH=/usr/local/bin:$PATH KUBECONFIG=/root/.kube/config
+source /opt/lab/lib.sh; source /opt/lab/ci-helpers.sh
+lab ci-secrets
+cd "$WORKSPACE"; git checkout -q main; git pull -q
+git checkout -q -B enable-lab-cluster
+yq -i '.tmm.nodes = ["bnk-worker"] | .enabled = true' clusters/lab.yaml
+./tests/cluster.sh clusters/lab.yaml
+git commit -qam "clusters/lab: install BNK, TMM on bnk-worker" || true
+git push -q -f -u origin enable-lab-cluster
+sha=$(git rev-parse HEAD)
+n=$(open_pr enable-lab-cluster "Install BNK on the lab cluster")
+echo "PR #$n plan: $(wait_run plan.yml "$sha" 900 || true)"

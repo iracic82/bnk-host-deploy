@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+export PATH=/usr/local/bin:$PATH KUBECONFIG=/root/.kube/config
+source /opt/lab/lib.sh; source /opt/lab/ci-helpers.sh
+cd "$WORKSPACE"; git checkout -q main; git pull -q
+if [[ ! -f apps/hello/hello.yaml ]]; then
+  git checkout -q -B hello-app; mkdir -p apps/hello; cp docs/examples/hello/hello.yaml apps/hello/hello.yaml
+  git add apps/hello; git commit -qm "apps: hello, the first app behind BNK"; git push -q -f -u origin hello-app
+  merge_pr "$(open_pr hello-app 'apps: hello')"; git checkout -q main; git pull -q
+fi
+# whichever path owns the cluster, make sure it is applied (the Forge path applies by hand)
+kubectl apply -f apps/hello/hello.yaml >/dev/null
+for _ in $(seq 1 60); do docker exec client curl -s -m 5 http://10.30.30.10/ 2>/dev/null | grep -q 'Hostname: hello-' && exit 0; sleep 10; done
+echo "no answer on the VIP yet"; exit 1

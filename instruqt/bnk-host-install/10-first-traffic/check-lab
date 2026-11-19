@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -uo pipefail
+kubectl -n hello get gateway hello >/dev/null 2>&1 || { fail-message "No Gateway hello yet. Merge the hello-app pull request (step 3)."; exit 1; }
+out=$(docker exec client curl -s -m 5 http://10.30.30.10/ 2>/dev/null || true)
+grep -q 'Hostname: hello-' <<<"$out" || { fail-message "A request from the client to http://10.30.30.10/ got no answer from a hello pod. Check: kubectl -n hello get gateway hello (PROGRAMMED should be True)."; exit 1; }
+exit 0

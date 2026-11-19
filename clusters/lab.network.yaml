@@ -1,0 +1,46 @@
+# TMM's network, applied once BNK's CRDs exist. This is NetOps' half of the Gateway API story: the
+# addresses and the class. App teams then only write Gateways and Routes against it.
+#
+#   dc-edge  10.10.10.0/24   edge router .254, TMM external self IP .11
+#   kind     172.18.0.0/16   the node network; TMM internal self IP .250
+#   VIPs     10.30.30.0/24   handed out to Gateways from .10 to .29; the edge router routes it to .11
+apiVersion: k8s.f5net.com/v1
+kind: F5SPKVlan
+metadata: {name: external, namespace: f5-bnk}
+spec:
+  name: external
+  interfaces: ["1.1"]
+  selfip_v4s: [10.10.10.11]
+  prefixlen_v4: 24
+  auto_lasthop: AUTO_LASTHOP_ENABLED     # answer clients via the router they came through
+---
+apiVersion: k8s.f5net.com/v1
+kind: F5SPKVlan
+metadata: {name: internal, namespace: f5-bnk}
+spec:
+  name: internal
+  interfaces: ["1.2"]
+  internal: true                         # the side that faces the nodes and pods
+  selfip_v4s: [172.18.0.250]
+  prefixlen_v4: 16
+  auto_lasthop: AUTO_LASTHOP_ENABLED
+---
+# The VIP pool. A Gateway that names no address gets the next free one from this range.
+apiVersion: k8s.f5net.com/v1
+kind: F5BnkGateway
+metadata: {name: f5-bnkgateway, namespace: f5-bnk}
+spec:
+  ingressConfig:
+    defaultListenerNetworks:
+    - name: default_ipv4
+      ipv4BaseCidr: 10.30.30.0/24
+      startAddress: 10.30.30.10
+      endAddress: 10.30.30.29
+---
+# Binds Gateway API objects to this BNK instance. The controller name is f5.com/<BNK namespace>-f5-cne-controller.
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata: {name: f5-gateway-class}
+spec:
+  controllerName: f5.com/f5-bnk-f5-cne-controller
+  description: F5 BIG-IP Next for Kubernetes

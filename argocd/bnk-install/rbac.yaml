@@ -1,0 +1,20 @@
+# The installer creates namespaces, CRDs, cluster-scoped issuers and labels nodes, so it needs
+# cluster-admin, exactly like the CI runner's kubeconfig and Forge's. Scope it to this one
+# service account in a namespace nothing else runs in.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: bnk-installer
+  namespace: bnk-installer
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: bnk-installer
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: ClusterRole, name: cluster-admin}
+subjects:
+  - {kind: ServiceAccount, name: bnk-installer, namespace: bnk-installer}

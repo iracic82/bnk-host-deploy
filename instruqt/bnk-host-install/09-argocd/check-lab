@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -uo pipefail
+source /opt/lab/lib.sh; source /opt/lab/ci-helpers.sh
+kubectl get ns argocd >/dev/null 2>&1 || { fail-message "Argo CD is not installed. Run 'lab argocd' (step 2)."; exit 1; }
+kubectl -n argocd get application bnk-install >/dev/null 2>&1 || { fail-message "The bnk-install Application is missing. Run 'lab argocd' again."; exit 1; }
+ph=$(kubectl -n argocd get application bnk-install -o jsonpath='{.status.operationState.phase}' 2>/dev/null)
+case "$ph" in
+  Succeeded) ;;
+  Running) fail-message "The sync is still running. Follow the Job's log: kubectl -n bnk-installer logs -f job/bnk-install"; exit 1 ;;
+  Failed|Error) fail-message "The last sync failed. Open bnk-install in Argo CD and read the Job's log."; exit 1 ;;
+  *) fail-message "bnk-install has not been synced yet. Merge the pull request (step 3), then press Sync (step 4)."; exit 1 ;;
+esac
+bnk_available || { fail-message "The sync succeeded but the CNEInstance is not Available yet."; exit 1; }
+exit 0

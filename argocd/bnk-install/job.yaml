@@ -1,0 +1,43 @@
+# The install, as an Argo CD Sync hook: every sync runs the installer once, to completion, and Argo
+# shows its log. Every phase converges, so a sync with nothing changed changes nothing.
+#
+# Credentials are NOT in git. The Secret bnk-install-credentials (keys cne_pull_64.json and
+# license.jwt) is created out of band; in production that is External Secrets or Sealed Secrets.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: bnk-install
+  namespace: bnk-installer
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 1
+  activeDeadlineSeconds: 5400
+  template:
+    spec:
+      serviceAccountName: bnk-installer
+      restartPolicy: Never
+      securityContext: {runAsNonRoot: true, runAsUser: 1000, fsGroup: 1000}
+      containers:
+        - name: install
+          image: ghcr.io/iracic82/bnk-host-deploy@sha256:0000000000000000000000000000000000000000000000000000000000000000
+          args: ["install"]
+          env:
+            - {name: BNK_CLUSTER_FILE, value: /config/lab.yaml}
+            - {name: BNK_IN_CLUSTER, value: "true"}
+            - {name: WORK, value: /work}
+          resources:
+            requests: {cpu: 100m, memory: 256Mi}
+            limits: {cpu: "1", memory: 1Gi}
+          volumeMounts:
+            - {name: work, mountPath: /work}
+            - {name: config, mountPath: /config, readOnly: true}
+            - {name: credentials, mountPath: /work/secrets, readOnly: true}
+      volumes:
+        - {name: work, emptyDir: {}}
+        - {name: config, configMap: {name: bnk-cluster}}
+        - name: credentials
+          secret:
+            secretName: bnk-install-credentials
+            defaultMode: 0440

@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -uo pipefail
+for c in edge-router client; do
+  docker ps --format '{{.Names}}' | grep -qx "$c" || { fail-message "The $c container is not running. Run 'lab network'."; exit 1; }
+done
+docker exec edge-router vtysh -c 'show ip route static' 2>/dev/null | grep -q '10.30.30.0/24' \
+  || { fail-message "edge-router has no route to the VIP pool 10.30.30.0/24. Run 'lab network' again."; exit 1; }
+docker exec client ip route | grep -q 'default via 10.20.20.254' \
+  || { fail-message "The client's default route does not point at the edge router. Run 'lab network' again."; exit 1; }
+exit 0

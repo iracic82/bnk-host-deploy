@@ -1,0 +1,17 @@
+# Argo CD renders this with kustomize. The cluster's files come straight from clusters/ in git, so
+# a pull request that changes clusters/lab.yaml changes the ConfigMap, which changes the Job, which
+# Argo runs on the next sync. Needs kustomize.buildOptions: --load-restrictor LoadRestrictionsNone
+# in argocd-cm, because clusters/ sits outside this directory.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - namespace.yaml
+  - rbac.yaml
+  - job.yaml
+configMapGenerator:
+  - name: bnk-cluster
+    namespace: bnk-installer
+    files:
+      - ../../clusters/lab.yaml
+      - ../../clusters/lab.attachments.yaml
+      - ../../clusters/lab.network.yaml

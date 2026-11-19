@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# Track setup: a Kubernetes cluster without BNK, plus the tools a platform team already has (a git
+# server, an editor). Everything else, the learner builds. Idempotent: Instruqt may re-run it.
+set -euo pipefail
+exec > >(tee -a /var/log/setup-lab.log) 2>&1
+trap 'sleep 2' EXIT
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/.local/bin" HOME=/root
+fail() { echo "FAILED: $*" >&2; exit 1; }
+echo "### $(date -u +%T) secrets"
+for s in FAR_PULL_B64 BNK_HOST_LAB_JWT; do [ -n "${!s:-}" ] || fail "$s missing: add it as a team secret and list it in config.yml"; done
+SECRETS_DIR=/root/.bnk; umask 077; mkdir -p "$SECRETS_DIR"
+printf '%s' "$FAR_PULL_B64" > "$SECRETS_DIR/cne_pull_64.json"
+printf '%s' "$BNK_HOST_LAB_JWT" | tr -d '\n\r ' > "$SECRETS_DIR/license.jwt"
+unset FAR_PULL_B64 BNK_HOST_LAB_JWT; umask 022
+
+echo "### $(date -u +%T) repository ${LAB_REPO:-github.com/iracic82/bnk-host-deploy.git}@${LAB_REF:-main}"
+R=/root/bnk-host-deploy
+if [ -d "$R/.git" ]; then git -C "$R" fetch -q --depth 1 origin "${LAB_REF:-main}" && git -C "$R" checkout -q -f FETCH_HEAD
+else git clone -q --depth 1 --branch "${LAB_REF:-main}" "https://${LAB_REPO:-github.com/iracic82/bnk-host-deploy.git}" "$R"; fi
+echo "at $(git -C "$R" rev-parse --short HEAD)"
+
+for s in 00-host 05-mirrors 10-cluster 20-gitea 25-vault 30-code-server 70-topology 80-learner; do
+  echo "### $(date -u +%T) lab/$s.sh"; bash "$R/lab/$s.sh"
+done
+
+# The credentials now live only in the lab vault (a Secret in the cluster). No file copy remains.
+shred -u "$SECRETS_DIR"/cne_pull_64.json "$SECRETS_DIR"/license.jwt 2>/dev/null || true
+echo "READY $(date -u +%T)"

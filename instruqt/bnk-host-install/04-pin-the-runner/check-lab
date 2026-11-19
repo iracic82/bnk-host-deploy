@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -uo pipefail
+source /opt/lab/lib.sh; source /opt/lab/ci-helpers.sh
+d=$(cat /root/.lab/runner-digest 2>/dev/null) || { fail-message "No image built yet. Run 'lab image' (step 2)."; exit 1; }
+file_on_main forge/bnk-host/bnkforge.artifact.json | grep -q "$d" \
+  || { fail-message "main does not pin the image you built yet. Push your branch, open the pull request and merge it (steps 3-5)."; exit 1; }
+file_on_main argocd/bnk-install/job.yaml | grep -q "$d" \
+  || { fail-message "argocd/bnk-install/job.yaml on main does not carry the new digest. Did 'lab image' finish? Commit both changed files."; exit 1; }
+exit 0
