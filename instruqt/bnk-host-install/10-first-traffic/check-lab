@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+[ -n "${BASH_ENV:-}${ENV:-}" ] && echo "note: runner set BASH_ENV=${BASH_ENV:-} ENV=${ENV:-}, unset for child scripts" >&2
+unset BASH_ENV ENV
 set -uo pipefail
 kubectl -n hello get gateway hello >/dev/null 2>&1 || { fail-message "No Gateway hello yet. Merge the hello-app pull request (step 3)."; exit 1; }
 out=$(docker exec client curl -s -m 5 http://10.30.30.10/ 2>/dev/null || true)

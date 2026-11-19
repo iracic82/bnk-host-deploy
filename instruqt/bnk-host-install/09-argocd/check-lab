@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+[ -n "${BASH_ENV:-}${ENV:-}" ] && echo "note: runner set BASH_ENV=${BASH_ENV:-} ENV=${ENV:-}, unset for child scripts" >&2
+unset BASH_ENV ENV
 set -uo pipefail
 source /opt/lab/lib.sh; source /opt/lab/ci-helpers.sh
 kubectl get ns argocd >/dev/null 2>&1 || { fail-message "Argo CD is not installed. Run 'lab argocd' (step 2)."; exit 1; }

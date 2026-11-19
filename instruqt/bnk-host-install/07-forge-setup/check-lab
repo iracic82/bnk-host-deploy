@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+[ -n "${BASH_ENV:-}${ENV:-}" ] && echo "note: runner set BASH_ENV=${BASH_ENV:-} ENV=${ENV:-}, unset for child scripts" >&2
+unset BASH_ENV ENV
 set -uo pipefail
 source /opt/lab/lib.sh
 curl -fsSk -o /dev/null https://127.0.0.1:8443/api/system/health || { fail-message "Forge is not running. Run 'lab forge' (step 1)."; exit 1; }

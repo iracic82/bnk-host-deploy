@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+[ -n "${BASH_ENV:-}${ENV:-}" ] && echo "note: runner set BASH_ENV=${BASH_ENV:-} ENV=${ENV:-}, unset for child scripts" >&2
+unset BASH_ENV ENV
 set -uo pipefail
 source /opt/lab/lib.sh; source /opt/lab/ci-helpers.sh
 pid=$(forge_api GET /api/projects 2>/dev/null | jq -r '(if type=="array" then . else (.items // .sources // .projects // .clusters // .modules // .secrets // []) end)[] | select(.name=="bnk-lab") | .id' | head -1)

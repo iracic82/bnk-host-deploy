@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
+[ -n "${BASH_ENV:-}${ENV:-}" ] && echo "note: runner set BASH_ENV=${BASH_ENV:-} ENV=${ENV:-}, unset for child scripts" >&2
+unset BASH_ENV ENV
 set -euxo pipefail
 export PATH=/usr/local/bin:$PATH KUBECONFIG=/root/.kube/config
 cd /root/workspace/bnk-host-deploy
-ls -la; git log --oneline -2; git remote -v; git status -sb | head -5; ls -la tests || true
-./tests/cluster.sh >/dev/null
-./tests/render.sh >/dev/null
+/root/workspace/bnk-host-deploy/tests/cluster.sh >/dev/null
+/root/workspace/bnk-host-deploy/tests/render.sh >/dev/null
 lab runner
