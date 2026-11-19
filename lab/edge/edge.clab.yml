@@ -1,0 +1,39 @@
+# The data-center edge BNK serves, as code. `containerlab deploy -t edge.clab.yml` builds it;
+# `containerlab destroy -t edge.clab.yml` removes it. Every cable is a line under links:.
+#
+#   client eth1 ---- eth2 edge-router eth1 ---- eth1 bnk-worker
+#   10.20.20.10      .254   (FRR)    .254       (TMM's external leg: TMM takes 10.10.10.11)
+#   client-net 10.20.20.0/24          dc-edge 10.10.10.0/24
+name: edge
+prefix: ""                       # containers are named after the nodes: edge-router, client
+
+mgmt:
+  network: edge-mgmt             # containerlab's own management network, out of the data path
+  ipv4-subnet: 172.20.40.0/24
+
+topology:
+  nodes:
+    edge-router:
+      kind: linux
+      image: quay.io/frrouting/frr:10.6.2
+      sysctls:
+        net.ipv4.ip_forward: 1
+      binds:
+        - edge-router/daemons:/etc/frr/daemons
+        - edge-router/frr.conf:/etc/frr/frr.conf
+    client:
+      kind: linux
+      image: nicolaka/netshoot:v0.14
+      exec:
+        - ip addr add 10.20.20.10/24 dev eth1
+        - ip route replace default via 10.20.20.254 dev eth1
+    # A kind node that already exists. containerlab only plugs a cable into it.
+    bnk-worker:
+      kind: ext-container
+      exec:
+        - ip link set eth1 up
+        - ip link set eth1 mtu 1500
+
+  links:
+    - endpoints: ["edge-router:eth1", "bnk-worker:eth1"]   # dc-edge: where TMM will stand
+    - endpoints: ["edge-router:eth2", "client:eth1"]       # client-net: where users come from

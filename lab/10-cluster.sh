@@ -90,21 +90,9 @@ for n in $(kind get nodes --name "$KIND_CLUSTER"); do
 done
 rm -rf "$T"; ok "macvlan present on every node"
 
-step "bnk-worker's data-plane NICs (the physical ports TMM will own)"
-# eth1: into dc-edge, the data-center network the edge router sits on. The node itself keeps no
-# address there; only TMM, through its macvlan, will.
-docker network inspect dc-edge >/dev/null 2>&1 || docker network create dc-edge --subnet 10.10.10.0/24 --gateway 10.10.10.1 --ip-range 10.10.10.128/25 >/dev/null
-docker network inspect dc-edge -f '{{range $k,$v := .Containers}}{{$v.Name}} {{end}}' | grep -qw bnk-worker \
-  || docker network connect dc-edge bnk-worker
-w_eth1=$(docker exec bnk-worker sh -c "ip -o -4 addr | awk '/10\.10\.10\./{print \$2}'" | head -1)
-[[ -z "$w_eth1" || "$w_eth1" == eth1 ]] || fail "bnk-worker's dc-edge interface is $w_eth1, expected eth1 (lab.attachments.yaml names eth1)"
-# Docker may move a container's default route onto a network connected later (dc-edge sorts before
-# kind), and flushing eth1's address then deletes it. Without a default route the node cannot even
-# route to the service IP 10.96.0.1, so Calico's CNI plugin fails for every pod on it. Pin the
-# default route to the kind network, and prove it.
-docker exec bnk-worker ip -4 addr flush dev eth1
-docker exec bnk-worker ip route replace default via 172.18.0.1 dev eth0
-docker exec bnk-worker ip route show default | grep -q 'via 172.18.0.1 dev eth0' || fail "bnk-worker has no default route via the kind network"
+step "bnk-worker's internal data-plane NIC (eth1, the external one, is cabled by containerlab in challenge 2)"
+docker exec bnk-worker ip route show default | grep -q 'via 172.18.0.1 dev eth0' \
+  || fail "bnk-worker has no default route via the kind network; pods on it would get no network"
 # eth2: a second leg into the kind network. A macvlan child cannot reach its own parent, so with
 # eth0 as parent TMM could never talk to bnk-worker itself; eth2 is a parent that is not the node's.
 BR="br-$(docker network inspect kind -f '{{.Id}}' | cut -c1-12)"
@@ -115,7 +103,7 @@ if ! docker exec bnk-worker ip link show eth2 >/dev/null 2>&1; then
   ip link set tmm-int0 master "$BR" up
   docker exec bnk-worker ip link set eth2 up
 fi
-ok "bnk-worker: eth1 -> dc-edge (no node address), eth2 -> kind bridge $BR"
+ok "bnk-worker: eth2 -> kind bridge $BR (TMM internal leg)"
 
 step "every node can run pods (Calico's CNI answers on each one)"
 kubectl -n tigera-operator rollout restart deploy/tigera-operator >/dev/null 2>&1 || true

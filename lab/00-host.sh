@@ -23,7 +23,7 @@ hp=$(awk '/HugePages_Total/{print $2}' /proc/meminfo)
 ok "hugepages ${hp} x 2Mi, inotify and aio raised"
 
 step "base tools (the image carries docker, kind, kubectl, helm)"
-for t in docker kind kubectl helm git jq curl python3 make openssl; do need "$t"; done
+for t in docker kind containerlab kubectl helm git jq curl python3 make openssl; do need "$t"; done
 docker info >/dev/null 2>&1 || fail "docker is not running"
 export DEBIAN_FRONTEND=noninteractive
 command -v shellcheck >/dev/null || { apt-get update -qq >/dev/null; apt-get install -y -qq shellcheck xz-utils >/dev/null; }

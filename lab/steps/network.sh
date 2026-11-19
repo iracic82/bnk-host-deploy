@@ -1,75 +1,32 @@
 #!/usr/bin/env bash
-# lab network: build the data-center side BNK will serve. Two networks and two containers:
+# lab network: build the data-center edge BNK will serve, from a topology file, with containerlab.
 #
-#   client (10.20.20.10) --client-net-- edge-router (FRR) --dc-edge 10.10.10.0/24-- bnk-worker eth1
-#                                        .254 on both                                   (TMM's external leg)
+#   client eth1 ---- eth2 edge-router eth1 ---- eth1 bnk-worker
+#   10.20.20.10      .254   (FRR)    .254       (TMM's external leg: TMM takes 10.10.10.11)
 #
-# In a real data center these are your top-of-rack/edge router and a user somewhere behind it. The
-# router knows one thing about BNK: "the VIP range 10.30.30.0/24 is reached via 10.10.10.11", TMM's
-# external self IP. That static route is what BGP replaces later.
+# containerlab turns /opt/lab/edge/edge.clab.yml into containers and cables (veth pairs). The router's
+# whole configuration is /opt/lab/edge/edge-router/frr.conf. Change the files, redeploy, and the network
+# changes: the edge is code, like the cluster.
 source "$(dirname "$0")/../lib.sh"
-D=/root/.lab/frr; mkdir -p "$D"
+TOPO=/opt/lab/edge/edge.clab.yml
 
-step "1/4  client-net: the users' network"
-docker network inspect client-net >/dev/null 2>&1 || docker network create client-net --subnet 10.20.20.0/24 --gateway 10.20.20.1 >/dev/null
-docker network inspect dc-edge >/dev/null 2>&1 || fail "dc-edge is missing (setup creates it with the cluster)"
-ok "client-net 10.20.20.0/24, dc-edge 10.10.10.0/24 (bnk-worker's eth1 is already plugged in here)"
+step "1/4  the topology file"
+sed -n '/^topology:/,$p' "$TOPO" | grep -vE '^\s*#' | sed 's/^/      /'
 
-step "2/4  edge-router: FRRouting, the open-source router suite many vendors build on"
-cat > "$D/daemons" <<'CFG'
-zebra=yes
-bgpd=yes
-staticd=yes
-ospfd=no
-ospf6d=no
-ripd=no
-ripngd=no
-isisd=no
-pimd=no
-ldpd=no
-nhrpd=no
-eigrpd=no
-babeld=no
-sharpd=no
-pbrd=no
-bfdd=no
-fabricd=no
-vrrpd=no
-vtysh_enable=yes
-zebra_options="  -A 127.0.0.1 -s 90000000"
-bgpd_options="   -A 127.0.0.1"
-staticd_options="-A 127.0.0.1"
-CFG
-cat > "$D/frr.conf" <<'CFG'
-frr defaults traditional
-hostname edge-router
-log stdout informational
-ip forwarding
-!
-! The VIP pool lives behind TMM's external self IP.
-ip route 10.30.30.0/24 10.10.10.11
-!
-line vty
-CFG
-if ! docker ps --format '{{.Names}}' | grep -qx edge-router; then
-  docker rm -f edge-router >/dev/null 2>&1 || true
-  docker run -d --name edge-router --hostname edge-router --restart unless-stopped --privileged \
-    --network dc-edge --ip 10.10.10.254 -v "$D/daemons:/etc/frr/daemons" -v "$D/frr.conf:/etc/frr/frr.conf" \
-    "$FRR_IMAGE" >/dev/null
-  docker network connect --ip 10.20.20.254 client-net edge-router
+step "2/4  containerlab deploy"
+cd "$(dirname "$TOPO")" || exit 1
+if docker ps --format '{{.Names}}' | grep -qx edge-router; then
+  ok "already deployed (containerlab destroy -t $TOPO to start over)"
+else
+  containerlab deploy -t "$TOPO" 2>&1 | grep -E 'INFO|WARN|ERRO' | sed 's/^/      /' | tail -12
 fi
+containerlab inspect -t "$TOPO" 2>/dev/null | sed 's/^/      /'
+
+step "3/4  what got cabled"
+ok "bnk-worker: $(docker exec bnk-worker ip -br link show eth1 | awk '{print $1, $2}') (no address: TMM will own this port)"
+ok "client:     $(docker exec client ip -br addr show eth1 | awk '{print $1, $3}'), default via 10.20.20.254"
 for _ in $(seq 1 20); do docker exec edge-router vtysh -c 'show ip route static' 2>/dev/null | grep -q 10.30.30.0 && break; sleep 1; done
 docker exec edge-router vtysh -c 'show ip route' 2>/dev/null | grep -E '^(C|S)' | sed 's/^/      /'
-ok "edge-router up: 10.10.10.254 (dc-edge), 10.20.20.254 (client-net)"
-
-step "3/4  client: a box full of network tools (netshoot) that plays a user"
-if ! docker ps --format '{{.Names}}' | grep -qx client; then
-  docker rm -f client >/dev/null 2>&1 || true
-  docker run -d --name client --hostname client --restart unless-stopped --cap-add NET_ADMIN \
-    --network client-net --ip 10.20.20.10 "$CLIENT_IMAGE" sleep infinity >/dev/null
-fi
-docker exec client ip route replace default via 10.20.20.254
-ok "client 10.20.20.10, default route via edge-router"
 
 step "4/4  prove the path up to BNK's door"
 docker exec client ping -c1 -W2 10.20.20.254 >/dev/null && ok "client -> edge-router: reachable"
