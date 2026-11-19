@@ -31,6 +31,10 @@ FORGE_REGISTRY="ghcr.io/jlcode-tech"    # where this release's images are publis
 # redis-py 5.2.1, so no job can be queued and Deploy all fails with HTTP 500. lab forge builds a one-line
 # fix on top of the verified originals: kombu pinned to 5.5.4 (celery 5.4.0 accepts it, pip check is clean).
 FORGE_KOMBU_FIX="kombu==5.5.4"
+FORGE_KOMBU_SHA256="a12ed0557c238897d8e518f1d1fdf84bd1516c5e305af2dacd85c2015115feb8"   # kombu-5.5.4-py3-none-any.whl on PyPI
+# Forge runs the lab's own tag, never the upstream one: fixed images and untouched ones (re-tagged from
+# their verified digests) all carry it, so a lab-built image can't be mistaken for a published one.
+FORGE_RUN_TAG="4.3.4-labfix"
 FORGE_PATCH_IMAGES="bnk-forge-api bnk-forge-worker bnk-forge-beat"
 # The tag and the images live in a third-party namespace, and tags can move. Pin the content: the commit
 # the tag pointed at when this lab was checked, and each image's digest. lab forge refuses anything else.

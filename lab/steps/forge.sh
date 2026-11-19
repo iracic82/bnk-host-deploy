@@ -19,7 +19,7 @@ cd "$DST" || exit 1
 [[ -f .env ]] || cp .env.example .env
 setv() { if grep -qE "^#? *$1=" .env; then sed -i "s|^#\? *$1=.*|$1=$2|" .env; else echo "$1=$2" >> .env; fi; }
 setv BNK_FORGE_REGISTRY "$FORGE_REGISTRY"
-setv BNK_FORGE_VERSION "$FORGE_VERSION"
+setv BNK_FORGE_VERSION "${FORGE_RUN_TAG:-$FORGE_VERSION}"
 setv POSTGRES_PASSWORD "$(lab_secret forge-postgres)"
 setv REDIS_PASSWORD "$(lab_secret forge-redis)"
 setv MCP_SERVICE_PASSWORD "$(lab_secret forge-mcp)"
@@ -41,16 +41,27 @@ while read -r pin; do
     || { docker rmi -f "$ref" >/dev/null 2>&1; fail "image $ref is not the pinned ${want:0:19}: refusing to run it"; }
 done <<<"$FORGE_IMAGE_DIGESTS"
 ok "all six Forge images pulled and match their pinned digests"
-# The fix for 4.3.4's Celery images, layered on the verified originals and tagged under the same name,
-# so install.sh (its pull disabled) starts the fixed ones. Each keeps its original user.
-for name in ${FORGE_PATCH_IMAGES:-}; do
-  ref="${FORGE_REGISTRY}/${name}:${FORGE_VERSION}"; user=$(docker image inspect "$ref" --format '{{.Config.User}}')
-  printf 'FROM %s\nUSER root\nRUN pip install --no-cache-dir "%s" && pip check\nUSER %s\n' "$ref" "$FORGE_KOMBU_FIX" "${user:-root}" \
-    | docker build -q -t "$ref" - >/dev/null || fail "could not build the $FORGE_KOMBU_FIX fix for $name"
-  docker run --rm --entrypoint python "$ref" -c "import kombu; assert kombu.__version__ == '${FORGE_KOMBU_FIX#*==}'" \
-    || fail "$name does not carry $FORGE_KOMBU_FIX after the fix"
-done
-[[ -n "${FORGE_PATCH_IMAGES:-}" ]] && ok "${FORGE_KOMBU_FIX} fix built on top of: ${FORGE_PATCH_IMAGES}"
+# Every image Forge runs is derived from a verified digest and carries the lab's own tag. The Celery
+# images get one extra file: the kombu wheel, accepted only with its exact SHA-256 (--require-hashes) and
+# without fetching anything else (--no-deps: its dependencies are already in the image, pip check proves it).
+run_tag="${FORGE_RUN_TAG:-$FORGE_VERSION}"; ctx="$DST/.labfix"; mkdir -p "$ctx"
+printf '%s --hash=sha256:%s\n' "$FORGE_KOMBU_FIX" "$FORGE_KOMBU_SHA256" > "$ctx/kombu.txt"
+while read -r pin; do
+  [[ -n "$pin" ]] || continue
+  name=${pin%@*}; want=${pin#*@}; src="${FORGE_REGISTRY}/${name}@${want}"; dst="${FORGE_REGISTRY}/${name}:${run_tag}"
+  if [[ " ${FORGE_PATCH_IMAGES:-} " == *" $name "* ]]; then
+    user=$(docker image inspect "$src" --format '{{.Config.User}}')
+    printf 'FROM %s\nUSER root\nCOPY kombu.txt /tmp/kombu.txt\nRUN pip install --no-cache-dir --require-hashes --no-deps -r /tmp/kombu.txt && pip check && rm /tmp/kombu.txt\nUSER %s\n' \
+      "$src" "${user:-root}" > "$ctx/Dockerfile"
+    docker build -q -t "$dst" "$ctx" >/dev/null || fail "could not build the ${FORGE_KOMBU_FIX} fix for $name"
+    docker run --rm --entrypoint python "$dst" -c "import kombu; assert kombu.__version__ == '${FORGE_KOMBU_FIX#*==}'" \
+      || fail "$name does not carry ${FORGE_KOMBU_FIX} after the fix"
+  else
+    docker tag "$src" "$dst"
+  fi
+done <<<"$FORGE_IMAGE_DIGESTS"
+rm -f "$ctx/kombu.txt" "$ctx/Dockerfile"; rmdir "$ctx" 2>/dev/null || true
+ok "Forge runs tag ${run_tag}: ${FORGE_PATCH_IMAGES:-none} with ${FORGE_KOMBU_FIX} (hash-verified), the rest re-tagged from their verified digests"
 sed -i 's/^\$COMPOSE_CMD pull$/echo "  images pulled and verified by the lab"/' install.sh
 grep -q '^\$COMPOSE_CMD pull$' install.sh && fail "could not disable install.sh's own image pull"
 # bash, not ./install.sh: the bundle in the fork is not marked executable
