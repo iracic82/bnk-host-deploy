@@ -20,7 +20,8 @@ row "TMM" "$(kubectl -n f5-bnk get ds f5-tmm -o jsonpath='{.status.numberReady}/
 row "GatewayClass" "$(kubectl get gatewayclass -o jsonpath='{range .items[*]}{.metadata.name}={.status.conditions[?(@.type=="Accepted")].status} {end}' 2>/dev/null || echo -)"
 row "Gateways" "$(kubectl get gateway -A -o jsonpath='{range .items[*]}{.metadata.namespace}/{.metadata.name}@{.status.addresses[0].value} {end}' 2>/dev/null || echo -)"
 echo; echo "  Tooling"
-row "BNK owner (BNK_INSTALLER)" "$(gitea_api GET "/repos/${GITEA_ORG}/${GITEA_REPO}/actions/variables/BNK_INSTALLER" 2>/dev/null | jq -r '.data // .value // empty' | sed 's/^$/not chosen yet/')"
+owner=$(gitea_api GET "/repos/${GITEA_ORG}/${GITEA_REPO}/actions/variables/BNK_INSTALLER" 2>/dev/null | jq -r '.data // .value // empty' 2>/dev/null || true)
+row "BNK owner (BNK_INSTALLER)" "${owner:-$(no 'not chosen yet (challenge 5, 7 or 9)')}"
 row "Gitea runner" "$(systemctl is-active gitea-runner 2>/dev/null | sed 's/^inactive$/not registered/')"
 row "CI secrets" "$(gitea_api GET "/repos/${GITEA_ORG}/${GITEA_REPO}/actions/secrets" 2>/dev/null | jq -r '[.[].name]|join(", ")' | sed 's/^$/none/')"
 row "BNK Forge" "$(curl -fsSk -o /dev/null https://127.0.0.1:8443/api/system/health 2>/dev/null && echo running || echo 'not installed')"
