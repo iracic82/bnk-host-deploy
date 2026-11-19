@@ -31,6 +31,18 @@ ok "images from ${FORGE_REGISTRY} at ${FORGE_VERSION}, strong per-sandbox databa
 step "3/6  ./install.sh (pulls ~8 images on first run, a few minutes)"
 # Forge's own installer, its output kept in full (a filtered view once hid the reason it stopped).
 log=/root/.lab/forge-install.log
+# Pull the six Forge images here and check each one's digest against the pin BEFORE anything runs.
+# Then install.sh runs with its own pull step disabled, so it can only start the images checked here.
+while read -r pin; do
+  [[ -n "$pin" ]] || continue
+  name=${pin%@*}; want=${pin#*@}; ref="${FORGE_REGISTRY}/${name}:${FORGE_VERSION}"
+  docker pull -q "$ref" >/dev/null || fail "could not pull $ref"
+  docker image inspect "$ref" --format '{{join .RepoDigests " "}}' | grep -q "@${want}" \
+    || { docker rmi -f "$ref" >/dev/null 2>&1; fail "image $ref is not the pinned ${want:0:19}: refusing to run it"; }
+done <<<"$FORGE_IMAGE_DIGESTS"
+ok "all six Forge images pulled and match their pinned digests"
+sed -i 's/^\$COMPOSE_CMD pull$/echo "  images pulled and verified by the lab"/' install.sh
+grep -q '^\$COMPOSE_CMD pull$' install.sh && fail "could not disable install.sh's own image pull"
 # bash, not ./install.sh: the bundle in the fork is not marked executable
 if ! bash ./install.sh > "$log" 2>&1; then
   tail -30 "$log" | sed 's/^/      /'
@@ -38,14 +50,6 @@ if ! bash ./install.sh > "$log" 2>&1; then
 fi
 grep -E '✓|✅|⚠|healthy|Installation' "$log" | sed 's/^/      /' || true
 for _ in $(seq 1 120); do curl -fsSk https://127.0.0.1:8443/api/system/health >/dev/null 2>&1 && break; sleep 5; done
-# install.sh pulled by tag: check that every Forge image is the pinned content, and stop Forge if not
-while read -r pin; do
-  [[ -n "$pin" ]] || continue
-  name=${pin%@*}; want=${pin#*@}
-  docker image inspect "${FORGE_REGISTRY}/${name}:${FORGE_VERSION}" --format '{{join .RepoDigests " "}}' 2>/dev/null | grep -q "@${want}" \
-    || { (cd "$DST" && docker compose down >/dev/null 2>&1); fail "image ${FORGE_REGISTRY}/${name}:${FORGE_VERSION} is not the pinned ${want:0:19}: Forge stopped"; }
-done <<<"$FORGE_IMAGE_DIGESTS"
-ok "all six Forge images match their pinned digests"
 curl -fsSk https://127.0.0.1:8443/api/system/health >/dev/null || fail "Forge did not become healthy: docker compose -f $DST/docker-compose.yml ps"
 ok "Forge healthy behind its TLS proxy on :8443"
 
