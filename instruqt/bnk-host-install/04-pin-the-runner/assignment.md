@@ -145,6 +145,8 @@ In the **Gitea** tab, open the repository. A banner offers to create a pull requ
 `pin-runner-image`. Click **New Pull Request**, check that it merges into `main`, give it the title
 *Pin the installer image*, and create it.
 
+![Gitea Pull Requests page: a green banner says you pushed on branch pin-runner-image, with a New Pull Request button](../assets/gitea-pr-banner.png)
+
 A pull request is a conversation about a change: what it is, why, and whether it is safe. Open
 **Files Changed** and read your own diff as if a colleague had written it. One file says *Forge, run
 this exact image*. The other says *Argo CD, run this exact image*.

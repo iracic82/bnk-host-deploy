@@ -14,8 +14,8 @@ ARG TARGETARCH=amd64
 # The commit this image was built from, for the provenance stamp (the image carries no .git).
 ARG GIT_COMMIT=unknown
 
-RUN apt-get update -qq \
- && apt-get install -y -qq --no-install-recommends bash ca-certificates curl openssl make python3 tar gzip git jq \
+RUN apt-get -o Acquire::Retries=5 update -qq \
+ && apt-get -o Acquire::Retries=5 install -y -qq --no-install-recommends bash ca-certificates curl openssl make python3 tar gzip git jq \
  && rm -rf /var/lib/apt/lists/*
 
 # Pinned tools, each verified against the checksum its project publishes.

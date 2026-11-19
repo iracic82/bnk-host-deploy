@@ -146,7 +146,7 @@ The installer is `install.sh` plus one small file per phase in `lib/`. Ask it wh
 ./install.sh --list-phases | cut -c1-80
 ```
 
-Twelve phases, each tied to the page of F5's guide it automates. The full line also holds the link.
+Thirteen phases, each tied to the page of F5's guide it automates. The full line also holds the link.
 Here is what each one does, and what tends to go wrong when a person does it by hand:
 
 | Phase | F5 guide step | What goes wrong by hand |
@@ -158,6 +158,7 @@ Here is what each one does, and what tends to go wrong when a person does it by 
 | `30-flo` | Install FLO | Install it before Multus exists and it crash-loops |
 | `40-certs` | CWC and OTEL certificates | Without `make` and `python3`, F5's cert-gen writes **empty** certificates and reports success |
 | `45-attachments` | TMM's network legs | Must exist before the CNEInstance names them |
+| `47-inference` | Install a CNE instance (AI inference option) | Skipped unless the cluster file enables AI inference. When it does, the inference CRDs must exist before the CNEInstance asks BNK to use them, or BNK's controller stops. You will meet it in the last challenge |
 | `50-cneinstance` | Install a CNE instance | The one object that makes FLO install ~80 components |
 | `55-network` | TMM VLANs, VIP pool, GatewayClass | F5's validation webhook refuses everything until it is up |
 | `60-license` | License your cluster | A race with a quota object fails roughly one install in ten |
