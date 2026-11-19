@@ -151,22 +151,21 @@ lab owner
 In Forge, pick your workspace (`bnk-lab` on path B, `operations` on paths A and C) and the cluster
 `lab` at the top of each page. Then work through Jonas's questions.
 
-**1. Which release is running?** Open **Operate > Kubernetes**, scroll to **F5 BNK Installation**:
+**1. Which release is running?** Open **Clusters > Kubernetes**, scroll to **F5 BNK Installation**:
 
 ![Forge F5 BNK Installation card: FLO deploy flow, FLO 2.30.0-0.11.4, TMM 5/5 ready, CNE controller running, CNEInstance features, VLANs external 10.10.10.11 (1.1) and internal 172.18.0.250 (1.2)](../assets/day2-5-bnk-installation.png)
 
 Install method *FLO deploy flow*, FLO **2.30.0-0.11.4**, TMM 5/5, and the two VLANs with their self
 IPs on interfaces 1.1 and 1.2. Every value matches `versions.env` and `clusters/lab.network.yaml`.
 
-**2. Is it healthy?** Open **F5 BNK > Insights > Health Dashboard**:
+**2. Is it healthy?** Open **Clusters > F5 BNK** (it opens on **Overview**):
 
 ![Forge BNK Health Dashboard: Platform Healthy, 5/5 TMM containers, 1 gateway, 1 route, 2 VLANs, all components Healthy](../assets/day2-1-bnk-health.png)
 
 *BNK Platform Healthy*, and Forge has noticed your app by itself: **1 gateway, 1 route**.
 
-**Is it licensed?** Forge's licence card says *Unknown*, because this Forge version cannot yet read
-the licence status that BNK 2.4.2 reports. Its CWC row shows the licensing service *reachable* and
-*set up*, so the plumbing is fine. Ask the cluster itself:
+**Is it licensed?** Forge's **License Status** card is in *passive mode*, so it shows nothing until
+you press its refresh button and Forge asks F5's licensing service. Ask the cluster itself:
 
 ```run
 lab status

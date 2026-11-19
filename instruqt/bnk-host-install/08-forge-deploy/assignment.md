@@ -156,7 +156,7 @@ kubectl get pods -A --no-headers | grep -vE 'kube-system|calico|tigera|local-pat
 
 A cold install takes about **6 to 10 minutes**. The workspace's Deployment Pipeline turns to **Done**:
 
-![Forge project bnk-lab: the deployment pipeline shows BNK 2.4.2 Host install, Done](../assets/forge-8-pipeline-done.png)
+![Forge workspace bnk-lab: the Deployment Pipeline shows BNK 2.4.2 Host install Done, the workspace and the module Deployed](../assets/forge-8-pipeline-done.png)
 
 > ### Concept: why one container per step
 > If step `cneinstance` fails, Forge shows *that* step's log, and **Retry** runs again from there,
@@ -168,25 +168,34 @@ A cold install takes about **6 to 10 minutes**. The workspace's Deployment Pipel
 
 ## Step 3: The cluster through Forge's eyes
 
-The module's `cluster` block told Forge to register the cluster it just installed. Open **Operate >
-Kubernetes**, choose project `bnk-lab` and cluster `lab`:
+The module's `cluster` block told Forge to register the cluster it just installed. Open **Clusters >
+Kubernetes** and pick workspace `bnk-lab` and cluster `lab` in the selectors at the top:
 
 ![Forge Kubernetes dashboard: Cluster Ready, 3/3 nodes, cert-manager v1.16.2, Multus 3/3, BNK installed](../assets/forge-9-cluster.png)
 
 Forge scanned the cluster in under two seconds and found everything BNK depends on: three nodes,
 cert-manager, Multus on every node, storage, the Gateway API, and BNK itself.
 
-Now open **F5 BNK > Insights > Health Dashboard**:
+Now open **Clusters > F5 BNK**. It opens on **Overview**:
 
-![Forge BNK Health Dashboard: BNK Platform Healthy, 5/5 TMM containers, 2 VLANs, FLO, CNE controller, CRD installer and TMM all Healthy](../assets/forge-10-bnk-health.png)
+![Forge F5 BNK Overview: BNK Platform Healthy, 5/5 TMM containers, 2 VLANs, FLO, CNE controller, CRD installer and TMM all Healthy](../assets/forge-10-bnk-health.png)
 
 **BNK Platform Healthy.** Five of five TMM containers, both VLANs programmed, and the operator, the
 controller and the CRD installer all green. Zero gateways for now. You will add the first one in
 challenge 10.
 
-> The **BNK License** card says *Unknown*. That is a gap in this Forge version, which cannot yet read
-> the licence status that BNK 2.4.2 reports. The cluster itself knows better, and you will check it
-> from the terminal in a moment.
+> The **License Status** card is in *passive mode*: Forge does not ask F5's licensing service on
+> its own. Press the card's refresh button to make it ask. The cluster itself knows the answer
+> already, and you will check it from the terminal in a moment.
+
+One more view. **Clusters > Cluster Fleet** is where an operations team with many clusters starts
+the day. Yours has one, **lab**, and it is **Healthy**:
+
+![Forge Cluster Fleet: one cluster, lab, Healthy, Platform Generic On-Prem, BNK column 2.4.1, 1 TMM](../assets/forge-11-fleet.png)
+
+> Look at the **BNK** column: it says **2.4.1**. That is Forge's label, not your cluster's. The
+> release that runs is whatever the CNEInstance names, and the terminal check below prints
+> **manifest 2.4.2**. When a dashboard and the cluster disagree, believe the cluster.
 
 From the terminal, the same facts, plus who installed them:
 
