@@ -77,4 +77,7 @@ fi
 git config --global user.name "Lab Learner"; git config --global user.email "${LAB_USER}@lab.local"
 git config --global credential.helper store; git config --global core.pager cat; git config --global init.defaultBranch main
 printf 'http://%s:%s@127.0.0.1:%s\n' "$LAB_USER" "$PW" "$PORT_GITEA" > /root/.git-credentials; chmod 600 /root/.git-credentials
+echo "      working copy at $(git -C "$WORKSPACE" log --oneline -1 2>/dev/null), origin $(git -C "$WORKSPACE" remote get-url origin 2>/dev/null)"
+echo "      top level: $(ls -A "$WORKSPACE" | tr '\n' ' ')"
+[[ -x "$WORKSPACE/tests/cluster.sh" ]] || fail "the working copy has no tests/cluster.sh (pre-existing or incomplete clone?)"
 ok "$WORKSPACE (origin = Gitea, credentials stored)"
