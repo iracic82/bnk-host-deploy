@@ -224,8 +224,10 @@ lab owner
    lab forge-input bnk-lab epp_namespaces inference
    ```
 
-2. In **BNK Forge**, open **Build > Workspaces > bnk-lab** and press **Deploy all**. In the module's log, the
-   `50 CNEInstance` step now runs phase 47 first, then applies the CNEInstance.
+2. In **BNK Forge**, open **Build > Workspaces > bnk-lab** and press **Deploy all**. Everything that already
+   matches is a quick `ok`. Watch the `50 CNEInstance` step: phase **47** prints *Inference Extension
+   CRDs v1.4.0 installed* and *endpoint-picker namespace inference prepared*, then phase **50** applies
+   the CNEInstance with `eppNamespaces`. The pipeline turns to **Done** in two to four minutes.
 
 When it has landed, confirm:
 
