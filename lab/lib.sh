@@ -27,6 +27,15 @@ CODE_SERVER_VERSION="4.105.1"
 FORGE_REF="v4.3.4"                # bnk-forge release tag that carries dist/ (install bundle)
 FORGE_REPO="https://github.com/JLCode-tech/bnk-forge.git"
 FORGE_REGISTRY="ghcr.io/jlcode-tech"    # where this release's images are published (ghcr.io/<repo owner>)
+# The tag and the images live in a third-party namespace, and tags can move. Pin the content: the commit
+# the tag pointed at when this lab was checked, and each image's digest. lab forge refuses anything else.
+FORGE_COMMIT="1a9239d6aa8793d30c7fbf9c76f816206b05d4a8"
+FORGE_IMAGE_DIGESTS="bnk-forge-api@sha256:bfc042e4111d243885b752cdbcc3cf5f3555398f49a14fe14e90a52051057638
+bnk-forge-beat@sha256:54d7802b14935442bd777984a033a1693cfe14cb0edaa3dda8c459ce021a4ae5
+bnk-forge-frontend@sha256:9aa2cbaf3e104707f776be61375f4eba14535dd1e5941c937d5306744f10e7e5
+bnk-forge-mcp@sha256:c179a9743411418bad828b7dad5a7aea4a1870d856fc1375a7a3e73d883c4b37
+bnk-forge-proxy@sha256:9e2f345c2f04c62f5ddfc840f6e6877d710fe5bae560b55055ee00ae5da80573
+bnk-forge-worker@sha256:9667337660d46626ad456cbc3fb98b221f1e3c4da2c0b0ab383b9618f2f71a71"
 REGISTRY_IMAGE="registry:2.8.3"
 
 # Ports on the VM. Instruqt tabs connect to these.

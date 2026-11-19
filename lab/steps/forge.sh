@@ -8,6 +8,9 @@ SRC=/opt/bnk-forge-src; DST=/opt/bnk-forge
 
 step "1/6  the release bundle (bnk-forge ${FORGE_VERSION}, dist/)"
 [[ -d "$SRC/.git" ]] || git -c advice.detachedHead=false clone -q --depth 1 --branch "$FORGE_REF" "$FORGE_REPO" "$SRC"
+got=$(git -C "$SRC" rev-parse HEAD)
+[[ "$got" == "$FORGE_COMMIT" ]] || { rm -rf "$SRC"; fail "bnk-forge $FORGE_REF is commit $got, not the pinned $FORGE_COMMIT: refusing to install it"; }
+ok "bnk-forge $FORGE_REF at the pinned commit ${FORGE_COMMIT:0:12}"
 mkdir -p "$DST"; cp -r "$SRC/dist/." "$DST/"
 ok "$DST: $(ls "$DST" | paste -sd' ' -)"
 
@@ -35,6 +38,14 @@ if ! bash ./install.sh > "$log" 2>&1; then
 fi
 grep -E '✓|✅|⚠|healthy|Installation' "$log" | sed 's/^/      /' || true
 for _ in $(seq 1 120); do curl -fsSk https://127.0.0.1:8443/api/system/health >/dev/null 2>&1 && break; sleep 5; done
+# install.sh pulled by tag: check that every Forge image is the pinned content, and stop Forge if not
+while read -r pin; do
+  [[ -n "$pin" ]] || continue
+  name=${pin%@*}; want=${pin#*@}
+  docker image inspect "${FORGE_REGISTRY}/${name}:${FORGE_VERSION}" --format '{{join .RepoDigests " "}}' 2>/dev/null | grep -q "@${want}" \
+    || { (cd "$DST" && docker compose down >/dev/null 2>&1); fail "image ${FORGE_REGISTRY}/${name}:${FORGE_VERSION} is not the pinned ${want:0:19}: Forge stopped"; }
+done <<<"$FORGE_IMAGE_DIGESTS"
+ok "all six Forge images match their pinned digests"
 curl -fsSk https://127.0.0.1:8443/api/system/health >/dev/null || fail "Forge did not become healthy: docker compose -f $DST/docker-compose.yml ps"
 ok "Forge healthy behind its TLS proxy on :8443"
 
