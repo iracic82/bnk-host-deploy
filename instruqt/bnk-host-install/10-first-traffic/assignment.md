@@ -191,8 +191,16 @@ the Forge path it applies the file itself, because there nobody else will:
 lab deliver apps/hello/hello.yaml
 ```
 
-On the Argo CD path, the `apps` Application grows a tree of the five objects, all Synced and
-Healthy:
+What you see next depends on your path:
+
+| Your path | What `lab deliver` printed | Where to look |
+|---|---|---|
+| **A, CI/CD** | the `apps` workflow run for your merge | **Gitea > Actions**, the `apps` run turns green |
+| **B, Forge** | the five objects, applied | nowhere else: Forge does not deliver apps, so `lab deliver` did it. Go straight to the `kubectl` check below |
+| **C, Argo CD** | that Argo CD follows `main` | the **Argo CD** tab (only on path C), shown below |
+
+> **Path C only.** The `apps` Application grows a tree of the five objects, all Synced and Healthy.
+> On paths A and B there is no Argo CD tab, and you skip this picture.
 
 ![Argo CD apps application: Synced to main, the hello namespace, service, deployment, gateway and httproute, three running pods](../assets/argocd-4-apps-hello.png)
 
