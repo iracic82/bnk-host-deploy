@@ -49,8 +49,13 @@ if ! gitea_api GET "/repos/${GITEA_ORG}/${GITEA_REPO}" >/dev/null 2>&1; then
   gitea_api POST "/orgs/${GITEA_ORG}/repos" "{\"name\":\"${GITEA_REPO}\",\"private\":false,\"default_branch\":\"main\",\"description\":\"Install F5 BIG-IP Next for Kubernetes (Host) from git\"}" >/dev/null
   # Publish everything but the lab harness itself: the learner works with the product repository.
   T=$(mktemp -d); git -C "$LAB_REPO_DIR" archive HEAD | tar -x -C "$T"; rm -rf "$T/lab" "$T/instruqt"
-  git -C "$T" init -q -b main
-  git -C "$T" -c user.name="Platform Team" -c user.email=platform@lab.local add -A
+  git -C "$T" init -q -b main --template=
+  # Ignore any global/system gitignore on this VM: the published repository must be complete.
+  x=$(git config --global --get core.excludesFile 2>/dev/null || true); [[ -n "$x" ]] && echo "   note: VM has a global gitignore ($x), bypassed for the seed"
+  git -C "$T" -c core.excludesFile=/dev/null -c user.name="Platform Team" -c user.email=platform@lab.local add -A
+  for must in tests/cluster.sh tests/render.sh install.sh clusters/lab.yaml forge/forge-blueprint.json argocd/bnk-install/job.yaml; do
+    git -C "$T" ls-files --error-unmatch "$must" >/dev/null 2>&1 || fail "seed is missing $must"
+  done
   git -C "$T" -c user.name="Platform Team" -c user.email=platform@lab.local commit -qm "bnk-host-deploy: BNK ${BNK_VERSION:-2.4.2} host installer, CI, Forge module, Argo CD apps"
   git -C "$T" push -q "http://${LAB_USER}:${PW}@127.0.0.1:${PORT_GITEA}/${GITEA_ORG}/${GITEA_REPO}.git" main
   rm -rf "$T"
