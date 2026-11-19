@@ -70,6 +70,6 @@ if [[ ! -d "$WORKSPACE/.git" ]]; then
   git clone -q "http://127.0.0.1:${PORT_GITEA}/${GITEA_ORG}/${GITEA_REPO}.git" "$WORKSPACE"
 fi
 git config --global user.name "Lab Learner"; git config --global user.email "${LAB_USER}@lab.local"
-git config --global credential.helper store; git config --global init.defaultBranch main
+git config --global credential.helper store; git config --global core.pager cat; git config --global init.defaultBranch main
 printf 'http://%s:%s@127.0.0.1:%s\n' "$LAB_USER" "$PW" "$PORT_GITEA" > /root/.git-credentials; chmod 600 /root/.git-credentials
 ok "$WORKSPACE (origin = Gitea, credentials stored)"

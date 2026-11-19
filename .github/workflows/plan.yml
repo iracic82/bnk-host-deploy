@@ -58,7 +58,9 @@ jobs:
           FAR_PULL_B64: ${{ secrets.FAR_PULL_B64 }}
           # untrusted values reach the script as environment variables, never as expanded text
           HEAD_REF: ${{ github.head_ref }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          # site-relative: GitHub and Gitea both serve repositories from the root, and a relative link
+          # also works when the server's own URL is an internal address the browser cannot reach
+          RUN_URL: /${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           [ -s "$RUNNER_TEMP/targets" ] || exit 0
           [ -n "$FAR_PULL_B64" ] || { echo "::error::repository secret FAR_PULL_B64 is not set"; exit 1; }
@@ -83,7 +85,7 @@ jobs:
             echo "| \`$name\` | $(yq -r .environment "$f") | $(sed -n 's/^BNK_VERSION=//p' versions.env) | $res | $ch |" >> "$out"
             { echo; echo "<details><summary><b>$name</b>: full plan</summary>"; echo; cat "$BNK_REPORT_MD" 2>/dev/null; echo; echo "</details>"; } >> "$RUNNER_TEMP/details.md"
           done < "$RUNNER_TEMP/targets"
-          { cat "$RUNNER_TEMP/details.md"; echo; echo "_Merging applies this plan. Re-plans on every push. Run: ${RUN_URL}_"; } >> "$out"
+          { cat "$RUNNER_TEMP/details.md"; echo; echo "_Merging applies this plan. It re-plans on every push. [The run that made this plan](${RUN_URL})_"; } >> "$out"
           cat "$out" >> "${GITHUB_STEP_SUMMARY:-/dev/null}" 2>/dev/null || true
           exit $rc
 

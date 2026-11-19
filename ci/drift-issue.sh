@@ -8,7 +8,7 @@ drifted="$1"; file="$2"; title="Drift: a cluster no longer matches main"
 api() { curl -fsS -H "Authorization: token ${GITHUB_TOKEN}" -H 'Content-Type: application/json' "$@"; }
 R="${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}"
 open=$(api "$R/issues?state=open&type=issues&limit=50&per_page=100" | jq -r --arg t "$title" '[.[] | select(.title == $t)] | first | .number // empty')
-run="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+run="/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"   # site-relative, see plan.yml
 if [[ "$drifted" == 1 ]]; then
   body="$(printf 'The nightly plan found differences between the live cluster(s) and `main` (%s).\n\nEither revert the hand change (re-run **deploy**), or make it official in a pull request.\n\n%s' "$run" "$(tail -c 55000 "$file")")"
   if [[ -n "$open" ]]; then
