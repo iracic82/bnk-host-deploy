@@ -77,7 +77,9 @@ http {
 }
 NGX
 docker rm -f forge-tab >/dev/null 2>&1 || true
+docker pull -q nginx:1.27-alpine >/dev/null
 docker run -d --name forge-tab --restart unless-stopped --network host -v /root/.lab/forge-tab/nginx.conf:/etc/nginx/nginx.conf:ro nginx:1.27-alpine >/dev/null
-for _ in $(seq 1 20); do curl -fsS -o /dev/null "http://127.0.0.1:${PORT_FORGE_TAB}/" && break; sleep 1; done
+for _ in $(seq 1 30); do curl -fsS -o /dev/null "http://127.0.0.1:${PORT_FORGE_TAB}/" 2>/dev/null && break; sleep 1; done
+curl -fsS -o /dev/null "http://127.0.0.1:${PORT_FORGE_TAB}/" 2>/dev/null || fail "the Forge tab front-end on :${PORT_FORGE_TAB} does not answer: docker logs forge-tab"
 ok "open the BNK Forge tab and sign in as admin"
 set_owner forge
