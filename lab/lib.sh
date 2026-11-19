@@ -24,7 +24,9 @@ SHELLCHECK_VERSION=v0.10.0
 SHELLCHECK_SHA256=6c881ab0698e4e6ea235245f22832860544f17ba386442fe7e9d629f8cbedf87
 NODE_VERSION="v22.21.1"           # host-mode jobs run JavaScript actions (actions/checkout) with it
 CODE_SERVER_VERSION="4.105.1"
-FORGE_REF="v4.0.0"                # iracic82/bnk-forge tag that carries dist/ for 4.0.0
+FORGE_REF="v4.3.4"                # bnk-forge release tag that carries dist/ (install bundle)
+FORGE_REPO="https://github.com/JLCode-tech/bnk-forge.git"
+FORGE_REGISTRY="ghcr.io/jlcode-tech"    # where this release's images are published (ghcr.io/<repo owner>)
 REGISTRY_IMAGE="registry:2.8.3"
 
 # Ports on the VM. Instruqt tabs connect to these.
@@ -37,7 +39,7 @@ PORT_REGISTRY=5000
 PORT_ARGOCD=8091
 FRR_IMAGE="quay.io/frrouting/frr:10.6.2"
 CLIENT_IMAGE="nicolaka/netshoot:v0.14"
-FORGE_VERSION="4.0.0"
+FORGE_VERSION="4.3.4"
 ARGOCD_VERSION="v3.6.2"
 
 LAB_USER=learner                  # the Gitea account the learner works as
