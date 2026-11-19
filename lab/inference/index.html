@@ -60,7 +60,7 @@
 <body>
 <header>
   <h1>Northwind AI, inference console<span></span></h1>
-  <div class="sub">Every request here takes the real path: client &rarr; edge router &rarr; TMM (VIP) &rarr; a simulated GPU. Twelve customers, each with a long system prompt, share three GPUs whose KV cache holds about four prompts each.</div>
+  <div class="sub">Every request here takes the real path: client &rarr; edge router &rarr; TMM (VIP) &rarr; a simulated GPU. Twelve customers, each with a long prompt, share three Dynamo workers (simulated GPUs) whose KV cache holds a few prompts each.</div>
   <div class="chips" id="chips"><span class="chip">loading…</span></div>
 </header>
 <main>
@@ -88,7 +88,7 @@
       <button onclick="ask()">Send</button>
     </div>
     <div class="answer" id="a-out"></div>
-    <p class="note">Ask the same customer twice: the second answer comes from a warm KV cache if it lands on the same GPU. The simulator's answer text is filler, its timings and cache are realistic.</p>
+    <p class="note">Ask the same customer twice: the second answer comes from a warm KV cache if it lands on the same GPU. Dynamo's Mocker writes random tokens as answers: its scheduling and KV cache are what is realistic.</p>
   </section>
 </main>
 <script>
@@ -111,17 +111,16 @@ function renderPlatform(p) {
 
 function renderGpus(gpus) {
   const el = document.getElementById('gpus');
-  if (!gpus.length) { el.innerHTML = '<div class="card" style="grid-column:1/-1">No model servers yet. Ship <code>apps/inference/</code> (challenge 12, step 3).</div>'; return; }
+  if (!gpus.length) { el.innerHTML = '<div class="card" style="grid-column:1/-1">No Dynamo workers yet. Run <code>lab dynamo</code>, then ship <code>apps/inference/</code> (challenge 12).</div>'; return; }
   el.innerHTML = gpus.slice(0, 3).map((g, i) => `
     <div class="card gpu" style="--c:${COLORS[i]}">
       <div class="name">GPU ${LETTER[i]} ${g.ready ? '' : '<span class="chip no">starting</span>'}</div>
       <div class="pod">${g.name} on ${g.node}</div>
       <div class="kv">
         <span>requests served</span><b>${g.requests ?? 0}</b>
-        <span>KV-cache hit rate (prompt tokens)</span><b>${pct(g.hit_rate)}</b>
+        <span>prompt tokens served from KV cache</span><b>${pct(g.hit_rate)}</b>
         <div class="bar"><i style="width:${pct(g.hit_rate)}"></i></div>
-        <span>KV cache in use right now</span><b>${pct(g.kv_usage)}</b>
-        <div class="bar"><i style="width:${pct(g.kv_usage)}"></i></div>
+        <span class="pod">${(g.cached_tokens || 0).toLocaleString()} of ${(g.prompt_tokens || 0).toLocaleString()} prompt tokens, as the replies reported</span>
       </div>
     </div>`).join('');
 }
@@ -172,7 +171,7 @@ async function ask() {
   const body = {mode: document.getElementById('a-mode').value, customer: +document.getElementById('a-cust').value, question: document.getElementById('a-q').value};
   const r = await (await fetch('api/ask', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)})).json();
   out.innerHTML = r.ok
-    ? `<b>${r.ms} ms</b> via ${r.vip} &middot; customer ${String(r.customer).padStart(2, '0')} &middot; <b>${r.cached}</b> of ${r.prompt} prompt tokens ${r.cached ? 'found in KV cache (warm)' : 'prefilled from scratch (cold)'}<br><span class="note">${(r.answer || '').replace(/[<>&]/g, '')}</span>`
+    ? `<b>${r.ms} ms</b> via ${r.vip}${r.gpu >= 0 ? ' to GPU ' + LETTER[r.gpu] : ''} &middot; customer ${String(r.customer).padStart(2, '0')} &middot; <b>${r.cached}</b> of ${r.prompt} prompt tokens ${r.cached ? 'found in KV cache (warm)' : 'prefilled from scratch (cold)'}<br><span class="note">${(r.answer || '').replace(/[<>&]/g, '')}</span>`
     : `No answer: ${(r.error || r.code)}`;
   refresh();
 }

@@ -43,8 +43,12 @@ def persona(n):
                     f"{n:02d}, region {n * 7 % 13}, tier {n % 3}." for k in range(14))
 
 
+# The model servers ("GPUs"): Dynamo's decode workers, whose metrics are on Dynamo's system port 9090.
+GPU_SELECTOR, METRICS_PORT = "nvidia.com/dynamo-component-type=decode", 9090
+
+
 def pods():
-    items = kj(f"-n {NS} get pods -l app=model").get("items", [])
+    items = kj(f"-n {NS} get pods -l {GPU_SELECTOR}").get("items", [])
     out = []
     for p in sorted(items, key=lambda x: x["metadata"]["name"]):
         ready = any(c.get("type") == "Ready" and c.get("status") == "True"
@@ -53,18 +57,39 @@ def pods():
     return out
 
 
+TALLY = {}                         # pod -> {"prompt": tokens, "cached": tokens}, from the replies themselves
+TALLY_LOCK = threading.Lock()
+
+
 def metrics(pod):
-    raw = sh(f"kubectl get --raw /api/v1/namespaces/{NS}/pods/{pod}:8000/proxy/metrics", timeout=5)
-    m = {}
+    """Requests served, from the worker's own counter (Dynamo: dynamo_component_requests_total on the
+    generate endpoint). The Mocker publishes no prefix-hit metric, so the KV-cache hit rate is what the
+    replies reported (usage.prompt_tokens_details.cached_tokens) for the requests this GPU served."""
+    raw = sh(f"kubectl get --raw /api/v1/namespaces/{NS}/pods/{pod}:{METRICS_PORT}/proxy/metrics", timeout=5)
+    req = 0.0
     for line in raw.splitlines():
-        g = re.match(r'^(vllm:[a-z_]+)(\{[^}]*\})?\s+([0-9.eE+-]+)$', line)
-        if g:
-            m[g.group(1)] = m.get(g.group(1), 0.0) + float(g.group(3))
-    hits, queries = m.get("vllm:prefix_cache_hits_total", 0), m.get("vllm:prefix_cache_queries_total", 0)
-    return {"requests": int(m.get("vllm:request_success_total", 0)),
-            "hit_rate": round(hits / queries, 3) if queries else 0.0,
-            "kv_usage": round(m.get("vllm:kv_cache_usage_perc", 0.0), 3),
-            "running": int(m.get("vllm:num_requests_running", 0))}
+        g = re.match(r'^(dynamo_component_requests_total|vllm:request_success_total)(\{[^}]*\})?\s+([0-9.eE+-]+)$', line)
+        if g and ('dynamo_endpoint=' not in (g.group(2) or '') or 'dynamo_endpoint="generate"' in g.group(2)):
+            req += float(g.group(3))
+    with TALLY_LOCK:
+        t = TALLY.get(pod, {"prompt": 0, "cached": 0})
+    return {"requests": int(req), "hit_rate": round(t["cached"] / t["prompt"], 3) if t["prompt"] else 0.0,
+            "cached_tokens": t["cached"], "prompt_tokens": t["prompt"]}
+
+
+def tally(pod, r):
+    if pod and r.get("ok"):
+        with TALLY_LOCK:
+            t = TALLY.setdefault(pod, {"prompt": 0, "cached": 0})
+            t["prompt"] += r.get("prompt", 0)
+            t["cached"] += r.get("cached", 0)
+
+
+def served_by(names, before):
+    """Which pod's request counter moved since `before`. Returns (pod index or -1, new counters)."""
+    after = {p: metrics(p)["requests"] for p in names}
+    moved = [p for p in names if after[p] > before.get(p, 0)]
+    return (names.index(moved[0]) if len(moved) == 1 else -1), after
 
 
 def platform():
@@ -120,10 +145,9 @@ def burst(mode, n, customers):
         before = {p: metrics(p)["requests"] for p in names}
         for i, c in enumerate(seq):
             r = send(mode, c, f"Question {i + 1} from customer {c:02d}: how do I reach my service?")
-            after = {p: metrics(p)["requests"] for p in names}
-            served = [p for p in names if after[p] > before[p]]
-            before = after
-            r.update({"i": i, "customer": c, "gpu": names.index(served[0]) if len(served) == 1 else -1})
+            gpu, before = served_by(names, before)
+            tally(names[gpu] if gpu >= 0 else None, r)
+            r.update({"i": i, "customer": c, "gpu": gpu})
             run["results"].append(r)
             run["done"] = i + 1
         ok = [r for r in run["results"] if r.get("ok")]
@@ -180,7 +204,12 @@ class H(BaseHTTPRequestHandler):
         if self.path.startswith("/api/ask"):
             c = max(1, min(int(b.get("customer", 1)), 24))
             q = str(b.get("question", "What is a VIP?"))[:500]
-            return self.reply(200, dict(send(mode, c, q), mode=mode, vip=VIPS[mode], customer=c))
+            names = [p["name"] for p in pods() if p["ready"]]
+            before = {p: metrics(p)["requests"] for p in names}
+            r = send(mode, c, q)
+            gpu, _ = served_by(names, before)
+            tally(names[gpu] if gpu >= 0 else None, r)
+            return self.reply(200, dict(r, mode=mode, vip=VIPS[mode], customer=c, gpu=gpu))
         self.reply(404, {"error": "unknown"})
 
 
