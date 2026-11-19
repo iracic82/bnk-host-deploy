@@ -135,6 +135,67 @@ is a container running a real kubelet and a real container runtime. Kubernetes c
 difference, and neither can BNK. Remember one consequence: all three nodes share this VM's Linux
 kernel. That will matter in step 4.
 
+### What is kind?
+
+**kind** (*Kubernetes IN Docker*) is an official Kubernetes project, originally built to test
+Kubernetes itself. Its idea is simple: a Kubernetes node is just a Linux machine running a few
+programs, so give each node its own **container** instead of its own server.
+
+Each kind node is a container started from the image `kindest/node`. Inside it run the same programs
+a real server would run:
+
+| Inside each node container | Its job |
+|---|---|
+| `systemd` | starts and supervises everything else, as on any Linux server |
+| `containerd` | the **container runtime**: pulls images and runs the pods' containers |
+| `kubelet` | the node agent: takes pod assignments from the API server and makes them happen |
+| (control plane only) `kube-apiserver`, `etcd`, `kube-scheduler`, `kube-controller-manager` | the cluster's brain, started by `kubeadm` exactly as on a production cluster |
+
+So yes, your pods run in containers *inside* a container. Look inside the node BNK will use:
+
+```run
+docker exec bnk-worker sh -c 'cat /proc/[0-9]*/comm' | grep -xE 'systemd|containerd|kubelet' | sort -u
+docker exec bnk-worker crictl ps --name calico -o table | head -3
+```
+
+The first command shows the node's own `systemd`, `containerd` and `kubelet`. The second asks that
+node's `containerd` (through `crictl`, the runtime's own CLI) which containers it runs: Calico's
+node agent among them.
+
+kind builds a whole cluster from one small config file. This is the one the lab used:
+
+```run
+cat /root/.lab/kind.yaml
+```
+
+Three choices in it matter for today:
+
+- `disableDefaultCNI: true` switches off kind's built-in network plug-in, so Calico can be installed
+  instead (step 3 explains why)
+- `podSubnet: 192.168.0.0/16` and `serviceSubnet: 10.96.0.0/12` are the address ranges for pods
+  and Services. BNK must be told never to steer these through TMM, and you will see them again in
+  the cluster file
+- `apiServerAddress` puts the API server on this VM's own address rather than `127.0.0.1`, so that
+  other containers on the VM, such as BNK Forge's runners later, can reach the cluster
+
+> ### Concept: why a lab uses kind, and what is real
+> A real BNK cluster needs servers with spare network cards and a data-center network. kind gives
+> every student a complete three-node cluster on a single VM, built in about a minute, identical
+> every time, and thrown away at the end. Here is what is genuine and what is a stand-in:
+>
+> | | In this lab | In production |
+> |---|---|---|
+> | Kubernetes API, kubelet, scheduler | **real**, Kubernetes 1.35 | the same |
+> | CNI | **real** Calico, via the Tigera operator | the same |
+> | BNK, its operator and TMM | **real** BNK 2.4.2, the same images and the same installer | the same |
+> | a node | a container on one VM | a bare-metal server or a VM |
+> | TMM's network cards | virtual cables from containerlab into the node container (challenge 2) | physical NICs, often SR-IOV or a DPU |
+> | hugepages | reserved once on the VM and shared by all three nodes | reserved on each server |
+> | the Linux kernel | **one**, shared by all nodes | one per server |
+>
+> Everything you install and every command you run today would work unchanged on Northwind's real
+> racks. Only the hardware underneath is pretend.
+
 ---
 
 ## Step 3: How the pods talk to each other

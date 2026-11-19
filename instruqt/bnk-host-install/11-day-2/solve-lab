@@ -2,8 +2,7 @@
 set -euxo pipefail
 export PATH=/usr/local/bin:$PATH KUBECONFIG=/root/.kube/config
 source /opt/lab/lib.sh; source /opt/lab/ci-helpers.sh
-curl -fsSk -o /dev/null https://127.0.0.1:8443/api/system/health || lab forge
-lab forge-register || true
+lab forge-ready
 lab plan >/dev/null 2>&1 || true
 cd "$WORKSPACE"; git checkout -q main; git pull -q
 if ! grep -q 'replicas: 5' apps/hello/hello.yaml; then
