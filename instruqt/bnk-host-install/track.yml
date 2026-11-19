@@ -23,7 +23,8 @@ description: |-
 
   Every path runs the same installer from the same repository, so you see that the tool changes
   and the install does not. Then you send a real request from a client, through an edge router,
-  into TMM and onto a pod, audit the cluster with BNK Forge, and make a Day-2 change through git.
+  into TMM and onto a pod, look inside TMM with F5's debug sidecar, audit the cluster with BNK Forge,
+  and make a Day-2 change through git.
 
   The last challenge puts **AI inference** behind BNK: three NVIDIA Dynamo workers, and BNK's
   endpoint picker sending every request to the GPU that already holds its prompt in KV cache.
@@ -51,5 +52,5 @@ lab_config:
   loadingMessages: true
   override_challenge_layout: false
   hideStopButton: false
-checksum: "10143686706954337091"
+checksum: "12816958745916950221"
 enhanced_loading: false
