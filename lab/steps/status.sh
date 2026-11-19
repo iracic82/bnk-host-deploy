@@ -21,7 +21,7 @@ row "Gateways" "$(kubectl get gateway -A -o jsonpath='{range .items[*]}{.metadat
 echo; echo "  Tooling"
 row "Gitea runner" "$(systemctl is-active gitea-runner 2>/dev/null | sed 's/^inactive$/not registered/')"
 row "CI secrets" "$(gitea_api GET "/repos/${GITEA_ORG}/${GITEA_REPO}/actions/secrets" 2>/dev/null | jq -r '[.[].name]|join(", ")' | sed 's/^$/none/')"
-row "BNK Forge" "$(curl -fsSk -o /dev/null https://127.0.0.1/api/system/health 2>/dev/null && echo running || echo 'not installed')"
+row "BNK Forge" "$(curl -fsSk -o /dev/null https://127.0.0.1:8443/api/system/health 2>/dev/null && echo running || echo 'not installed')"
 row "Argo CD" "$(kubectl -n argocd get applications -o jsonpath='{range .items[*]}{.metadata.name}:{.status.sync.status}/{.status.health.status} {end}' 2>/dev/null || echo 'not installed')"
 row "edge router / client" "$(docker ps --format '{{.Names}}' | grep -cE '^(edge-router|client)$')/2 running"
 echo

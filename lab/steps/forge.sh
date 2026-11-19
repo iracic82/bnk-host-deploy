@@ -34,15 +34,15 @@ if ! bash ./install.sh > "$log" 2>&1; then
   fail "Forge's install.sh failed (full log: $log)"
 fi
 grep -E '✓|✅|⚠|healthy|Installation' "$log" | sed 's/^/      /' || true
-for _ in $(seq 1 120); do curl -fsSk https://127.0.0.1/api/system/health >/dev/null 2>&1 && break; sleep 5; done
-curl -fsSk https://127.0.0.1/api/system/health >/dev/null || fail "Forge did not become healthy: docker compose -f $DST/docker-compose.yml ps"
-ok "Forge healthy behind its TLS proxy on :443"
+for _ in $(seq 1 120); do curl -fsSk https://127.0.0.1:8443/api/system/health >/dev/null 2>&1 && break; sleep 5; done
+curl -fsSk https://127.0.0.1:8443/api/system/health >/dev/null || fail "Forge did not become healthy: docker compose -f $DST/docker-compose.yml ps"
+ok "Forge healthy behind its TLS proxy on :8443"
 
 step "4/6  first login: Forge forces a password change, so do it now"
-tok=$(curl -fsSk -X POST https://127.0.0.1/api/auth/login -H 'Content-Type: application/json' \
+tok=$(curl -fsSk -X POST https://127.0.0.1:8443/api/auth/login -H 'Content-Type: application/json' \
        --data "{\"username\":\"admin\",\"password\":\"$(lab_secret forge-initial)\"}" | jq -r '.token // empty' || true)
 if [[ -n "$tok" ]]; then
-  curl -fsSk -X POST https://127.0.0.1/api/auth/change-password -H "Authorization: Bearer $tok" -H 'Content-Type: application/json' \
+  curl -fsSk -X POST https://127.0.0.1:8443/api/auth/change-password -H "Authorization: Bearer $tok" -H 'Content-Type: application/json' \
     --data "{\"current_password\":\"$(lab_secret forge-initial)\",\"new_password\":\"$(lab_secret forge-password)\"}" -o /dev/null \
     || warn "password change refused (already changed?)"
 fi
@@ -54,7 +54,7 @@ step "5/6  supply chain: allow the lab registry"
 forge_api PUT "/api/system/defaults/container.registry_host_allowlist?value=ghcr.io,quay.io,docker.io,registry.k8s.io,localhost:${PORT_REGISTRY}" >/dev/null
 ok "container.registry_host_allowlist now includes localhost:${PORT_REGISTRY}"
 
-step "6/6  a plain-HTTP door for the Instruqt tab (:${PORT_FORGE_TAB} -> https://127.0.0.1:443)"
+step "6/6  a plain-HTTP door for the Instruqt tab (:${PORT_FORGE_TAB} -> https://127.0.0.1:8443)"
 mkdir -p /root/.lab/forge-tab
 cat > /root/.lab/forge-tab/nginx.conf <<NGX
 events {}
@@ -64,7 +64,7 @@ http {
     listen ${PORT_FORGE_TAB};
     client_max_body_size 50m;
     location / {
-      proxy_pass https://127.0.0.1:443;
+      proxy_pass https://127.0.0.1:8443;
       proxy_ssl_verify off;
       proxy_http_version 1.1;
       proxy_set_header Upgrade \$http_upgrade;

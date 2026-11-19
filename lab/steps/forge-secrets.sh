@@ -15,7 +15,7 @@ put() {  # put <name> <value-producing command...>
   if grep -qx "$n" <<<"$have"; then ok "$n already set on project $name"; return; fi
   "$@" | jq -Rs --arg n "$n" '{name: $n, value: ., description: "from lab-vault"}' \
     | curl -fsSk -X POST -H "Authorization: Bearer ${_FORGE_TOKEN}" -H 'Content-Type: application/json' \
-        --data @- "https://127.0.0.1/api/projects/${pid}/secrets/value" -o /dev/null
+        --data @- "https://127.0.0.1:8443/api/projects/${pid}/secrets/value" -o /dev/null
   ok "$n -> project $name (#$pid)"
 }
 step "project secrets for '$name'"

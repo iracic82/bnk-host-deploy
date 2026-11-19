@@ -28,7 +28,7 @@ REGISTRY_IMAGE="registry:2.8.3"
 # Ports on the VM. Instruqt tabs connect to these.
 PORT_GITEA=3000
 PORT_CODE=8444
-PORT_FORGE_TAB=8090               # plain-HTTP front for Forge's TLS proxy (Instruqt tabs want HTTP)
+PORT_FORGE_TAB=8090               # plain-HTTP front for Forge's TLS proxy on :8443 (Instruqt tabs want HTTP)
 PORT_TOPOLOGY=5050
 PORT_REGISTRY=5000
 PORT_ARGOCD=8091
@@ -67,7 +67,7 @@ gitea_api() {  # gitea_api <method> <path> [json]
 forge_api() {  # forge_api <method> <path> [json]
   local m="$1" p="$2" d="${3:-}"
   if [[ -z "${_FORGE_TOKEN:-}" ]]; then
-    _FORGE_TOKEN=$(curl -fsSk -X POST https://127.0.0.1/api/auth/login -H 'Content-Type: application/json' \
+    _FORGE_TOKEN=$(curl -fsSk -X POST https://127.0.0.1:8443/api/auth/login -H 'Content-Type: application/json' \
       --data "{\"username\":\"admin\",\"password\":\"$(lab_secret forge-password)\"}" | jq -r .token)
     [[ -n "$_FORGE_TOKEN" && "$_FORGE_TOKEN" != null ]] || fail "cannot log in to Forge"
   fi
