@@ -4,9 +4,9 @@
 # Clones bnk-forge at a pinned tag into a cache and runs it in a throwaway virtualenv.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-FORGE_REF="${FORGE_REF:-v4.3.4}"; FORGE_REPO="${FORGE_REPO:-https://github.com/JLCode-tech/bnk-forge.git}"; CACHE="${FORGE_CACHE:-${RUNNER_TEMP:-/tmp}/bnk-forge-validator}"
+FORGE_REF="${FORGE_REF:-v4.0.0}"; FORGE_REPO="${FORGE_REPO:-https://github.com/iracic82/bnk-forge.git}"; CACHE="${FORGE_CACHE:-${RUNNER_TEMP:-/tmp}/bnk-forge-validator}"
 [[ -d "$CACHE/src/.git" ]] || git -c advice.detachedHead=false clone -q --depth 1 --branch "$FORGE_REF" "$FORGE_REPO" "$CACHE/src"
-FORGE_COMMIT="${FORGE_COMMIT:-1a9239d6aa8793d30c7fbf9c76f816206b05d4a8}"   # v4.3.4, as checked
+FORGE_COMMIT="${FORGE_COMMIT:-e38976f2bf9c995e2ee899ddf3ae97017e2741f9}"   # v4.0.0, as checked
 [[ "$(git -C "$CACHE/src" rev-parse HEAD)" == "$FORGE_COMMIT" ]] || { echo "bnk-forge $FORGE_REF is not the pinned commit $FORGE_COMMIT"; exit 1; }
 if [[ ! -x "$CACHE/venv/bin/python" ]]; then
   python3 -m venv "$CACHE/venv" 2>/dev/null || { apt-get install -y -qq python3-venv >/dev/null 2>&1 && python3 -m venv "$CACHE/venv"; }
