@@ -31,10 +31,26 @@ fetch() { curl -fsSL --retry 4 --retry-delay 3 -o "$2" "$1"; }
 # No apt: package mirrors have bad minutes (503s). shellcheck comes from its pinned, checksum-verified
 # release, and .xz archives are unpacked with Python's standard library.
 if ! command -v shellcheck >/dev/null; then
-  SC=$(mktemp -d); f="shellcheck-${SHELLCHECK_VERSION}.linux.x86_64.tar.xz"
-  fetch "https://github.com/koalaman/shellcheck/releases/download/${SHELLCHECK_VERSION}/${f}" "$SC/$f"
-  echo "${SHELLCHECK_SHA256}  $SC/$f" | sha256sum -c - >/dev/null || fail "shellcheck checksum mismatch"
-  untar_xz "$SC/$f" "$SC" 1 && install -m 0755 "$SC/shellcheck" /usr/local/bin/shellcheck; rm -rf "$SC"
+  SC=$(mktemp -d); f="shellcheck-${SHELLCHECK_VERSION}.linux.x86_64.tar.xz"; got=""
+  for i in 1 2 3; do
+    fetch "https://github.com/koalaman/shellcheck/releases/download/${SHELLCHECK_VERSION}/${f}" "$SC/$f" || true
+    got=$(sha256sum "$SC/$f" 2>/dev/null | cut -d' ' -f1)
+    [[ "$got" == "$SHELLCHECK_SHA256" ]] && break
+    echo "      shellcheck download $i: $(stat -c %s "$SC/$f" 2>/dev/null || echo 0) bytes, sha256 ${got:-none}, expected ${SHELLCHECK_SHA256} (retrying)"
+    rm -f "$SC/$f"; sleep $(( i * 5 ))
+  done
+  if [[ "$got" == "$SHELLCHECK_SHA256" ]]; then
+    untar_xz "$SC/$f" "$SC" 1 && install -m 0755 "$SC/shellcheck" /usr/local/bin/shellcheck
+  else
+    # the release download keeps failing its checksum: take Ubuntu's package instead, with retries
+    echo "      falling back to the Ubuntu package"
+    for i in 1 2 3 4; do
+      apt-get -o Acquire::Retries=5 update -qq >/dev/null 2>&1 && DEBIAN_FRONTEND=noninteractive apt-get -o Acquire::Retries=5 install -y -qq shellcheck >/dev/null 2>&1 && break
+      sleep $(( i * 10 ))
+    done
+    command -v shellcheck >/dev/null || fail "could not install shellcheck (release checksum mismatch and no package)"
+  fi
+  rm -rf "$SC"
 fi
 T=$(mktemp -d)
 
