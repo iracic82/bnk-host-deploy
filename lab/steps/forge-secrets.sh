@@ -17,15 +17,18 @@ upload() {  # upload <secret name> <file name> <value-producing command...>
   local cur type id code T i
   cur=$(jq -c --arg n "$n" '[.[] | select(.name == $n)] | first // empty' <<<"$existing")
   type=$(jq -r '.secret_type // empty' <<<"${cur:-null}"); id=$(jq -r '.id // empty' <<<"${cur:-null}")
-  if [[ "$type" == file ]]; then ok "$n: file secret already on project $name"; return; fi
-  if [[ -n "$id" ]]; then   # an earlier value-typed secret of the same name: the module needs a file
-    forge_api DELETE "/api/projects/${pid}/secrets/${id}" >/dev/null && ok "$n: replaced the value secret with a file secret"
+  local target; target=$(jq -r '.target_variable_name // empty' <<<"${cur:-null}")
+  # Forge links a secret to the module's requirement by target_variable_name, not by its name.
+  if [[ "$type" == file && "$target" == "$n" ]]; then ok "$n: file secret already on project $name, linked to the requirement"; return; fi
+  if [[ -n "$id" ]]; then   # an earlier secret that is not a linked file secret: replace it
+    forge_api DELETE "/api/projects/${pid}/secrets/${id}" >/dev/null && ok "$n: replacing the earlier secret with a linked file secret"
   fi
   T=$(mktemp -d); chmod 700 "$T"
   "$@" > "$T/$fname"
   for i in 1 2 3 4 5 6; do
     code=$(curl -sSk -o "$T/resp" -w '%{http_code}' -X POST -H "Authorization: Bearer ${_FORGE_TOKEN}" \
-      -F "name=$n" -F "description=from lab-vault" -F "file=@$T/$fname;filename=$fname" \
+      -F "name=$n" -F "description=from lab-vault" -F "target_variable_name=$n" -F "target_module_path=forge/bnk-host" \
+      -F "file=@$T/$fname;filename=$fname" \
       "https://127.0.0.1:8443/api/projects/${pid}/secrets/file") || code=000
     [[ "$code" == 429 ]] && { sleep $(( i * 5 )); continue; }; break
   done
@@ -40,5 +43,5 @@ upload far_service_account_key cne_pull_64.json vault_get far_service_account_ke
 upload bnk_license_jwt license.jwt vault_get bnk_license_jwt
 step "what Forge now requires vs. holds"
 forge_api GET "/api/projects/${pid}/secrets/required" | jq -r '
-  (.required_secrets // [])[] | "      \(.name)  \(if .exists then "present (\(.source // "project"))" else "MISSING" end)",
+  ((.required_secrets // [])[] | "      \(.name)  \(if .exists then "present" else "MISSING" end)"),
   (if .all_satisfied then "   ok  all required secrets present: the module can run" else "   !!  \(.missing_count) required secret(s) missing" end)'

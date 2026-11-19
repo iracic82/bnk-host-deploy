@@ -208,7 +208,8 @@ Every word of that page came from `forge/forge-blueprint.json` in your repositor
 3. Leave **Advanced options** alone. `cluster_name` defaults to `lab`
 4. Press the button at the bottom of the dialog
 
-Forge creates the project and waits. The module is **Pending** and the pipeline says **Waiting**,
+Forge creates the project and waits. In Forge, **Deploy** on a blueprint means *create the deployment*,
+and **Deploy all** on the project, in the next challenge, means *run it*. The module is **Pending** and the pipeline says **Waiting**,
 because the three secrets the blueprint needs are not there yet:
 
 ![Project bnk-lab: one module, BNK 2.4.2 Host install, engine Container, status Pending](../assets/forge-6-project-pending.png)
