@@ -170,7 +170,10 @@ status bar to create the branch, write the message, **Commit**, then **Publish B
 
 ## Step 4: Open the pull request
 
-In the **Gitea** tab, open the repository. A banner offers to create a pull request from
+In the **Gitea** tab, open the repository **platform/bnk-host-deploy**: click its name in the
+repository list on the right of the Gitea home page. Under its name you see the repository's tabs.
+Two of them you will use for every change from now on: **Pull Requests**, where changes are proposed
+and merged, and **Actions**, where the pipeline's runs show up. A banner offers to create a pull request from
 `pin-runner-image`. Click the green **New Pull Request** button in that banner (top right in the
 screenshot below), check that it merges into `main`, give it the title
 *Pin the installer image*, and create it.
@@ -215,7 +218,9 @@ Two things are worth noticing in the list of runs:
 
 ## Step 6: Merge
 
-Back on the pull request, press **Merge**:
+Merge only when the checks are done. In **Actions**, the `ci` run for your pull request must show a
+green tick, not a yellow dot. Then go back to **Pull Requests**, open your pull request and press
+**Merge**:
 
 ![The pull request "runner: pin the installer image built in this lab", merged into main](../assets/gitea-7-pr-merged.png)
 

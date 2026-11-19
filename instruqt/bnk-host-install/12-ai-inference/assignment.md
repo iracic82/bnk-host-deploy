@@ -170,8 +170,8 @@ Save, then validate, commit and push:
 ./tests/cluster.sh clusters/lab.yaml && git commit -qam "clusters/lab: let BNK run endpoint pickers in namespace inference" && git push -u origin enable-inference
 ```
 
-**Open the pull request** in **Gitea**: click **New Pull Request** on the green banner and **Create** it.
-Do not merge yet, read on first. What this change makes the installer do:
+**Open the pull request.** In the **Gitea** tab, open **platform/bnk-host-deploy**, click **New Pull
+Request** on the green banner and press **Create Pull Request**. Do not merge yet, read on first. What this change makes the installer do:
 
 | Phase | Action |
 |---|---|
@@ -192,7 +192,8 @@ lab owner
 
 **If `lab owner` says `argocd`:**
 
-1. Merge the pull request once `ci` is green (above).
+1. In **Actions**, wait until the `ci` run of your pull request shows a green tick. Then, in **Pull
+   Requests**, press **Merge**.
 2. In the **Argo CD** tab, open the application **`bnk-install`** and press **Refresh**. Within seconds it
    turns **OutOfSync**: the ConfigMap Argo builds from `clusters/` has a new content hash, because
    `lab.yaml` changed. **App Diff** shows the new `inference:` block.
@@ -213,11 +214,14 @@ lab owner
 
 1. Wait for the `plan` comment on the pull request. It lists the phase 47 actions and the CNEInstance
    diff, `+ eppNamespaces: [inference]`. That is your review.
-2. Merge. In **Actions**, open the `deploy` run and follow phases 47 and 50 in its log until it is green.
+2. In **Actions**, wait until `ci` and `plan` show a green tick. Then, in **Pull Requests**, press
+   **Merge**. Back in **Actions**, open the new `deploy` run and follow phases 47 and 50 in its log
+   until it shows a green tick.
 
 **If `lab owner` says `forge`:**
 
-1. Merge once `ci` is green, for the record. Forge runs the installer image you built in challenge 4,
+1. In **Actions**, wait until `ci` shows a green tick. Then, in **Pull Requests**, press **Merge**,
+   for the record. Forge runs the installer image you built in challenge 4,
    whose built-in cluster file does not know about this change, so make it in Forge itself:
 
    ```run
@@ -293,12 +297,17 @@ git add apps/inference && git commit -qm "apps: inference, three Dynamo workers 
 
 **Open the pull request, wait for its checks, then merge:**
 
-1. In the **Gitea** tab, click **New Pull Request** on the green banner *You pushed on branch …*, and
-   **Create** it.
-2. **Wait for the checks.** The pull request's Conversation tab lists its workflow runs (`ci`, and
-   `plan` when a cluster file changed), and so does **Actions**. A yellow dot means still running.
-   Wait until every one shows a green tick.
-3. Press **Merge**.
+1. In the **Gitea** tab, open the repository **platform/bnk-host-deploy**: click its name in the
+   repository list on the right of the Gitea home page. Under its name you see the repository's tabs,
+   among them **Pull Requests** and **Actions**.
+2. Click **New Pull Request** on the green banner *You pushed on branch …*, check that it merges into
+   `main`, and press **Create Pull Request**.
+3. **Wait for the checks.** Open the **Actions** tab. Every run for your branch (`ci`, and `plan` when
+   a cluster file changed) shows a yellow dot while it runs and a green tick when it is done. Do not
+   merge while any of them is still yellow.
+4. Go back to **Pull Requests**, open your pull request and press **Merge**.
+5. **Wait again after the merge.** The merge starts new runs on `main` in **Actions** (`ci` always,
+   and `deploy` or `apps` on the pipeline path). Wait until they show a green tick before you go on.
 
 Then hand it over as in challenge 10:
 

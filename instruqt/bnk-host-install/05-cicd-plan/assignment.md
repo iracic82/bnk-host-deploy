@@ -192,7 +192,8 @@ git commit -am "clusters/lab: install BNK, TMM on bnk-worker" && git push -u ori
 ```
 
 The push prints a link: *Create a new pull request for 'enable-lab-cluster'*. In the **Gitea** tab,
-open **Pull Requests > New Pull Request**, choose `enable-lab-cluster` into `main`, and title it
+open the repository **platform/bnk-host-deploy** (its name in the list on the right of the Gitea home
+page), then its **Pull Requests** tab, then **New Pull Request**, choose `enable-lab-cluster` into `main`, and title it
 *Install BNK on the lab cluster*.
 
 > **Do not merge this pull request yet, not even by accident.** Within seconds a comment appears on
@@ -210,7 +211,7 @@ Two workflows start straight away:
 
 ## Step 4: Watch the plan think
 
-Open **Actions** and click the running `plan` job. It works in three steps.
+Open the repository's **Actions** tab and click the running `plan` job. It works in three steps.
 
 **1. Which clusters does this change affect?** `ci/targets.sh` compares your branch with `main`. You
 changed `clusters/lab.yaml`, so the answer is that one cluster and no other. Had you changed

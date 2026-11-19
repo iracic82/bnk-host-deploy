@@ -101,7 +101,11 @@ start it. The installer encodes that order once, so nobody has to remember it ag
 
 ## Step 1: Merge
 
-In **Gitea**, open your pull request *Install BNK on the lab cluster* and press **Merge**.
+1. In **Gitea**, open **platform/bnk-host-deploy** and its **Actions** tab. Check that the `ci` and
+   `plan` runs of your pull request both show a green tick. If one is still yellow, wait.
+2. Open **Pull Requests**, then *Install BNK on the lab cluster*, and press **Merge**.
+3. The merge starts the install. Go back to **Actions** and follow the `deploy` run below until it
+   shows a green tick.
 
 > Merged it already in challenge 5? Then the install has run, or is running. Open **Actions >
 > deploy**, follow step 2 in that run's log instead of live, and carry on from step 3.
