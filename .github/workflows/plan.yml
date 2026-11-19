@@ -40,6 +40,16 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: tell reviewers a plan is coming
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          printf '%s\n' "### Plan running for this change" "" \
+            "**Do not merge yet.** The plan for the affected cluster(s) replaces this comment in a few minutes." \
+            "Merging is the install: review the plan first." > "$RUNNER_TEMP/pending.md"
+          ./ci/comment.sh "$PR_NUMBER" "$RUNNER_TEMP/pending.md" || true
+
       - name: pinned tools
         run: ./ci/tools.sh
 

@@ -142,7 +142,8 @@ status bar to create the branch, write the message, **Commit**, then **Publish B
 ## Step 4: Open the pull request
 
 In the **Gitea** tab, open the repository. A banner offers to create a pull request from
-`pin-runner-image`. Click **New Pull Request**, check that it merges into `main`, give it the title
+`pin-runner-image`. Click the green **New Pull Request** button in that banner (top right in the
+screenshot below), check that it merges into `main`, give it the title
 *Pin the installer image*, and create it.
 
 ![Gitea Pull Requests page: a green banner says you pushed on branch pin-runner-image, with a New Pull Request button](../assets/gitea-pr-banner.png)

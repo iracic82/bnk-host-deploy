@@ -179,6 +179,10 @@ The push prints a link: *Create a new pull request for 'enable-lab-cluster'*. In
 open **Pull Requests > New Pull Request**, choose `enable-lab-cluster` into `main`, and title it
 *Install BNK on the lab cluster*.
 
+> **Do not merge this pull request yet, not even by accident.** Within seconds a comment appears on
+> it: *Plan running for this change. Do not merge yet.* Merging now would cancel the plan, and the
+> install would start without anyone having read it.
+
 Two workflows start straight away:
 
 | Workflow | Why it started |
@@ -235,7 +239,10 @@ As the reviewer, answer three questions before anyone approves:
 
 Three yeses, and the pull request is ready.
 
-**Do not merge yet.** In this repository the merge *is* the install. That is the next challenge, and
+**Do not merge yet.** In this repository the merge *is* the install.
+
+> Merged already? Nothing is broken: `deploy` plans again right before it installs, and its run page
+> (**Actions > deploy**) shows that plan. Read it there, then carry on in challenge 6. That is the next challenge, and
 it deserves your full attention.
 
 Press **Check**. It confirms the pull request exists and its plan succeeded.
