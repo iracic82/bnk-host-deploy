@@ -23,6 +23,8 @@ warn()   { printf '    \033[0;33m!!\033[0m  %s\n' "$*"; _PHASE_WARN=1
              printf '    \033[0;31mXX\033[0m  strict environment %s: preflight warnings are fatal\n' "${BNK_ENV_NAME:-}" >&2
              exit 1
            fi; }
+# progress while waiting for something that is still starting (a retry is not a warning)
+wait_note() { printf '    \033[2m..\033[0m  %s\n' "$*"; }
 die()    { printf '    \033[0;31mXX\033[0m  %s\n' "$*" >&2; _PHASE_ERR="$*"; exit 1; }
 # A diff against the live cluster, shown collapsed in the report.
 report_diff() {  # report_diff <title> <diff text>
@@ -30,7 +32,7 @@ report_diff() {  # report_diff <title> <diff text>
   printf '%s\n' "$1" >> "$_CHANGES"
   { echo; echo "<details><summary>${1}</summary>"; echo; echo '```diff'; printf '%s\n' "$2"; echo '```'; echo '</details>'; } >> "$_SUMMARY"
 }
-export -f _sum log ok warn die docref report_diff
+export -f _sum log ok warn wait_note die docref report_diff
 
 phase_begin() { _P_ID="$1"; _P_TITLE="$2"; _P_DOC="$3"; _P_T0=$(date +%s); _PHASE_WARN=0; _PHASE_ERR=""; }
 phase_end() {

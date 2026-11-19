@@ -29,7 +29,7 @@ out=""
 for attempt in $(seq 1 12); do
   if out=$(kubectl apply -f "$CLUSTER_NETWORK" 2>&1); then break; fi
   grep -qE 'failed calling webhook|connection refused|no endpoints available' <<<"$out" || die "applying $(basename "$CLUSTER_NETWORK") failed: $out"
-  warn "F5 webhook not ready yet (${attempt}/12), retrying"; sleep 10
+  wait_note "F5 webhook still starting (${attempt}/12), retrying"; sleep 10
 done
 grep -qE 'failed calling webhook' <<<"$out" && die "the F5 webhook kept refusing $(basename "$CLUSTER_NETWORK")"
 while read -r line; do [[ -n "$line" ]] && ok "$line"; done <<<"$out"

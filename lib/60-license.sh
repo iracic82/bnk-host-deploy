@@ -32,7 +32,7 @@ YAML
   ) && { lic_err=""; break; }
   case "$lic_err" in
     *"status unknown for quota"*)
-      warn "license quota not ready yet, retrying (${attempt}/12)"
+      wait_note "licence service still starting, retrying (${attempt}/12)"
       sleep 10 ;;
     *) break ;;
   esac
