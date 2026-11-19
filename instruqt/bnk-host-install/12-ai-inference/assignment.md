@@ -172,6 +172,11 @@ lab status
 The CRD exists, the CNEInstance lists `["inference"]`, the namespace is there, and `lab status` still
 shows BNK Available. The controller restarted cleanly.
 
+> **Wait for this before step 3.** The app in step 3 uses the InferencePool type and the `inference`
+> namespace that this platform change creates. Ship the app before the change has landed and the
+> cluster refuses it: *no matches for kind InferencePool*, *namespace inference not found*. Platform
+> first, then apps, every time.
+
 ---
 
 ## Step 3: The AI team's change (app team)
