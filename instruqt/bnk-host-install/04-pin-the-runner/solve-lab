@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -euxo pipefail
 export PATH=/usr/local/bin:$PATH KUBECONFIG=/root/.kube/config
 source /opt/lab/lib.sh; source /opt/lab/ci-helpers.sh
 lab image

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -euxo pipefail
 export PATH=/usr/local/bin:$PATH KUBECONFIG=/root/.kube/config
 cd /root/workspace/bnk-host-deploy && ./tests/cluster.sh >/dev/null && ./tests/render.sh >/dev/null
 lab runner

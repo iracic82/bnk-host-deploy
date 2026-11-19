@@ -8,6 +8,7 @@ cmd="${1:-help}"; shift || true
 case "$cmd" in
   network|runner|ci-secrets|image|forge|forge-secrets|forge-catalog|forge-deploy|forge-register|plan|argocd) exec bash "$HERE/steps/${cmd}.sh" "$@" ;;
   status)  exec bash "$HERE/steps/status.sh" "$@" ;;
+  update)  git -C /root/bnk-host-deploy pull -q --ff-only && exec bash /root/bnk-host-deploy/lab/80-learner.sh ;;
   curl)    exec docker exec client curl -s -m 5 "$@" ;;
   client)  exec docker exec -it client bash ;;
   router)  exec docker exec -it edge-router vtysh ;;

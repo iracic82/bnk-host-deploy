@@ -25,13 +25,14 @@ TOKEN=$(docker exec -u git gitea gitea actions generate-runner-token --scope "$R
 ok "token issued for ${REPO} (single use, not shown)"
 
 step "3/4  register with the labels the workflows ask for"
-# host executor: jobs run directly on this VM, where kubectl, helm and the kubeconfig already are.
+# capacity 2: a pull request's ci and plan run side by side (deploys stay serialized by their
+# concurrency group). host executor: jobs run directly on this VM, where kubectl, helm and the kubeconfig already are.
 # That is the "runner beside the cluster" pattern. Labels: self-hosted + bnk select it; ubuntu-latest
 # lets the static checks in ci.yml run here too.
 mkdir -p "$DIR"; cd "$DIR" || exit 1
 if [[ ! -s .runner ]]; then
   gitea-runner generate-config > config.yaml
-  yq -i '.runner.capacity = 1 | .runner.envs.KUBECONFIG = "/root/.kube/config" | .runner.envs.PATH = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" | .runner.timeout = "2h" | .log.level = "info"' config.yaml
+  yq -i '.runner.capacity = 2 | .runner.envs.KUBECONFIG = "/root/.kube/config" | .runner.envs.PATH = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" | .runner.timeout = "2h" | .log.level = "info"' config.yaml
   gitea-runner -c config.yaml register --no-interactive --instance "http://${IP}:${PORT_GITEA}" --token "$TOKEN" \
     --name bnk-lab-runner --labels "self-hosted:host,bnk:host,ubuntu-latest:host" >/dev/null
 fi
