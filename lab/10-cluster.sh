@@ -97,8 +97,14 @@ docker network inspect dc-edge >/dev/null 2>&1 || docker network create dc-edge 
 docker network inspect dc-edge -f '{{range $k,$v := .Containers}}{{$v.Name}} {{end}}' | grep -qw bnk-worker \
   || docker network connect dc-edge bnk-worker
 w_eth1=$(docker exec bnk-worker sh -c "ip -o -4 addr | awk '/10\.10\.10\./{print \$2}'" | head -1)
-[[ -n "$w_eth1" && "$w_eth1" != eth1 ]] && docker exec bnk-worker ip link set "$w_eth1" name eth1 2>/dev/null || true
+[[ -z "$w_eth1" || "$w_eth1" == eth1 ]] || fail "bnk-worker's dc-edge interface is $w_eth1, expected eth1 (lab.attachments.yaml names eth1)"
+# Docker may move a container's default route onto a network connected later (dc-edge sorts before
+# kind), and flushing eth1's address then deletes it. Without a default route the node cannot even
+# route to the service IP 10.96.0.1, so Calico's CNI plugin fails for every pod on it. Pin the
+# default route to the kind network, and prove it.
 docker exec bnk-worker ip -4 addr flush dev eth1
+docker exec bnk-worker ip route replace default via 172.18.0.1 dev eth0
+docker exec bnk-worker ip route show default | grep -q 'via 172.18.0.1 dev eth0' || fail "bnk-worker has no default route via the kind network"
 # eth2: a second leg into the kind network. A macvlan child cannot reach its own parent, so with
 # eth0 as parent TMM could never talk to bnk-worker itself; eth2 is a parent that is not the node's.
 BR="br-$(docker network inspect kind -f '{{.Id}}' | cut -c1-12)"
@@ -110,6 +116,19 @@ if ! docker exec bnk-worker ip link show eth2 >/dev/null 2>&1; then
   docker exec bnk-worker ip link set eth2 up
 fi
 ok "bnk-worker: eth1 -> dc-edge (no node address), eth2 -> kind bridge $BR"
+
+step "every node can run pods (Calico's CNI answers on each one)"
+kubectl -n tigera-operator rollout restart deploy/tigera-operator >/dev/null 2>&1 || true
+kubectl -n calico-system delete pod -l k8s-app=calico-kube-controllers --wait=false >/dev/null 2>&1 || true
+for n in $(kind get nodes --name "$KIND_CLUSTER"); do
+  kubectl run "probe-$n" --image=registry.k8s.io/pause:3.10 --restart=Never --overrides="{\"spec\":{\"nodeName\":\"$n\"}}" >/dev/null 2>&1 || true
+done
+for n in $(kind get nodes --name "$KIND_CLUSTER"); do
+  kubectl wait --for=condition=Ready "pod/probe-$n" --timeout=180s >/dev/null || fail "a pod on $n never got a network: kubectl describe pod probe-$n"
+  ok "$n: pod got $(kubectl get pod "probe-$n" -o jsonpath='{.status.podIP}')"
+done
+for n in $(kind get nodes --name "$KIND_CLUSTER"); do kubectl delete pod "probe-$n" --now >/dev/null 2>&1 || true; done
+kubectl -n tigera-operator rollout status deploy/tigera-operator --timeout=180s >/dev/null && ok "tigera-operator healthy"
 
 step "kubeconfigs"
 # One for the VM (the learner, the CI runner) and one written for Forge, identical but standalone.
