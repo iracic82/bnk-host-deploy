@@ -3,8 +3,8 @@ id: vdtoafldxxri
 title: 'Install BIG-IP Next for Kubernetes the way platform teams do: CI/CD, Forge
   or Argo CD'
 teaser: Take a bare Kubernetes cluster to a licensed F5 BIG-IP Next for Kubernetes
-  2.4.2 serving real traffic, without typing a single install command. Pick a pipeline,
-  BNK Forge or Argo CD.
+  2.4.2 serving apps and AI inference, without typing a single install command. Pick
+  a pipeline, BNK Forge or Argo CD.
 description: |-
   F5's install guide for **BIG-IP Next for Kubernetes (Host)** is a page of steps: label a node,
   install cert-manager, create pull secrets, install the F5 Lifecycle Operator, generate
@@ -22,11 +22,15 @@ description: |-
   3. **Argo CD.** GitOps: the cluster pulls its desired state from git and Argo runs the install.
 
   Every path runs the same installer from the same repository, so you see that the tool changes
-  and the install does not. You finish by sending a real request from a client, through an edge
-  router, into TMM and onto a pod, and by making a Day-2 change through git.
+  and the install does not. Then you send a real request from a client, through an edge router,
+  into TMM and onto a pod, audit the cluster with BNK Forge, and make a Day-2 change through git.
+
+  The last challenge puts **AI inference** behind BNK: three NVIDIA Dynamo workers, and BNK's
+  endpoint picker sending every request to the GPU that already holds its prompt in KV cache.
+  You measure it against round robin, live.
 
   Each step explains what the automation does and why, mapped to the page of F5's guide it
-  replaces. About two and a half hours. No F5 or GitHub account needed.
+  replaces. About three hours. No F5 or GitHub account needed.
 icon: ./assets/f5-logo.png
 tags:
 - gitops
@@ -47,5 +51,5 @@ lab_config:
   loadingMessages: true
   override_challenge_layout: false
   hideStopButton: false
-checksum: "14519841327893574670"
+checksum: "10143686706954337091"
 enhanced_loading: false
