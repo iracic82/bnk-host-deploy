@@ -8,4 +8,4 @@ cust=1; [[ "${1:-}" =~ ^[0-9]+$ ]] && { cust=$1; shift; }
 q="${*:-How do I reach my service from outside the cluster?}"
 jq -n --arg m "$mode" --argjson c "$cust" --arg q "$q" '{mode:$m, customer:$c, question:$q}' \
   | curl -s -m 60 -H 'Content-Type: application/json' --data-binary @- "http://127.0.0.1:${PORT_INFERENCE}/api/ask" \
-  | jq -r 'if .ok then "\(.ms) ms  via \(.vip) (\(.mode))  customer \(.customer)  KV cache: \(.cached) of \(.prompt) prompt tokens \(if .cached > 0 then "(warm)" else "(cold, full prefill)" end)\n  \(.answer)" else "no answer: \(.error // .code)" end'
+  | jq -r 'if .ok then "\(.ms) ms  via \(.vip) (\(.mode))\(if (.gpu // -1) >= 0 then " to GPU " + (["A","B","C","D","E"][.gpu]) else "" end)  customer \(.customer)  KV cache: \(.cached) of \(.prompt) prompt tokens \(if .cached > 0 then "(warm)" else "(cold, full prefill)" end)\n  \(.answer)" else "no answer: \(.error // .code)" end'

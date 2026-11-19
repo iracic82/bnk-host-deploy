@@ -232,14 +232,14 @@ but nothing owned the address.
 Send twelve requests and count which pod answered each:
 
 ```run
-for i in $(seq 1 12); do lab curl http://10.30.30.10/ | grep Hostname; done | sort | uniq -c
+lab spread 12
 ```
 
 All three pods answer, roughly in turn. Now delete one pod and send traffic straight away:
 
 ```run
 kubectl -n hello delete pod "$(kubectl -n hello get pod -o jsonpath='{.items[0].metadata.name}')" --wait=false
-for i in $(seq 1 12); do lab curl -o /dev/null -w '%{http_code} ' http://10.30.30.10/; done && echo
+lab codes 12
 ```
 
 Twelve times `200`. The Deployment started a replacement, Kubernetes reported both changes, and

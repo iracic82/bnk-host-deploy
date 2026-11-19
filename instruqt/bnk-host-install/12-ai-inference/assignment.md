@@ -3,7 +3,7 @@ slug: ai-inference
 id: 3jopevlo1xrd
 type: challenge
 title: 'Two days later: the AI team moves in'
-teaser: Put three simulated GPUs behind BIG-IP Next for Kubernetes and let BNK's endpoint
+teaser: Put three NVIDIA Dynamo workers behind BIG-IP Next for Kubernetes and let BNK's endpoint
   picker send each request to the GPU that already holds its prompt. Then measure
   what that is worth against round robin.
 notes:
@@ -19,10 +19,11 @@ notes:
 
     Priya forwards it to you with one line: *"This is what BNK was built for. Show them."*
 
-    There are no GPUs in this lab. Each "GPU" is **llm-d's vLLM simulator**, the tool the Kubernetes
-    inference community uses to test exactly this kind of routing. It speaks the OpenAI API, publishes
-    vLLM's metrics, and simulates the two things that cost time on a real GPU: reading a prompt and
-    writing an answer. Its answer text is filler. Its timings and its cache behave like the real thing.
+    The team runs its models on **NVIDIA Dynamo**, an open-source inference framework. There are no
+    GPUs in this lab, so each "GPU" is a Dynamo worker running **Mocker**, Dynamo's GPU-free engine. It
+    models what a real worker does, scheduling, the KV cache, prefill and decode, and, like a real worker,
+    it **publishes KV-cache events**: a running report of which prompt blocks it holds. Its answer text is
+    random tokens. Its cache behaves like the real thing.
 - type: text
   contents: |
     ## How a GPU answers a question
@@ -39,8 +40,8 @@ notes:
     skips most of the prefill. If not, it computes it all again, and evicts somebody else's to make
     room, because GPU memory is small and expensive.
 
-    So *which GPU gets the request* decides whether it costs 50 ms or 700 ms. A load balancer that only
-    counts connections cannot know. **An endpoint picker can.**
+    So *which GPU gets the request* decides whether the GPU computes the prompt again or reuses it. A
+    load balancer that only counts connections cannot know. **An endpoint picker can.**
 tabs:
 - id: pghtnmrzyebl
   title: AI Inference
@@ -203,31 +204,46 @@ lab status
 The CRD exists, the CNEInstance lists `["inference"]`, the namespace is there, and `lab status` still
 shows BNK Available. The controller restarted cleanly.
 
-> **Wait for this before step 3.** The app in step 3 uses the InferencePool type and the `inference`
+> **Wait for this before step 4.** The app in step 4 uses the InferencePool type and the `inference`
 > namespace that this platform change creates. Ship the app before the change has landed and the
 > cluster refuses it: *no matches for kind InferencePool*, *namespace inference not found*. Platform
 > first, then apps, every time.
 
 ---
 
-## Step 3: The AI team's change (app team)
+## Step 3: The inference runtime (platform team)
+
+Mei's models run on NVIDIA Dynamo, so the cluster needs Dynamo's operator, and NATS, the message bus
+its workers publish KV-cache events on. Like Argo CD, it is a platform component you install once:
+
+```run
+lab dynamo
+```
+
+Three blocks: the Dynamo platform 1.5.1 Helm chart (operator and NATS), a NetworkPolicy so that only
+the namespaces approved for pickers may talk to NATS (anyone who could publish fake KV events could
+steer BNK's picker), and the namespace `inference` made ready for Dynamo workers.
+
+---
+
+## Step 4: The AI team's change (app team)
 
 Read the app in **VS Code**: `docs/examples/inference/inference.yaml`.
 
 | Object | Purpose |
 |---|---|
-| `Deployment model` | three simulated GPUs, spread across the nodes. Each KV cache holds about **four** customers' prompts |
-| `InferencePool model-pool` | those three pods, as one pool the picker routes to |
-| `F5EPP model-pool-epp` | BNK's endpoint picker for the pool. BNK's controller turns this one object into a running picker |
-| `Gateway ai-picker` + `HTTPRoute chat` | VIP **10.30.30.11**: requests go to the InferencePool, so the picker decides |
-| `Service model-rr` + `Gateway ai-roundrobin` + `HTTPRoute chat-rr` | VIP **10.30.30.12**: the same pods behind a plain Service, round robin, for comparison |
+| `DynamoGraphDeployment mocker` | Dynamo's frontend plus three **decode workers**, one per node. Each worker's KV cache holds only a few customers' prompts, like a busy GPU. Each worker pod has a small Dynamo frontend beside it in *direct* mode: it serves exactly the worker BNK's picker named |
+| `InferencePool model-pool` | the three decode workers, as one pool the picker routes to |
+| `F5EPP model-pool-epp` | BNK's endpoint picker for the pool, engine **dynamo**: it subscribes to the workers' KV-cache events on NATS. BNK's controller turns this one object into a running picker |
+| `Gateway ai-picker` + `HTTPRoute chat` | VIP **10.30.30.11**: requests go to the InferencePool, so BNK's picker decides |
+| `Gateway ai-roundrobin` + `HTTPRoute chat-rr` | VIP **10.30.30.12**: Dynamo's own frontend, in its default round-robin mode, for comparison |
 
 Ship it like the hello app:
 
 ```run
 cd /root/workspace/bnk-host-deploy && git checkout -q main && git pull -q && git checkout -b inference-app
 mkdir -p apps/inference && cp docs/examples/inference/inference.yaml apps/inference/
-git add apps/inference && git commit -qm "apps: inference, three simulated GPUs behind BNK's endpoint picker" && git push -u origin inference-app
+git add apps/inference && git commit -qm "apps: inference, three Dynamo workers behind BNK's endpoint picker" && git push -u origin inference-app
 ```
 
 **Open the pull request, wait for its checks, then merge:**
@@ -245,7 +261,8 @@ Then hand it over as in challenge 10:
 lab deliver apps/inference/inference.yaml
 ```
 
-Watch it come up. The picker's own pod appears next to the three model servers, rendered by BNK:
+Watch it come up. Dynamo's operator starts the frontend and the three workers (the first image pull
+takes a few minutes), and BNK renders the picker's own pod next to them:
 
 ```run
 kubectl -n inference get pods,inferencepool,f5-epps,gateway -o wide
@@ -255,7 +272,7 @@ Both Gateways get their addresses, `10.30.30.11` and `10.30.30.12`, and turn `PR
 
 ---
 
-## Step 4: Ask one question, twice
+## Step 5: Ask one question, twice
 
 From the client behind Sam's router, ask as customer 7:
 
@@ -264,10 +281,14 @@ lab ask 7 "How do I reach my service from outside the cluster?"
 lab ask 7 "And how do I make it highly available?"
 ```
 
-The first answer is **cold**: none of customer 7's prompt was in any GPU's KV cache, so the GPU
-prefilled all of it (`0 of ~305` cached). The second is **warm**: the picker sent it to the same GPU,
-which still held the prompt (`~300 of ~305` cached), and the latency drops from several hundred
-milliseconds to tens.
+The first answer is **cold**: none of customer 7's prompt was in any GPU's KV cache, so the worker
+prefilled all of it (`KV cache: 0 of 425 prompt tokens`). The second is **warm**: BNK's picker sent it
+to the GPU that now held the prompt, and that GPU reused it (`400 of 423`). Ask a third question and it
+lands warm on the same GPU again. `lab ask` names the GPU each time.
+
+The latency hardly changes, and that is expected here: Mocker models a fast data-center GPU, where a few
+hundred prompt tokens take milliseconds to prefill. What changed is the **work**: 400 tokens the GPU did
+not have to compute again.
 
 Now the same question through round robin:
 
@@ -280,7 +301,7 @@ are not.
 
 ---
 
-## Step 5: Twelve customers, three GPUs
+## Step 6: Twelve customers, three GPUs
 
 Open the **AI Inference** tab. The top shows the three GPUs, read live from each model server's own
 vLLM metrics: requests served, and **KV-cache hit rate**, the share of prompt tokens served from the
@@ -294,8 +315,9 @@ Read the two panels side by side:
 
 | | Look for |
 |---|---|
-| **warm KV-cache hits** | how many of the 48 found their prompt already cached. Expect roughly **35 to 42** with the picker, and around **20** with round robin |
-| **average and p95 latency** | the picker's average should be well under round robin's, often half |
+| **warm KV-cache hits** | how many of the 48 found their prompt already cached. On BNK in this lab: about **37** with the picker, about **20** with round robin |
+| **prefill saved** | the share of all prompt tokens served from KV cache instead of computed again |
+| **average latency** | about the same on both sides here, and that is honest: Mocker models a fast data-center GPU, where a few hundred tokens of prefill take milliseconds. The saving shows as latency with long contexts and under load, and as capacity always |
 | **the strip** | one square per request, coloured by the GPU that answered. Filled is warm, hollow is cold |
 | **the customer grid** | with the picker, each customer sits in **one** GPU column. With round robin, every customer is smeared across all three, and every GPU keeps evicting prompts it will need again |
 
@@ -311,8 +333,17 @@ lab gpus
 > its queue, how full is its KV cache. It names the winner, and TMM sends the request there. It is
 > the same full proxy you met in challenge 10, with a far smarter way of choosing the pool member.
 >
-> Here the picker tracks prefixes itself, from the requests it routes. With real vLLM, the model
-> servers also publish **KV-cache events**, so the picker knows exactly which blocks each GPU holds.
+> BNK's picker runs in **precise** mode: it does not guess. Every Dynamo worker publishes KV-cache
+> events on NATS (*stored these blocks, evicted those*), and the picker keeps an index of exactly
+> which blocks each GPU holds. Read it in the picker's own log:
+>
+> ```
+> kubectl -n inference logs deploy/model-pool-epp | grep -E 'transport=|first message'
+> ```
+>
+> `KV-events transport=nats (dynamo-wire)`, then *first message received* on the workers'
+> `kv-events` and `kv_metrics` subjects. No events, no prefix routing: that is why the picker needs a
+> real engine such as Dynamo or vLLM behind it.
 
 > ### Concept: why this matters on a real bill
 > Prefill is the most compute-hungry part of inference. Every cold request recomputes work another
@@ -323,7 +354,7 @@ lab gpus
 
 ---
 
-## Step 6: What you built this week
+## Step 7: What you built this week
 
 | Day | What changed | How |
 |---|---|---|

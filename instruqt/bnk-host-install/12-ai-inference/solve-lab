@@ -24,18 +24,21 @@ fi
 "$WORKSPACE"/install.sh --cluster "$WORKSPACE"/clusters/lab.yaml --phase 50
 wait_bnk 900
 
-# 2. the app: model servers, InferencePool, picker, two VIPs
+# 2. the inference runtime
+lab dynamo
+
+# 3. the app: Dynamo workers, InferencePool, picker, two VIPs
 if [[ ! -f apps/inference/inference.yaml ]]; then
   git checkout -q -B inference-app; mkdir -p apps/inference; cp docs/examples/inference/inference.yaml apps/inference/
-  git add apps/inference; git commit -qm "apps: inference, three simulated GPUs behind BNK's endpoint picker"; git push -q -f -u origin inference-app
+  git add apps/inference; git commit -qm "apps: inference, three Dynamo workers behind BNK's endpoint picker"; git push -q -f -u origin inference-app
   merge_pr "$(open_pr inference-app 'apps: inference')"; git checkout -q main; git pull -q
 fi
 kubectl apply -f apps/inference/inference.yaml >/dev/null
-kubectl -n inference rollout status deploy/model --timeout=300s
+kubectl -n inference wait dynamographdeployment/mocker --for=condition=Ready --timeout=1200s || true
 for _ in $(seq 1 60); do
   docker exec client curl -s -m 30 -H 'Content-Type: application/json' \
-    -d '{"model":"Qwen/Qwen3-0.6B","max_tokens":4,"messages":[{"role":"user","content":"hello"}]}' \
-    http://10.30.30.11/v1/chat/completions | grep -q '"choices"' && exit 0
+    -d '{"model":"Qwen/Qwen3-0.6B","max_tokens":4,"prompt":"hello"}' \
+    http://10.30.30.11/v1/completions | grep -q '"choices"' && exit 0
   sleep 10
 done
 echo "no answer on 10.30.30.11"; exit 1

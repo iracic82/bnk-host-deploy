@@ -7,12 +7,15 @@ kubectl get crd inferencepools.inference.networking.k8s.io >/dev/null 2>&1 \
   || { fail-message "The InferencePool CRDs are missing. Step 2: add inference.epp_namespaces to clusters/lab.yaml and let your install tool apply it."; exit 1; }
 kubectl -n f5-bnk get cneinstance f5-bnk-instance -o jsonpath='{.spec.eppNamespaces[*]}' | grep -qw inference \
   || { fail-message "The CNEInstance does not list 'inference' in eppNamespaces yet. Finish step 2 through your install path (lab owner)."; exit 1; }
-[[ "$(kubectl -n inference get deploy model -o jsonpath='{.status.readyReplicas}' 2>/dev/null)" -ge 1 ]] 2>/dev/null \
-  || { fail-message "The model servers are not running. Step 3: ship apps/inference/inference.yaml and let it be delivered (lab owner)."; exit 1; }
+helm -n dynamo-system status dynamo-platform >/dev/null 2>&1 \
+  || { fail-message "The Dynamo platform is not installed. Step 3: run lab dynamo."; exit 1; }
+ready=$(kubectl -n inference get pods -l nvidia.com/dynamo-component-type=decode --no-headers 2>/dev/null | grep -c ' Running ')
+[[ "$ready" -ge 1 ]] \
+  || { fail-message "No Dynamo decode workers are running yet. Step 4: merge apps/inference in Gitea, let it be delivered (lab deliver), and give the image a few minutes."; exit 1; }
 kubectl -n inference get deploy -o name | grep -q epp \
   || { fail-message "BNK has not rendered the endpoint picker yet. Check: kubectl -n inference get f5-epps,deploy"; exit 1; }
 out=$(docker exec client curl -s -m 30 -H 'Content-Type: application/json' \
-  -d '{"model":"Qwen/Qwen3-0.6B","max_tokens":4,"messages":[{"role":"user","content":"hello"}]}' http://10.30.30.11/v1/chat/completions)
+  -d '{"model":"Qwen/Qwen3-0.6B","max_tokens":4,"prompt":"hello"}' http://10.30.30.11/v1/completions)
 echo "$out" | grep -q '"choices"' \
   || { fail-message "No answer from the inference VIP 10.30.30.11 yet. Try: lab ask 1 hello   and   kubectl -n inference get gateway,httproute"; exit 1; }
 exit 0

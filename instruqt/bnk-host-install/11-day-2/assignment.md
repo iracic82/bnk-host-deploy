@@ -196,7 +196,7 @@ built from uncommitted changes, and the record says so rather than claiming more
 Run a plan against `main`. If nothing has drifted, it finds nothing to do:
 
 ```run
-lab plan 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep -E '^ +(ok|!!|XX)  |planned change|No changes'
+lab plan --summary
 ```
 
 Every phase reports *already*: the label, the operator, `CNEInstance f5-bnk-instance: live object
@@ -245,7 +245,7 @@ lab deliver apps/hello/hello.yaml
 Wait until five pods run, then send traffic:
 
 ```run
-kubectl -n hello rollout status deploy/hello && kubectl -n hello get pods && for i in $(seq 1 20); do lab curl http://10.30.30.10/ | grep Hostname; done | sort | uniq -c
+kubectl -n hello rollout status deploy/hello && kubectl -n hello get pods && lab spread 20
 ```
 
 **Five** pod names in the count. If you still see three, the delivery has not happened yet: give it

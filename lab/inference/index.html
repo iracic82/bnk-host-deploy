@@ -141,7 +141,7 @@ function renderRun(mode, run) {
     <div class="big">
       <div><b>${s ? s.warm + '/' + s.ok : run.results.filter(r => r.cached > 0).length + '/' + run.done}</b><span>warm KV-cache hits</span></div>
       <div><b>${s ? s.avg_ms + ' ms' : '…'}</b><span>average latency</span></div>
-      <div><b>${s ? s.p95_ms + ' ms' : '…'}</b><span>p95 latency</span></div>
+      <div><b>${s ? Math.round(100 * s.cached_tokens / Math.max(1, s.prompt_tokens)) + '%' : '…'}</b><span>prefill saved (prompt tokens from KV cache)</span></div>
     </div>
     <div class="strip">${sq}</div>
     <div class="legend">One square per request, coloured by the GPU that answered. Filled: warm (prompt found in that GPU's KV cache). Hollow: cold (full prefill).</div>
