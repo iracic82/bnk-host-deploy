@@ -91,7 +91,6 @@ enhanced_loading: null
 
 # Two days later: the AI team moves in
 
-<!-- story -->
 ### A new tenant with expensive hardware
 
 Two days after the audit, a message from **Mei**, who leads Northwind's new AI team:

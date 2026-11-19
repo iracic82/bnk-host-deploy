@@ -68,7 +68,6 @@ enhanced_loading: null
 
 # Path A, Monday 14:30: the merge is the install
 
-<!-- story -->
 ### The quietest button in the building
 
 Priya reads the plan comment over your shoulder, checks the three answers, and approves.

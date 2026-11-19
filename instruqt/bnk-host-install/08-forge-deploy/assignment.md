@@ -68,7 +68,6 @@ enhanced_loading: null
 
 # Path B, Monday 14:45: press Deploy, watch ten steps
 
-<!-- story -->
 ### A different kind of audience
 
 Northwind's operations desk gathers behind your chair. They have never opened the repository, and

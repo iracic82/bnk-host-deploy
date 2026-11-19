@@ -78,7 +78,6 @@ enhanced_loading: null
 
 # Four weeks later: Jonas comes to audit
 
-<!-- story -->
 ### Tuesday, 09:00, four weeks on
 
 Cluster six has run quietly for a month. Then a calendar invite arrives from **Jonas**, Northwind's

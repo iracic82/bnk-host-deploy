@@ -77,7 +77,6 @@ enhanced_loading: null
 
 # Path C, Monday 14:00: let the cluster pull its own install
 
-<!-- story -->
 ### Push or pull?
 
 Paths A and B **push** an install at the cluster. Something outside it (a pipeline runner, a Forge

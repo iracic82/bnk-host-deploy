@@ -70,7 +70,6 @@ enhanced_loading: null
 
 # Monday, 13:30: one installer, sealed, and your first pull request
 
-<!-- story -->
 ### After lunch: the question that ends arguments
 
 Jonas from security stops by with a question that has ended many projects:

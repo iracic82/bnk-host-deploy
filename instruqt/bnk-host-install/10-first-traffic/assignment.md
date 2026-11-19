@@ -75,7 +75,6 @@ enhanced_loading: null
 
 # Monday, 16:00: the first request through BIG-IP Next
 
-<!-- story -->
 ### Everyone back in the room
 
 Whichever path you took, the result is the same: BNK 2.4.2 on cluster six, TMM on `bnk-worker`,

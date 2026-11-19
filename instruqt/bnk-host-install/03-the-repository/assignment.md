@@ -66,7 +66,6 @@ enhanced_loading: null
 
 # Monday, 11:30: reading the install guide that runs itself
 
-<!-- story -->
 ### The repository that remembers
 
 Back at the desk, Priya opens a browser tab. *"This is the reason cluster six will be different."*

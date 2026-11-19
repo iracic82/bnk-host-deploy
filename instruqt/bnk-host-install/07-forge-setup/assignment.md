@@ -78,7 +78,6 @@ enhanced_loading: null
 
 # Path B, Monday 14:00: teach BNK Forge your installer
 
-<!-- story -->
 ### Why a platform team likes Forge
 
 The pipeline is perfect for people who live in git. Northwind's operations desk does not. They

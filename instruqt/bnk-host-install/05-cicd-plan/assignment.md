@@ -76,7 +76,6 @@ enhanced_loading: null
 
 # Path A, Monday 14:00: say it in a pull request, read the plan
 
-<!-- story -->
 ### CI/CD in one minute
 
 **Continuous Integration (CI)** means every proposed change is checked automatically, the moment it
