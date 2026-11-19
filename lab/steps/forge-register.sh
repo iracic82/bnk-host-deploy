@@ -13,6 +13,5 @@ if [[ -z "$pid" ]]; then
 fi
 kc=$(base64 -w0 /root/.lab/kubeconfig-forge.yaml)
 jq -n --arg k "$kc" '{name:"lab", kubeconfig:$k, cloud_provider:"on-prem", default_namespace:"f5-bnk"}' \
-  | curl -fsSk -X POST -H "Authorization: Bearer ${_FORGE_TOKEN}" -H 'Content-Type: application/json' \
-      --data @- "https://127.0.0.1:8443/api/projects/${pid}/k8s/clusters" | jq -r '"   registered cluster \(.name) #\(.id): \(.api_server // "")"'
+  | forge_api POST "/api/projects/${pid}/k8s/clusters" @- | jq -r '"   registered cluster \(.name) #\(.id): \(.api_server // "")"'
 ok "Operate > Kubernetes > lab"

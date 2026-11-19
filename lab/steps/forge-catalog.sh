@@ -13,7 +13,7 @@ step "1/3  module source -> ${URL}"
 mid=$(forge_api GET /api/module-sources | jq -r --arg u "$URL" '(if type=="array" then . else (.items // .sources // .projects // .clusters // .modules // .secrets // []) end)[] | select(.url == $u) | .id' | head -1)
 [[ -n "$mid" ]] || mid=$(forge_api POST /api/module-sources "{\"name\":\"bnk-host-deploy\",\"source_type\":\"git\",\"url\":\"${URL}\",\"branch\":\"main\"}" | jq -r .id)
 forge_api POST "/api/module-sources/${mid}/sync" | jq -r '"   sync: " + ((.status // .sync_status // "done")|tostring) + "  " + ((.modules_added // .added // "") | tostring)' || true
-forge_api GET "/api/module-sources/${mid}/modules" | jq -r '(if type=="array" then . else (.items // .sources // .projects // .clusters // .modules // .secrets // []) end)[] | "   module: \(.path)  v\(.version)  engine=\(.execution_engine // .engine_type // "?")"' || true
+forge_api GET "/api/module-sources/${mid}/modules" | jq -r '(if type=="array" then . else (.items // .sources // .projects // .clusters // .modules // .secrets // []) end)[] | "   module: \(.source_path // .path)  v\(.source_version // .version)  (\(.name))"' || true
 
 step "2/3  blueprint source -> ${URL}"
 bid=$(forge_api GET /api/blueprint-catalog/sources | jq -r --arg u "$URL" '.[]? | select(.url == $u) | .id' | head -1)

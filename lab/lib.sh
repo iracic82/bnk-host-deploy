@@ -63,16 +63,38 @@ gitea_api() {  # gitea_api <method> <path> [json]
     ${d:+--data "$d"} "http://127.0.0.1:${PORT_GITEA}/api/v1${p}"
 }
 
-# Forge API: logs in once and caches a token for the rest of the script.
-forge_api() {  # forge_api <method> <path> [json]
-  local m="$1" p="$2" d="${3:-}"
+# Forge API. Logs in once per script and caches the token. Forge allows 100 requests a minute per
+# client address, and the Forge tab in the browser shares this VM's address, so 429 is retried with a
+# growing pause (or Forge's Retry-After). Any other failure prints Forge's own error body.
+#   forge_api <method> <path> [json | @-]      (@- reads the body from stdin)
+_forge_req() {  # _forge_req <method> <url> <body-file|""> [auth header]
+  local m="$1" url="$2" bf="$3" auth="${4:-}" out code ra i
+  out=$(mktemp)
+  for i in 1 2 3 4 5 6 7 8; do
+    code=$(curl -sSk -o "$out" -D "$out.h" -w '%{http_code}' -X "$m" -H 'Content-Type: application/json' \
+             ${auth:+-H "$auth"} ${bf:+--data-binary "@$bf"} "$url") || code=000
+    if [[ "$code" == 429 ]]; then
+      ra=$(sed -n 's/^[Rr]etry-[Aa]fter: *\([0-9]*\).*/\1/p' "$out.h" | head -1)
+      sleep "${ra:-$(( i * 5 ))}"; continue
+    fi
+    break
+  done
+  if [[ "$code" =~ ^2 ]]; then cat "$out"; rm -f "$out" "$out.h"; return 0; fi
+  echo "Forge answered $code for $m ${url#https://127.0.0.1:8443}: $(head -c 400 "$out")" >&2
+  rm -f "$out" "$out.h"; return 1
+}
+forge_api() {
+  local m="$1" p="$2" d="${3:-}" bf=""
   if [[ -z "${_FORGE_TOKEN:-}" ]]; then
-    _FORGE_TOKEN=$(curl -fsSk -X POST https://127.0.0.1:8443/api/auth/login -H 'Content-Type: application/json' \
-      --data "{\"username\":\"admin\",\"password\":\"$(lab_secret forge-password)\"}" | jq -r .token)
-    [[ -n "$_FORGE_TOKEN" && "$_FORGE_TOKEN" != null ]] || fail "cannot log in to Forge"
+    local lf; lf=$(mktemp); printf '{"username":"admin","password":"%s"}' "$(lab_secret forge-password)" > "$lf"
+    _FORGE_TOKEN=$(_forge_req POST https://127.0.0.1:8443/api/auth/login "$lf" | jq -r '.token // empty'); rm -f "$lf"
+    [[ -n "$_FORGE_TOKEN" ]] || fail "cannot log in to Forge as admin"
   fi
-  curl -fsSk -X "$m" -H "Authorization: Bearer $_FORGE_TOKEN" -H 'Content-Type: application/json' \
-    ${d:+--data "$d"} "https://127.0.0.1:8443${p}"
+  if [[ "$d" == "@-" ]]; then bf=$(mktemp); chmod 600 "$bf"; cat > "$bf"
+  elif [[ -n "$d" ]]; then bf=$(mktemp); printf '%s' "$d" > "$bf"; fi
+  local rc=0; _forge_req "$m" "https://127.0.0.1:8443${p}" "$bf" "Authorization: Bearer $_FORGE_TOKEN" || rc=$?
+  [[ -n "$bf" ]] && { shred -u "$bf" 2>/dev/null || rm -f "$bf"; }
+  return $rc
 }
 
 # Read one value from the lab vault, for piping into another secret store. Never echo the result.
