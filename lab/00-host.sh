@@ -26,8 +26,22 @@ step "base tools (the image carries docker, kind, kubectl, helm)"
 for t in docker kind containerlab kubectl helm git jq curl python3 make openssl; do need "$t"; done
 docker info >/dev/null 2>&1 || fail "docker is not running"
 export DEBIAN_FRONTEND=noninteractive
-command -v shellcheck >/dev/null || { apt-get update -qq >/dev/null; apt-get install -y -qq shellcheck xz-utils >/dev/null; }
-command -v xz >/dev/null || apt-get install -y -qq xz-utils >/dev/null
+# Cloud package mirrors have bad minutes (503s). Retry with backoff, and after three failures switch
+# from the cloud's regional mirror to Ubuntu's main archive, rather than fail the whole lab.
+apt_install() {
+  local i
+  for i in 1 2 3 4 5 6; do
+    if apt-get update -qq >/dev/null 2>&1 && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq "$@" >/dev/null 2>&1; then return 0; fi
+    if (( i == 3 )); then
+      echo "      package mirror failing, switching to archive.ubuntu.com"
+      sed -i -E 's#https?://[a-z0-9.-]+\.(gce|ec2|azure|clouds)\.archive\.ubuntu\.com/ubuntu/?#http://archive.ubuntu.com/ubuntu/#g' \
+        /etc/apt/sources.list /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources 2>/dev/null || true
+    fi
+    echo "      apt attempt $i failed, retrying in $(( i * 10 ))s"; sleep $(( i * 10 ))
+  done
+  fail "could not install $* (package mirrors unavailable)"
+}
+command -v shellcheck >/dev/null && command -v xz >/dev/null || apt_install shellcheck xz-utils
 
 fetch() { curl -fsSL --retry 4 --retry-delay 3 -o "$2" "$1"; }
 T=$(mktemp -d)
