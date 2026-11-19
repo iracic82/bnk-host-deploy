@@ -41,12 +41,12 @@ notes:
   contents: |
     ## How this lab works
 
-    - Code blocks marked **run** can be clicked; they run in the Terminal tab.
+    - Code blocks marked **run** can be clicked, and they run in the Terminal tab.
     - Each challenge starts with what is happening at Northwind, then walks you through the work step by
       step, explaining every technology the first time you meet it.
     - Challenges 5 to 9 are three alternative install paths. Do **one** and press **Skip** on the
       others. The CI/CD path is the one Priya recommends.
-    - Your sandbox is yours alone. Break things; that is what it is for.
+    - Your sandbox is yours alone. Break things. That is what it is for.
 tabs:
 - id: 5c5yhqtmzdor
   title: Terminal
@@ -172,12 +172,12 @@ kubectl get ippools -o wide
 ```
 
 Every pod's address comes from `192.168.0.0/16`. Between nodes on the same subnet Calico simply
-routes; across subnets it would wrap packets in VXLAN (`VXLANCrossSubnet`). Pods talking to the
+routes. Across subnets it would wrap packets in VXLAN (`VXLANCrossSubnet`). Pods talking to the
 outside world leave with their node's address (`natOutgoing`). And look at the last setting:
 Calico only uses each node's `eth0`. That is deliberate. `bnk-worker` has two more network cards,
 and they are being kept for BNK.
 
-Now look at the plug-ins themselves, on the node BNK will use. kind ships only four; the team added
+Now look at the plug-ins themselves, on the node BNK will use. kind ships only four, and the team added
 the standard set, because BNK will need one called `macvlan` later today:
 
 ```run

@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1210 390" width="1210" height="390" font-family="Inter, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"><defs><marker id="a-3b5bdb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b5bdb"/></marker><marker id="a-7048e8" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7048e8"/></marker><marker id="a-e4002b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e4002b"/></marker><marker id="a-2f9e44" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e44"/></marker><marker id="a-e8590c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e8590c"/></marker><marker id="a-1971c2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1971c2"/></marker><marker id="a-868e96" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#868e96"/></marker><marker id="a-0c8599" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0c8599"/></marker></defs><rect width="1210" height="390" fill="#ffffff"/><text x="28" y="40" font-size="21" font-weight="800" fill="#212529">Why one container per step</text><rect x="28" y="50" width="56" height="4" rx="2" fill="#e4002b"/><rect x="40" y="110" width="230" height="110" rx="12" fill="#fff4e6" stroke="#e8590c" stroke-width="2.2"/>
+<text x="155.0" y="147.0" text-anchor="middle" font-size="17" font-weight="700" fill="#7a2e05">Forge engine</text>
+<text x="155.0" y="168.0" text-anchor="middle" font-size="13.5" fill="#8a5a3a">reads steps.apply</text>
+<text x="155.0" y="186.0" text-anchor="middle" font-size="13.5" fill="#8a5a3a">from the artifact</text>
+<rect x="320" y="95" width="150" height="80" rx="12" fill="#fff4e6" stroke="#e8590c" stroke-width="2.2"/>
+<text x="395.0" y="117.0" text-anchor="middle" font-size="17" font-weight="700" fill="#7a2e05">preflight</text>
+<text x="395.0" y="138.0" text-anchor="middle" font-size="13.5" fill="#8a5a3a">bnk-host preflight</text>
+<text x="395.0" y="156.0" text-anchor="middle" font-size="13.5" fill="#8a5a3a">@sha256 digest</text>
+<path d="M470,135 L490,135" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<rect x="492" y="95" width="150" height="80" rx="12" fill="#fff4e6" stroke="#e8590c" stroke-width="2.2"/>
+<text x="567.0" y="117.0" text-anchor="middle" font-size="17" font-weight="700" fill="#7a2e05">nodes</text>
+<text x="567.0" y="138.0" text-anchor="middle" font-size="13.5" fill="#8a5a3a">bnk-host nodes</text>
+<text x="567.0" y="156.0" text-anchor="middle" font-size="13.5" fill="#8a5a3a">@sha256 digest</text>
+<path d="M642,135 L662,135" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<rect x="664" y="95" width="150" height="80" rx="12" fill="#fff4e6" stroke="#e8590c" stroke-width="2.2"/>
+<text x="739.0" y="117.0" text-anchor="middle" font-size="17" font-weight="700" fill="#7a2e05">prereqs</text>
+<text x="739.0" y="138.0" text-anchor="middle" font-size="13.5" fill="#8a5a3a">bnk-host prereqs</text>
+<text x="739.0" y="156.0" text-anchor="middle" font-size="13.5" fill="#8a5a3a">@sha256 digest</text>
+<path d="M814,135 L834,135" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<rect x="836" y="95" width="150" height="80" rx="12" fill="#fff4e6" stroke="#e8590c" stroke-width="2.2"/>
+<text x="911.0" y="117.0" text-anchor="middle" font-size="17" font-weight="700" fill="#7a2e05">registry</text>
+<text x="911.0" y="138.0" text-anchor="middle" font-size="13.5" fill="#8a5a3a">bnk-host registry</text>
+<text x="911.0" y="156.0" text-anchor="middle" font-size="13.5" fill="#8a5a3a">@sha256 digest</text>
+<path d="M986,135 L1006,135" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<rect x="1008" y="95" width="150" height="80" rx="12" fill="#fff4e6" stroke="#e8590c" stroke-width="2.2"/>
+<text x="1083.0" y="117.0" text-anchor="middle" font-size="17" font-weight="700" fill="#7a2e05">flo</text>
+<text x="1083.0" y="138.0" text-anchor="middle" font-size="13.5" fill="#8a5a3a">bnk-host flo</text>
+<text x="1083.0" y="156.0" text-anchor="middle" font-size="13.5" fill="#8a5a3a">@sha256 digest</text>
+<rect x="320" y="215" width="150" height="80" rx="12" fill="#fff4e6" stroke="#e8590c" stroke-width="2.2"/>
+<text x="395.0" y="237.0" text-anchor="middle" font-size="17" font-weight="700" fill="#7a2e05">certs</text>
+<text x="395.0" y="258.0" text-anchor="middle" font-size="13.5" fill="#8a5a3a">bnk-host certs</text>
+<text x="395.0" y="276.0" text-anchor="middle" font-size="13.5" fill="#8a5a3a">@sha256 digest</text>
+<path d="M470,255 L490,255" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<rect x="492" y="215" width="150" height="80" rx="12" fill="#fff4e6" stroke="#e8590c" stroke-width="2.2" stroke-dasharray="7 5"/>
+<text x="567.0" y="237.0" text-anchor="middle" font-size="17" font-weight="700" fill="#7a2e05">cneinstance</text>
+<text x="567.0" y="258.0" text-anchor="middle" font-size="13.5" fill="#8a5a3a">bnk-host cneinstance</text>
+<text x="567.0" y="276.0" text-anchor="middle" font-size="13.5" fill="#8a5a3a">@sha256 digest</text>
+<path d="M642,255 L662,255" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<rect x="664" y="215" width="150" height="80" rx="12" fill="#fff4e6" stroke="#e8590c" stroke-width="2.2"/>
+<text x="739.0" y="237.0" text-anchor="middle" font-size="17" font-weight="700" fill="#7a2e05">license</text>
+<text x="739.0" y="258.0" text-anchor="middle" font-size="13.5" fill="#8a5a3a">bnk-host license</text>
+<text x="739.0" y="276.0" text-anchor="middle" font-size="13.5" fill="#8a5a3a">@sha256 digest</text>
+<path d="M814,255 L834,255" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<rect x="836" y="215" width="150" height="80" rx="12" fill="#fff4e6" stroke="#e8590c" stroke-width="2.2"/>
+<text x="911.0" y="237.0" text-anchor="middle" font-size="17" font-weight="700" fill="#7a2e05">ready</text>
+<text x="911.0" y="258.0" text-anchor="middle" font-size="13.5" fill="#8a5a3a">bnk-host ready</text>
+<text x="911.0" y="276.0" text-anchor="middle" font-size="13.5" fill="#8a5a3a">@sha256 digest</text>
+<path d="M986,255 L1006,255" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<rect x="1008" y="215" width="150" height="80" rx="12" fill="#fff4e6" stroke="#e8590c" stroke-width="2.2"/>
+<text x="1083.0" y="237.0" text-anchor="middle" font-size="17" font-weight="700" fill="#7a2e05">verify</text>
+<text x="1083.0" y="258.0" text-anchor="middle" font-size="13.5" fill="#8a5a3a">bnk-host verify</text>
+<text x="1083.0" y="276.0" text-anchor="middle" font-size="13.5" fill="#8a5a3a">@sha256 digest</text>
+<path d="M270,165 L318,135" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<path d="M1083,175 L1083,195 L395,195 L395,213" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<text x="320" y="340.0" text-anchor="start" font-size="13.5" font-weight="400" fill="#6c757d">Each box is a new container from the same digest. A failed step shows its own log,</text>
+<text x="320" y="357.5" text-anchor="start" font-size="13.5" font-weight="400" fill="#6c757d">and Retry starts again from that step with the same workspace.</text></svg>

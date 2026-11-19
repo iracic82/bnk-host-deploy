@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 440" width="1240" height="440" font-family="Inter, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"><defs><marker id="a-3b5bdb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b5bdb"/></marker><marker id="a-7048e8" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7048e8"/></marker><marker id="a-e4002b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e4002b"/></marker><marker id="a-2f9e44" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e44"/></marker><marker id="a-e8590c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e8590c"/></marker><marker id="a-1971c2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1971c2"/></marker><marker id="a-868e96" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#868e96"/></marker><marker id="a-0c8599" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0c8599"/></marker></defs><rect width="1240" height="440" fill="#ffffff"/><text x="28" y="40" font-size="21" font-weight="800" fill="#212529">First traffic: two connections, TMM in the middle (full proxy)</text><rect x="28" y="50" width="56" height="4" rx="2" fill="#e4002b"/><rect x="20" y="80" width="450" height="330" rx="16" fill="none" stroke="#dee2e6" stroke-width="2" stroke-dasharray="4 6"/><text x="34" y="102" font-size="13" font-weight="700" fill="#868e96" letter-spacing="1">SAM'S NETWORK</text>
+<rect x="500" y="80" width="720" height="330" rx="16" fill="none" stroke="#dee2e6" stroke-width="2" stroke-dasharray="4 6"/><text x="514" y="102" font-size="13" font-weight="700" fill="#868e96" letter-spacing="1">CLUSTER SIX</text>
+<rect x="50" y="140" width="170" height="80" rx="12" fill="#f8f9fa" stroke="#495057" stroke-width="2.2"/>
+<text x="135.0" y="171.0" text-anchor="middle" font-size="17" font-weight="700" fill="#212529">client</text>
+<text x="135.0" y="192.0" text-anchor="middle" font-size="13.5" fill="#6c757d">10.20.20.10</text>
+<rect x="270" y="140" width="170" height="80" rx="12" fill="#f1fbfb" stroke="#0c8599" stroke-width="2.2"/>
+<text x="355.0" y="162.0" text-anchor="middle" font-size="17" font-weight="700" fill="#06454f">edge router</text>
+<text x="355.0" y="183.0" text-anchor="middle" font-size="13.5" fill="#4a7a80">10.20.20.254</text>
+<text x="355.0" y="201.0" text-anchor="middle" font-size="13.5" fill="#4a7a80">10.10.10.254</text>
+<rect x="540" y="120" width="260" height="130" rx="12" fill="#fff1f3" stroke="#e4002b" stroke-width="2.2"/>
+<text x="670.0" y="158.0" text-anchor="middle" font-size="17" font-weight="700" fill="#7a0016">TMM</text>
+<text x="670.0" y="179.0" text-anchor="middle" font-size="13.5" fill="#8a4a55">VIP 10.30.30.10:80</text>
+<text x="670.0" y="197.0" text-anchor="middle" font-size="13.5" fill="#8a4a55">external 10.10.10.11 (1.1)</text>
+<text x="670.0" y="215.0" text-anchor="middle" font-size="13.5" fill="#8a4a55">internal 172.18.0.250 (1.2)</text>
+<rect x="900" y="100" width="150" height="60" rx="12" fill="#eef7ff" stroke="#1971c2" stroke-width="2.2"/>
+<text x="975.0" y="136.0" text-anchor="middle" font-size="17" font-weight="700" fill="#0b3a66">hello pod 1</text>
+<rect x="900" y="175" width="150" height="60" rx="12" fill="#eef7ff" stroke="#1971c2" stroke-width="2.2"/>
+<text x="975.0" y="211.0" text-anchor="middle" font-size="17" font-weight="700" fill="#0b3a66">hello pod 2</text>
+<rect x="900" y="250" width="150" height="60" rx="12" fill="#eef7ff" stroke="#1971c2" stroke-width="2.2"/>
+<text x="975.0" y="286.0" text-anchor="middle" font-size="17" font-weight="700" fill="#0b3a66">hello pod 3</text>
+<rect x="540" y="300" width="260" height="80" rx="12" fill="#fff1f3" stroke="#e4002b" stroke-width="2.2" stroke-dasharray="7 5"/>
+<text x="670.0" y="322.0" text-anchor="middle" font-size="17" font-weight="700" fill="#7a0016">BNK controller</text>
+<text x="670.0" y="343.0" text-anchor="middle" font-size="13.5" fill="#8a4a55">Gateway + HTTPRoute</text>
+<text x="670.0" y="361.0" text-anchor="middle" font-size="13.5" fill="#8a4a55">become a virtual server</text>
+<path d="M220,180 L268,180" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<path d="M440,180 L538,180" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<path d="M800,165 L898,130" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<path d="M800,185 L898,205" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<path d="M800,205 L898,280" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<path d="M670,300 L670,252" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<rect x="682.0" y="270" width="66.0" height="17" fill="#ffffff"/>
+<text x="715" y="283" text-anchor="middle" font-size="13" fill="#495057">programs</text>
+<text x="270" y="250" text-anchor="start" font-size="13" font-weight="400" fill="#495057">route 10.30.30.0/24</text>
+<text x="270" y="267" text-anchor="start" font-size="13" font-weight="400" fill="#495057">via 10.10.10.11 (TMM)</text>
+<text x="50" y="300" text-anchor="start" font-size="13" font-weight="700" fill="#0c8599">connection 1</text>
+<text x="50" y="317" text-anchor="start" font-size="13" font-weight="700" fill="#0c8599">client to VIP</text>
+<text x="860" y="350" text-anchor="start" font-size="13" font-weight="700" fill="#e4002b">connection 2</text>
+<text x="860" y="367" text-anchor="start" font-size="13" font-weight="700" fill="#e4002b">TMM (SNAT 172.18.0.250) to pod IP</text></svg>

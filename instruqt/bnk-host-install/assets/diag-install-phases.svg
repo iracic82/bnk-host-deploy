@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1230 475" width="1230" height="475" font-family="Inter, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"><defs><marker id="a-3b5bdb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b5bdb"/></marker><marker id="a-7048e8" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7048e8"/></marker><marker id="a-e4002b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e4002b"/></marker><marker id="a-2f9e44" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e44"/></marker><marker id="a-e8590c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e8590c"/></marker><marker id="a-1971c2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1971c2"/></marker><marker id="a-868e96" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#868e96"/></marker><marker id="a-0c8599" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0c8599"/></marker></defs><rect width="1230" height="475" fill="#ffffff"/><text x="28" y="40" font-size="21" font-weight="800" fill="#212529">The install, phase by phase (one file in lib/ and one F5 guide page each)</text><rect x="28" y="50" width="56" height="4" rx="2" fill="#e4002b"/><rect x="40" y="100" width="165" height="100" rx="12" fill="#effaf3" stroke="#2f9e44" stroke-width="2.2"/>
+<text x="122.5" y="141.0" text-anchor="middle" font-size="17" font-weight="700" fill="#1b5e2b">00  preflight</text>
+<text x="122.5" y="162.0" text-anchor="middle" font-size="13.5" fill="#4a7a55">checks only</text>
+<path d="M205,150 L233,150" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<rect x="235" y="100" width="165" height="100" rx="12" fill="#eef7ff" stroke="#1971c2" stroke-width="2.2"/>
+<text x="317.5" y="141.0" text-anchor="middle" font-size="17" font-weight="700" fill="#0b3a66">05  nodes</text>
+<text x="317.5" y="162.0" text-anchor="middle" font-size="13.5" fill="#4a6a8a">label, hugepages</text>
+<path d="M400,150 L428,150" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<rect x="430" y="100" width="165" height="100" rx="12" fill="#eef7ff" stroke="#1971c2" stroke-width="2.2"/>
+<text x="512.5" y="132.0" text-anchor="middle" font-size="17" font-weight="700" fill="#0b3a66">10  prereqs</text>
+<text x="512.5" y="153.0" text-anchor="middle" font-size="13.5" fill="#4a6a8a">Multus, cert-manager</text>
+<text x="512.5" y="171.0" text-anchor="middle" font-size="13.5" fill="#4a6a8a">CA issuer</text>
+<path d="M595,150 L623,150" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<rect x="625" y="100" width="165" height="100" rx="12" fill="#effaf3" stroke="#2f9e44" stroke-width="2.2"/>
+<text x="707.5" y="132.0" text-anchor="middle" font-size="17" font-weight="700" fill="#1b5e2b">20  registry</text>
+<text x="707.5" y="153.0" text-anchor="middle" font-size="13.5" fill="#4a7a55">FAR login</text>
+<text x="707.5" y="171.0" text-anchor="middle" font-size="13.5" fill="#4a7a55">pull secrets</text>
+<path d="M790,150 L818,150" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<rect x="820" y="100" width="165" height="100" rx="12" fill="#effaf3" stroke="#2f9e44" stroke-width="2.2"/>
+<text x="902.5" y="141.0" text-anchor="middle" font-size="17" font-weight="700" fill="#1b5e2b">30  FLO</text>
+<text x="902.5" y="162.0" text-anchor="middle" font-size="13.5" fill="#4a7a55">the operator</text>
+<path d="M985,150 L1013,150" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<rect x="1015" y="100" width="165" height="100" rx="12" fill="#effaf3" stroke="#2f9e44" stroke-width="2.2"/>
+<text x="1097.5" y="141.0" text-anchor="middle" font-size="17" font-weight="700" fill="#1b5e2b">40  certs</text>
+<text x="1097.5" y="162.0" text-anchor="middle" font-size="13.5" fill="#4a7a55">CWC, OTEL</text>
+<rect x="40" y="270" width="165" height="100" rx="12" fill="#eef7ff" stroke="#1971c2" stroke-width="2.2"/>
+<text x="122.5" y="311.0" text-anchor="middle" font-size="17" font-weight="700" fill="#0b3a66">45  attachments</text>
+<text x="122.5" y="332.0" text-anchor="middle" font-size="13.5" fill="#4a6a8a">TMM's two NICs</text>
+<path d="M205,320 L233,320" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<rect x="235" y="270" width="165" height="100" rx="12" fill="#fff1f3" stroke="#e4002b" stroke-width="2.2"/>
+<text x="317.5" y="311.0" text-anchor="middle" font-size="17" font-weight="700" fill="#7a0016">50  CNEInstance</text>
+<text x="317.5" y="332.0" text-anchor="middle" font-size="13.5" fill="#8a4a55">~80 components</text>
+<path d="M400,320 L428,320" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<rect x="430" y="270" width="165" height="100" rx="12" fill="#eef7ff" stroke="#1971c2" stroke-width="2.2"/>
+<text x="512.5" y="311.0" text-anchor="middle" font-size="17" font-weight="700" fill="#0b3a66">55  network</text>
+<text x="512.5" y="332.0" text-anchor="middle" font-size="13.5" fill="#4a6a8a">VLANs, VIP pool</text>
+<path d="M595,320 L623,320" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<rect x="625" y="270" width="165" height="100" rx="12" fill="#effaf3" stroke="#2f9e44" stroke-width="2.2"/>
+<text x="707.5" y="311.0" text-anchor="middle" font-size="17" font-weight="700" fill="#1b5e2b">60  licence</text>
+<text x="707.5" y="332.0" text-anchor="middle" font-size="13.5" fill="#4a7a55">connected mode</text>
+<path d="M790,320 L818,320" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<rect x="820" y="270" width="165" height="100" rx="12" fill="#fff1f3" stroke="#e4002b" stroke-width="2.2"/>
+<text x="902.5" y="311.0" text-anchor="middle" font-size="17" font-weight="700" fill="#7a0016">65  ready</text>
+<text x="902.5" y="332.0" text-anchor="middle" font-size="13.5" fill="#8a4a55">TMM starts</text>
+<path d="M985,320 L1013,320" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<rect x="1015" y="270" width="165" height="100" rx="12" fill="#effaf3" stroke="#2f9e44" stroke-width="2.2"/>
+<text x="1097.5" y="311.0" text-anchor="middle" font-size="17" font-weight="700" fill="#1b5e2b">70  verify</text>
+<text x="1097.5" y="332.0" text-anchor="middle" font-size="13.5" fill="#4a7a55">guide's Expect lines</text>
+<path d="M1097,200 L1097,235 L122,235 L122,268" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<rect x="40" y="436" width="18" height="18" rx="4" fill="#effaf3" stroke="#2f9e44" stroke-width="2"/>
+<text x="68" y="450.0" text-anchor="start" font-size="13.5" font-weight="400" fill="#6c757d">install steps</text>
+<rect x="300" y="436" width="18" height="18" rx="4" fill="#eef7ff" stroke="#1971c2" stroke-width="2"/>
+<text x="328" y="450.0" text-anchor="start" font-size="13.5" font-weight="400" fill="#6c757d">Kubernetes plumbing for TMM</text>
+<rect x="560" y="436" width="18" height="18" rx="4" fill="#fff1f3" stroke="#e4002b" stroke-width="2"/>
+<text x="588" y="450.0" text-anchor="start" font-size="13.5" font-weight="400" fill="#6c757d">where BNK comes alive</text></svg>

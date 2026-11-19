@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1110 530" width="1110" height="530" font-family="Inter, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"><defs><marker id="a-3b5bdb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b5bdb"/></marker><marker id="a-7048e8" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7048e8"/></marker><marker id="a-e4002b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e4002b"/></marker><marker id="a-2f9e44" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e44"/></marker><marker id="a-e8590c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e8590c"/></marker><marker id="a-1971c2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1971c2"/></marker><marker id="a-868e96" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#868e96"/></marker><marker id="a-0c8599" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0c8599"/></marker></defs><rect width="1110" height="530" fill="#ffffff"/><text x="28" y="40" font-size="21" font-weight="800" fill="#212529">Three drivers, one installer, one cluster</text><rect x="28" y="50" width="56" height="4" rx="2" fill="#e4002b"/><rect x="40" y="250" width="210" height="90" rx="12" fill="#f3f6ff" stroke="#3b5bdb" stroke-width="2.2"/>
+<text x="145.0" y="277.0" text-anchor="middle" font-size="17" font-weight="700" fill="#1c2b6b">the repository</text>
+<text x="145.0" y="298.0" text-anchor="middle" font-size="13.5" fill="#4a5a8a">clusters/lab.yaml</text>
+<text x="145.0" y="316.0" text-anchor="middle" font-size="13.5" fill="#4a5a8a">versions.env, lib/</text>
+<rect x="40" y="380" width="210" height="70" rx="12" fill="#f3f6ff" stroke="#3b5bdb" stroke-width="2.2"/>
+<text x="145.0" y="406.0" text-anchor="middle" font-size="17" font-weight="700" fill="#1c2b6b">the pinned image</text>
+<text x="145.0" y="427.0" text-anchor="middle" font-size="13.5" fill="#4a5a8a">bnk-host-deploy@sha256</text>
+<rect x="400" y="110" width="270" height="90" rx="12" fill="#effaf3" stroke="#2f9e44" stroke-width="2.2"/>
+<text x="535.0" y="137.0" text-anchor="middle" font-size="17" font-weight="700" fill="#1b5e2b">A. CI/CD pipeline</text>
+<text x="535.0" y="158.0" text-anchor="middle" font-size="13.5" fill="#4a7a55">plan on the pull request</text>
+<text x="535.0" y="176.0" text-anchor="middle" font-size="13.5" fill="#4a7a55">deploy on the merge</text>
+<text x="535" y="218.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#868e96">challenges 5 and 6</text>
+<path d="M250,295 L398,155" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<path d="M670,155 L838,290" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<rect x="400" y="255" width="270" height="90" rx="12" fill="#fff4e6" stroke="#e8590c" stroke-width="2.2"/>
+<text x="535.0" y="282.0" text-anchor="middle" font-size="17" font-weight="700" fill="#7a2e05">B. BNK Forge</text>
+<text x="535.0" y="303.0" text-anchor="middle" font-size="13.5" fill="#8a5a3a">catalog, project, form</text>
+<text x="535.0" y="321.0" text-anchor="middle" font-size="13.5" fill="#8a5a3a">one container per step</text>
+<text x="535" y="363.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#868e96">challenges 7 and 8</text>
+<path d="M250,295 L398,300" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<path d="M670,300 L838,290" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<rect x="400" y="400" width="270" height="90" rx="12" fill="#f3f0ff" stroke="#7048e8" stroke-width="2.2"/>
+<text x="535.0" y="427.0" text-anchor="middle" font-size="17" font-weight="700" fill="#35207a">C. Argo CD</text>
+<text x="535.0" y="448.0" text-anchor="middle" font-size="13.5" fill="#5f5290">sync a Job from git</text>
+<text x="535.0" y="466.0" text-anchor="middle" font-size="13.5" fill="#5f5290">inside the cluster</text>
+<text x="535" y="508.0" text-anchor="middle" font-size="12.5" font-weight="400" fill="#868e96">challenge 9</text>
+<path d="M250,295 L398,445" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<path d="M670,445 L838,290" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<rect x="840" y="235" width="230" height="110" rx="12" fill="#fff1f3" stroke="#e4002b" stroke-width="2.2"/>
+<text x="955.0" y="272.0" text-anchor="middle" font-size="17" font-weight="700" fill="#7a0016">cluster six</text>
+<text x="955.0" y="293.0" text-anchor="middle" font-size="13.5" fill="#8a4a55">BNK 2.4.2, TMM on bnk-worker</text>
+<text x="955.0" y="311.0" text-anchor="middle" font-size="13.5" fill="#8a4a55">same result, any path</text>
+<rect x="840" y="395" width="230" height="70" rx="12" fill="#eef7ff" stroke="#1971c2" stroke-width="2.2" stroke-dasharray="7 5"/>
+<text x="955.0" y="421.0" text-anchor="middle" font-size="17" font-weight="700" fill="#0b3a66">challenge 10</text>
+<text x="955.0" y="442.0" text-anchor="middle" font-size="13.5" fill="#4a6a8a">first traffic, together</text>
+<path d="M955,345 L955,393" fill="none" stroke="#e4002b" stroke-width="2.2" marker-end="url(#a-e4002b)"/></svg>

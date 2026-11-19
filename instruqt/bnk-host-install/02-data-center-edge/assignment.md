@@ -27,7 +27,7 @@ notes:
 
     **containerlab** builds networks of containers from a short YAML file: which nodes exist, what they
     run, and which cables connect which ports. Each cable is a *veth pair*, two virtual network cards
-    joined like the two ends of a patch lead. Network teams use it to build labs of real router images;
+    joined like the two ends of a patch lead. Network teams use it to build labs of real router images,
     here it builds a small, faithful copy of Northwind's edge.
 
     Deploy the file and the network exists. Change the file and redeploy, and the network changes.
@@ -123,7 +123,7 @@ Walk through it from the top:
 - **`client`** runs *netshoot*, a container full of network tools (`curl`, `traceroute`, `tcpdump`)
   that plays a user. Its address and its default route, via the router, are set by the `exec` lines.
 - **`bnk-worker`** is `kind: ext-container`: a container that *already exists*, your Kubernetes node.
-  containerlab does not create it; it only plugs a cable into it.
+  containerlab does not create it. It only plugs a cable into it.
 - `links:` are the cables, one per line: router `eth1` to `bnk-worker` `eth1` (the **dc-edge**
   segment, where TMM will stand), and router `eth2` to client `eth1` (**client-net**, where the users
   are).

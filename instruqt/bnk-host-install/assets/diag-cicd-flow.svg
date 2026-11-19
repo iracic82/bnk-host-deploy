@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 490" width="1220" height="490" font-family="Inter, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"><defs><marker id="a-3b5bdb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b5bdb"/></marker><marker id="a-7048e8" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7048e8"/></marker><marker id="a-e4002b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e4002b"/></marker><marker id="a-2f9e44" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e44"/></marker><marker id="a-e8590c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e8590c"/></marker><marker id="a-1971c2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1971c2"/></marker><marker id="a-868e96" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#868e96"/></marker><marker id="a-0c8599" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0c8599"/></marker></defs><rect width="1220" height="490" fill="#ffffff"/><text x="28" y="40" font-size="21" font-weight="800" fill="#212529">Path A: the plan is reviewed, the merge installs</text><rect x="28" y="50" width="56" height="4" rx="2" fill="#e4002b"/><rect x="20" y="80" width="1180" height="170" rx="16" fill="none" stroke="#dee2e6" stroke-width="2" stroke-dasharray="4 6"/><text x="34" y="102" font-size="13" font-weight="700" fill="#868e96" letter-spacing="1">PULL REQUEST: NOTHING CHANGES YET</text>
+<rect x="20" y="290" width="1180" height="170" rx="16" fill="none" stroke="#dee2e6" stroke-width="2" stroke-dasharray="4 6"/><text x="34" y="312" font-size="13" font-weight="700" fill="#868e96" letter-spacing="1">MERGE: THE INSTALL</text>
+<rect x="50" y="130" width="180" height="90" rx="12" fill="#f8f9fa" stroke="#495057" stroke-width="2.2"/>
+<text x="140.0" y="157.0" text-anchor="middle" font-size="17" font-weight="700" fill="#212529">you</text>
+<text x="140.0" y="178.0" text-anchor="middle" font-size="13.5" fill="#6c757d">edit clusters/lab.yaml</text>
+<text x="140.0" y="196.0" text-anchor="middle" font-size="13.5" fill="#6c757d">on a branch</text>
+<rect x="290" y="130" width="200" height="90" rx="12" fill="#f3f6ff" stroke="#3b5bdb" stroke-width="2.2"/>
+<text x="390.0" y="157.0" text-anchor="middle" font-size="17" font-weight="700" fill="#1c2b6b">pull request</text>
+<text x="390.0" y="178.0" text-anchor="middle" font-size="13.5" fill="#4a5a8a">Install BNK on</text>
+<text x="390.0" y="196.0" text-anchor="middle" font-size="13.5" fill="#4a5a8a">the lab cluster</text>
+<rect x="550" y="130" width="260" height="90" rx="12" fill="#effaf3" stroke="#2f9e44" stroke-width="2.2"/>
+<text x="680.0" y="157.0" text-anchor="middle" font-size="17" font-weight="700" fill="#1b5e2b">plan.yml</text>
+<text x="680.0" y="178.0" text-anchor="middle" font-size="13.5" fill="#4a7a55">server-side dry run</text>
+<text x="680.0" y="196.0" text-anchor="middle" font-size="13.5" fill="#4a7a55">against the real cluster</text>
+<rect x="870" y="130" width="290" height="90" rx="12" fill="#effaf3" stroke="#2f9e44" stroke-width="2.2"/>
+<text x="1015.0" y="157.0" text-anchor="middle" font-size="17" font-weight="700" fill="#1b5e2b">plan comment</text>
+<text x="1015.0" y="178.0" text-anchor="middle" font-size="13.5" fill="#4a7a55">N planned changes</text>
+<text x="1015.0" y="196.0" text-anchor="middle" font-size="13.5" fill="#4a7a55">one row per phase + guide</text>
+<rect x="870" y="340" width="290" height="90" rx="12" fill="#f8f9fa" stroke="#495057" stroke-width="2.2"/>
+<text x="1015.0" y="367.0" text-anchor="middle" font-size="17" font-weight="700" fill="#212529">reviewer</text>
+<text x="1015.0" y="388.0" text-anchor="middle" font-size="13.5" fill="#6c757d">right cluster? version? node?</text>
+<text x="1015.0" y="406.0" text-anchor="middle" font-size="13.5" fill="#6c757d">then Merge</text>
+<rect x="550" y="340" width="260" height="90" rx="12" fill="#effaf3" stroke="#2f9e44" stroke-width="2.2"/>
+<text x="680.0" y="367.0" text-anchor="middle" font-size="17" font-weight="700" fill="#1b5e2b">deploy.yml</text>
+<text x="680.0" y="388.0" text-anchor="middle" font-size="13.5" fill="#4a7a55">phases 00 to 70</text>
+<text x="680.0" y="406.0" text-anchor="middle" font-size="13.5" fill="#4a7a55">same image, same order</text>
+<rect x="50" y="340" width="440" height="90" rx="12" fill="#fff1f3" stroke="#e4002b" stroke-width="2.2"/>
+<text x="270.0" y="376.0" text-anchor="middle" font-size="17" font-weight="700" fill="#7a0016">cluster six</text>
+<text x="270.0" y="397.0" text-anchor="middle" font-size="13.5" fill="#8a4a55">BNK Available, provenance stamped</text>
+<path d="M230,175 L288,175" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<path d="M490,175 L548,175" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<rect x="500.0" y="154.0" width="38.0" height="17" fill="#ffffff"/>
+<text x="519.0" y="167.0" text-anchor="middle" font-size="13" fill="#495057">push</text>
+<path d="M810,175 L868,175" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<rect x="816.5" y="154.0" width="45.0" height="17" fill="#ffffff"/>
+<text x="839.0" y="167.0" text-anchor="middle" font-size="13" fill="#495057">posts</text>
+<path d="M1015,220 L1015,338" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<rect x="1027.5" y="272" width="45.0" height="17" fill="#ffffff"/>
+<text x="1050" y="285" text-anchor="middle" font-size="13" fill="#495057">reads</text>
+<path d="M870,385 L812,385" fill="none" stroke="#2f9e44" stroke-width="2.2" marker-end="url(#a-2f9e44)"/>
+<rect x="818.5" y="359" width="45.0" height="17" fill="#ffffff"/>
+<text x="841" y="372" text-anchor="middle" font-size="13" fill="#495057">merge</text>
+<path d="M550,385 L492,385" fill="none" stroke="#e4002b" stroke-width="2.2" marker-end="url(#a-e4002b)"/></svg>

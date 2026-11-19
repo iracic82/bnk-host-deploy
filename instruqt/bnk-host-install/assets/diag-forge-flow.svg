@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 465" width="1180" height="465" font-family="Inter, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"><defs><marker id="a-3b5bdb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b5bdb"/></marker><marker id="a-7048e8" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7048e8"/></marker><marker id="a-e4002b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e4002b"/></marker><marker id="a-2f9e44" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e44"/></marker><marker id="a-e8590c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#e8590c"/></marker><marker id="a-1971c2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1971c2"/></marker><marker id="a-868e96" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#868e96"/></marker><marker id="a-0c8599" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0c8599"/></marker></defs><rect width="1180" height="465" fill="#ffffff"/><text x="28" y="40" font-size="21" font-weight="800" fill="#212529">Path B: from git to a Forge project to the cluster</text><rect x="28" y="50" width="56" height="4" rx="2" fill="#e4002b"/><rect x="40" y="120" width="200" height="100" rx="12" fill="#f3f6ff" stroke="#3b5bdb" stroke-width="2.2"/>
+<text x="140.0" y="152.0" text-anchor="middle" font-size="17" font-weight="700" fill="#1c2b6b">Gitea repository</text>
+<text x="140.0" y="173.0" text-anchor="middle" font-size="13.5" fill="#4a5a8a">forge/bnk-host/*.json</text>
+<text x="140.0" y="191.0" text-anchor="middle" font-size="13.5" fill="#4a5a8a">forge/forge-blueprint.json</text>
+<rect x="310" y="120" width="220" height="100" rx="12" fill="#fff4e6" stroke="#e8590c" stroke-width="2.2"/>
+<text x="420.0" y="152.0" text-anchor="middle" font-size="17" font-weight="700" fill="#7a2e05">Forge catalog</text>
+<text x="420.0" y="173.0" text-anchor="middle" font-size="13.5" fill="#8a5a3a">module source</text>
+<text x="420.0" y="191.0" text-anchor="middle" font-size="13.5" fill="#8a5a3a">blueprint source, imported</text>
+<rect x="600" y="120" width="220" height="100" rx="12" fill="#fff4e6" stroke="#e8590c" stroke-width="2.2"/>
+<text x="710.0" y="152.0" text-anchor="middle" font-size="17" font-weight="700" fill="#7a2e05">project bnk-lab</text>
+<text x="710.0" y="173.0" text-anchor="middle" font-size="13.5" fill="#8a5a3a">form: tmm_node</text>
+<text x="710.0" y="191.0" text-anchor="middle" font-size="13.5" fill="#8a5a3a">3 file secrets</text>
+<rect x="890" y="120" width="250" height="100" rx="12" fill="#fff4e6" stroke="#e8590c" stroke-width="2.2"/>
+<text x="1015.0" y="152.0" text-anchor="middle" font-size="17" font-weight="700" fill="#7a2e05">runner containers</text>
+<text x="1015.0" y="173.0" text-anchor="middle" font-size="13.5" fill="#8a5a3a">your image, by digest</text>
+<text x="1015.0" y="191.0" text-anchor="middle" font-size="13.5" fill="#8a5a3a">one per step, non-root</text>
+<rect x="890" y="300" width="250" height="100" rx="12" fill="#fff1f3" stroke="#e4002b" stroke-width="2.2"/>
+<text x="1015.0" y="332.0" text-anchor="middle" font-size="17" font-weight="700" fill="#7a0016">cluster six</text>
+<text x="1015.0" y="353.0" text-anchor="middle" font-size="13.5" fill="#8a4a55">BNK 2.4.2</text>
+<text x="1015.0" y="371.0" text-anchor="middle" font-size="13.5" fill="#8a4a55">registered in Forge</text>
+<rect x="600" y="300" width="220" height="100" rx="12" fill="#f8f9fa" stroke="#495057" stroke-width="2.2" stroke-dasharray="7 5"/>
+<text x="710.0" y="332.0" text-anchor="middle" font-size="17" font-weight="700" fill="#212529">lab vault</text>
+<text x="710.0" y="353.0" text-anchor="middle" font-size="13.5" fill="#6c757d">FAR key, licence</text>
+<text x="710.0" y="371.0" text-anchor="middle" font-size="13.5" fill="#6c757d">kubeconfig</text>
+<path d="M240,170 L308,170" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<rect x="244.5" y="149.0" width="59.0" height="17" fill="#ffffff"/>
+<text x="274.0" y="162.0" text-anchor="middle" font-size="13" fill="#495057">sources</text>
+<path d="M530,170 L598,170" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<rect x="538.0" y="149.0" width="52.0" height="17" fill="#ffffff"/>
+<text x="564.0" y="162.0" text-anchor="middle" font-size="13" fill="#495057">Deploy</text>
+<path d="M820,170 L888,170" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<rect x="814.0" y="149.0" width="80.0" height="17" fill="#ffffff"/>
+<text x="854.0" y="162.0" text-anchor="middle" font-size="13" fill="#495057">Deploy all</text>
+<path d="M1015,220 L1015,298" fill="none" stroke="#e4002b" stroke-width="2.2" marker-end="url(#a-e4002b)"/>
+<rect x="1020.0" y="249" width="80.0" height="17" fill="#ffffff"/>
+<text x="1060" y="262" text-anchor="middle" font-size="13" fill="#495057">kubeconfig</text>
+<path d="M710,300 L710,222" fill="none" stroke="#868e96" stroke-width="2.2" marker-end="url(#a-868e96)"/>
+<rect x="705.5" y="249" width="129.0" height="17" fill="#ffffff"/>
+<text x="770" y="262" text-anchor="middle" font-size="13" fill="#495057">lab forge-secrets</text>
+<text x="40" y="440.0" text-anchor="start" font-size="13.5" font-weight="400" fill="#6c757d">Forge never holds kubectl, helm or the installer itself. It starts your pinned image, step by step.</text></svg>

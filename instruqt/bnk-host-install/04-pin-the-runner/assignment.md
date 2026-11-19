@@ -15,7 +15,7 @@ notes:
     *"When this cluster gets audited next year, can you prove exactly which code installed BNK on it? Not
     'the script in the repo'. The exact build."*
 
-    Priya smiles; she has been waiting for someone to ask. The answer is to stop running the installer
+    Priya smiles. She has been waiting for someone to ask. The answer is to stop running the installer
     as loose files and **package** it: one container image holding the installer and the exact versions
     of kubectl, helm and yq it needs, identified by a fingerprint of its content. The pipeline, BNK Forge
     and Argo CD will all run *that image*, so whichever tool installs BNK, it is provably the same code.
@@ -94,7 +94,7 @@ lab image
 
 Read the four blocks as they go by:
 
-1. **A registry starts.** Northwind would use Harbor or GHCR; the lab runs a plain `registry:2` on
+1. **A registry starts.** Northwind would use Harbor or GHCR, and the lab runs a plain `registry:2` on
    port 5000. It answers on two addresses: `localhost:5000`, which is how this machine's Docker (and so
    BNK Forge) pulls, and `172.18.0.1:5000`, which is how the cluster's nodes (and so Argo CD's install
    job) pull. One registry, two front doors.
@@ -130,7 +130,7 @@ git push -u origin pin-runner-image
 ```
 
 Gitea answers with a link to create a pull request. That link uses the address the runner and the
-other tools reach Gitea on, which your browser cannot; use the **Gitea** tab instead.
+other tools reach Gitea on, which your browser cannot. Use the **Gitea** tab instead.
 
 (Prefer VS Code? The **Source Control** view on the left does the same: click the branch name in the
 status bar to create the branch, write the message, **Commit**, then **Publish Branch**.)
@@ -145,7 +145,7 @@ In the **Gitea** tab, open the repository. A banner offers to create a pull requ
 
 A pull request is a conversation about a change: what it is, why, and whether it is safe. Open
 **Files Changed** and read your own diff as if a colleague had written it. One file says *Forge, run
-this exact image*; the other says *Argo CD, run this exact image*.
+this exact image*. The other says *Argo CD, run this exact image*.
 
 ---
 
@@ -153,7 +153,7 @@ this exact image*; the other says *Argo CD, run this exact image*.
 
 Open the repository's **Actions** tab:
 
-![Gitea Actions: ci runs green for the pull request and for the merge into main; deploy and apps show as skipped from the first push](../assets/gitea-5-actions.png)
+![Gitea Actions: ci runs green for the pull request and for the merge into main, deploy and apps show as skipped from the first push](../assets/gitea-5-actions.png)
 
 Your runner picked up the `ci` workflow the moment you pushed. Click the run for your pull request:
 
@@ -198,5 +198,21 @@ Branch, push, pull request, automatic checks, review, merge. Every change to BNK
 exactly this way, so the repository's history becomes the change log of Northwind's BNK estate. When
 Jonas asks next year which build installed cluster six, the answer is one digest, in one commit, merged
 by one pull request.
+
+---
+
+## Next: choose who installs BNK
+
+The installer is sealed and pinned. After this challenge you pick **one** of three ways to run it:
+
+![Three drivers, one installer, one cluster: CI/CD in challenges 5 and 6, BNK Forge in 7 and 8, Argo CD in 9, all meeting in challenge 10](../assets/diag-three-paths.png)
+
+| Path | Challenges | Choose it if you want to see |
+|---|---|---|
+| **A. CI/CD** | 5 and 6 | a plan on the pull request, and the merge as the install |
+| **B. BNK Forge** | 7 and 8 | F5's platform UI running each phase as its own step |
+| **C. Argo CD** | 9 | GitOps: the cluster pulling its install from git |
+
+Press **Skip** on the challenges of the paths you do not take. Everyone meets again in challenge 10.
 
 Press **Check**: it confirms `main` pins the image you built.

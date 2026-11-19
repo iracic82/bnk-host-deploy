@@ -2,22 +2,37 @@
 slug: cicd-deploy
 id: 8yekglxwxkpa
 type: challenge
-title: 'Path A, CI/CD (2/2): merge, and watch the pipeline install BNK'
-teaser: The merge is the approval. Follow the install phase by phase in the pipeline log while the cluster
-  fills up, and learn what every BNK component you see is for.
+title: 'Path A, Monday 14:30: the merge is the install'
+teaser: Press Merge and follow BNK's install phase by phase in the pipeline log while the cluster fills
+  up. Learn what every component is for, then look inside TMM and prove the install repeats safely.
 notes:
 - type: text
-  contents: |-
-    ## Merging is deploying
+  contents: |
+    ## The quietest button in the building
 
-    In the last challenge the pipeline showed you its plan on the pull request. Merging that pull
-    request is your approval. The `deploy` workflow then runs on `main`: it plans once more (main may
-    have moved since the review), then installs, for exactly the clusters the merge changed.
+    Priya reads the plan comment over your shoulder, checks the three answers, and approves.
 
-    A cold install pulls about 80 container images and takes **15 to 25 minutes**. This challenge
-    uses that time to show you what each piece is, as it arrives.
+    *"Go on, then."*
 
-    **On path B or C?** Press **Skip**.
+    You hover over **Merge**. On clusters one to five this moment was a two-hour screen-share, someone
+    reading the guide aloud and someone else typing. Here it is one click, and the click is the
+    approval. The pipeline will do exactly what the plan said, with the image you pinned, and write
+    down everything it did.
+
+    *"While it runs,"* Priya says, *"follow along. When the auditors ask what's on this cluster, I want
+    you to be able to name every pod."*
+- type: text
+  contents: |
+    ## What arrives, in order
+
+    ```
+     node prep ──▶ helpers ──▶ registry ──▶ operator ──▶ certificates ──▶ CNEInstance ──▶ network ──▶ licence ──▶ TMM
+       05          10           20           30           40               50              55           60          65
+    ```
+
+    Each number is one file in `lib/`, and one page of F5's guide. The order matters. The operator
+    needs the registry credentials to pull its charts. TMM needs a licence before the controller will
+    start it. The installer encodes that order once, so nobody has to remember it again.
 tabs:
 - id: 5uzpoeyw0ykb
   title: Gitea
@@ -49,7 +64,9 @@ timelimit: 3600
 enhanced_loading: null
 ---
 
-# Path A, CI/CD (2/2): merge, and watch the pipeline install BNK
+# Path A, Monday 14:30: the merge is the install
+
+> **Path A, CI/CD.** On path B or C? Press **Skip** until you reach challenge 7 (Forge) or 9 (Argo CD).
 
 ---
 
@@ -57,81 +74,106 @@ enhanced_loading: null
 
 In **Gitea**, open your pull request *Install BNK on the lab cluster* and press **Merge**.
 
-Open **Actions**: a `deploy` run has started on `main`. Click into it. (A `ci` run starts too: every
-push to `main` is checked again.)
+Open **Actions**. A `deploy` run has started on `main`. Click into it. A `ci` run starts too, because
+every change to `main` is checked again.
 
-> ### Concept: what triggered it
+> ### Concept: what woke the pipeline
 > `deploy.yml` starts on a push to `main` that changes `clusters/**`, `environments/**`,
 > `profiles/**`, `lib/**`, `versions.env` or `install.sh`. Its first step works out *which*
-> clusters the merge affected (`ci/targets.sh` between the previous and the new commit) and acts on
-> those only. A merge that only edits documentation wakes nothing. A merge that bumps `versions.env`
-> would upgrade every enabled cluster, each one planned first.
+> clusters the merge affected, with `ci/targets.sh` between the previous and the new commit, and acts
+> on those only. A merge that only edits documentation wakes nothing. A merge that bumps
+> `versions.env` upgrades every enabled cluster, one after another, each one planned first.
 
 ---
 
-## Step 2: Follow the phases, and see each one land in the cluster
+## Step 2: Follow the phases, and see each one land
 
-Keep the deploy log open in one tab and run this in the **Terminal**: it shows the namespaces BNK
-creates as they fill up (press `Ctrl+C` to stop it whenever you like):
+Keep the deploy log open, and in **Terminal 2** watch the namespaces fill up (`Ctrl+C` stops it):
 
 ```run
 watch -n5 'kubectl get pods -A --no-headers | grep -vE "kube-system|calico|tigera|local-path" | awk "{print \$1}" | sort | uniq -c'
 ```
 
-As each phase runs in the pipeline log, here is what it does and what to look for:
+A cold install takes about **6 to 10 minutes**. Here is the whole journey:
 
-**`00 preflight`.** Checks tooling, the API server, Kubernetes 1.35, Calico, CPU and storage
-*before* touching anything. Every check that fails here would otherwise fail 20 minutes later.
+![The install phases 00 to 70, from preflight through the operator and the CNEInstance to licence, TMM and verify](../assets/diag-install-phases.png)
+
+And here is what each phase does, and why it exists.
+
+**`00 preflight`.** Checks the tooling, the API server, Kubernetes 1.35, Calico, CPU and storage
+*before* touching anything. Every failure caught here would otherwise surface twenty minutes later,
+halfway through an install.
 
 **`05 label the TMM node`.** `kubectl label node bnk-worker app=f5-tmm`, then proves the node offers
-hugepages. The label is how the operator knows where TMM may run.
+**hugepages**.
 
-**`10 cluster prerequisites`.** Three things arrive:
-- **Multus** (namespace `kube-system`, DaemonSet `kube-multus-ds`): gives pods extra NICs
-- **cert-manager** (namespace `cert-manager`): issues and renews TLS certificates
-- a **CA chain**: a self-signed root `f5-cne-internal-ca-root` and a `ClusterIssuer`
-  `f5-cne-internal-ca` that signs every certificate BNK's components use to talk to each other
+> ### Concept: hugepages
+> Memory is handed out in pages, normally 4 KiB each. A process that touches gigabytes of memory
+> spends real time just looking up where its pages are. **Hugepages** are 2 MiB pages: 512 times
+> fewer lookups. TMM moves packets at line rate and wants its memory this way, so the node must
+> reserve hugepages in advance, and Kubernetes advertises them like CPU and memory. No hugepages,
+> no TMM.
+
+**`10 cluster prerequisites`.** Three helpers arrive:
+
+| Helper | Where | Why BNK needs it |
+|---|---|---|
+| **Multus** | `kube-system`, DaemonSet `kube-multus-ds` | gives a pod **more than one network interface**. TMM needs its two data legs on Sam's networks as well as its normal pod interface |
+| **cert-manager** | `cert-manager` | issues TLS certificates and renews them before they expire, with nobody involved |
+| a **CA chain** | `ClusterIssuer f5-cne-internal-ca` | the private certificate authority that signs every certificate BNK's components use to talk to each other |
 
 > ### Concept: why BNK needs its own certificate authority
-> BNK's components talk to each other over mutual TLS (gRPC between the controller and TMM, the
-> licensing service, telemetry). cert-manager issues those certificates from the CA this phase
-> creates, and renews them before they expire, with no human involved.
+> BNK is a team of components: a controller, TMM, a state store, a licensing service, telemetry.
+> They talk to each other over **mutual TLS**, where *both* sides show a certificate, so a
+> component can trust that it is talking to the real controller and not to an impostor. Someone has
+> to issue those certificates and keep renewing them. That is cert-manager's job, using the CA this
+> phase creates.
 
-**`20 registry`.** Logs Helm in to `repo.f5.com` and creates `far-pull-secret` in `f5-cne-core` and
-`f5-bnk`. Every BNK image is private; without this secret every pod sits in `ImagePullBackOff`.
+> ### Concept: Multus and the CNI
+> Your **CNI** (Calico here, challenge 1) gives every pod exactly one interface, `eth0`, on the pod
+> network. That is perfect for apps and useless for a network function that must sit *on* specific
+> wires. **Multus** is a "meta-CNI": it calls Calico for `eth0` as usual, then attaches extra
+> interfaces described by `NetworkAttachmentDefinition` objects. Phase 45 creates those definitions.
 
-**`30 lifecycle operator`.** `helm install f5-lifecycle-operator` into `f5-cne-core`. Watch for the
-`f5-lifecycle-operator` pod. The log then says how many F5 resource types (CRDs) it registered.
+**`20 registry`.** Logs Helm in to `repo.f5.com` and creates `far-pull-secret` in the `f5-cne-core`
+and `f5-bnk` namespaces. Every BNK image is private. Without this secret, every pod would sit in
+`ImagePullBackOff`.
 
-> ### Concept: operators
-> An **operator** is a controller that knows how to run one piece of software. You give it a short
-> description of what you want; it does the hundreds of steps. FLO's input is a **CNEInstance**,
-> and its knowledge is F5's *release manifest*: the exact image and chart of every BNK component in
-> release 2.4.2.
+**`30 lifecycle operator`.** `helm install f5-lifecycle-operator` into `f5-cne-core`. Watch the
+`f5-lifecycle-operator` pod appear. The log then counts the new F5 resource types it registered.
 
-**`40 certificates`.** Runs F5's `f5-cert-gen` for the licensing service's certificates (CWC), and
-checks they really contain certificates. (An earlier version of this installer once "succeeded"
-with empty ones; the check exists because of that.)
+> ### Concept: operators and CRDs
+> Kubernetes knows Pods and Services out of the box. A **CRD** (custom resource definition) teaches
+> it a new kind of object, such as `CNEInstance`. An **operator** is a program that watches those
+> objects and does whatever it takes to make reality match them. You write ten lines saying *"BNK
+> 2.4.2, size Small"*. The **F5 Lifecycle Operator (FLO)** reads F5's *release manifest*, the
+> exact image and chart of every component in that release, and performs the hundreds of steps.
 
-**`45 attachments`.** Applies `clusters/lab.attachments.yaml`: `external-net` becomes TMM's
-interface 1.1, `internal-net` 1.2.
+**`40 certificates`.** Runs F5's `f5-cert-gen` for the licensing service (CWC), then checks the files
+really contain certificates. An earlier version of this installer once "succeeded" with empty ones.
+The check exists because of that day.
 
-**`50 CNEInstance`.** The big one. The log prints *reconciling* with a pod count that climbs. In your
-watch you will see `f5-bnk` grow: the CNE controller, DSSM (BNK's state store, three replicas),
-the observer, CSRC (a per-node agent), the cert service, and more.
+**`45 attachments`.** Applies `clusters/lab.attachments.yaml`: `external-net` becomes TMM's interface
+**1.1** on the node's `eth1`, and `internal-net` becomes **1.2** on `eth2`.
 
-**`55 network`.** Applies `clusters/lab.network.yaml` through F5's validation webhook, retrying while
-it starts: VLANs `external` (`10.10.10.11`) and `internal` (`172.18.0.250`), the VIP pool and the
-`f5-gateway-class` GatewayClass.
+**`50 CNEInstance`.** The big one. The log reports *reconciling* while your watch shows `f5-bnk`
+growing: the CNE controller, DSSM (BNK's state store, three replicas), the observer, CSRC (an agent
+on every node), the certificate service and more.
 
-**`60 licence`.** Creates the `License` object. BNK validates it with F5 over the internet
-(*connected mode*) and the state turns `Active`.
+**`55 network`.** Applies `clusters/lab.network.yaml` through F5's validation webhook: the VLANs
+`external` (`10.10.10.11`) and `internal` (`172.18.0.250`), the VIP pool `10.30.30.10` to `.29`,
+and the GatewayClass `f5-gateway-class`.
 
-**`65 wait for the data plane`.** Only now, licensed, does the controller create **TMM**. Watch for
-`f5-tmm` on `bnk-worker`. When it is up, the CNEInstance turns **Available**.
+**`60 licence`.** Creates the `License` object. BNK checks it with F5 over the internet, which is
+called **connected mode**, and its state turns `Active`.
 
-**`70 verify`.** The guide's "Expect:" lines as assertions: FLO running, CRDs present, no crash
-loops, no image pull errors, licence Active, GatewayClass accepted, VLANs programmed.
+**`65 wait for the data plane`.** Only now, licensed, does the controller start **TMM**. Watch `f5-tmm`
+appear on `bnk-worker`. When it is up, the CNEInstance turns **Available**.
+
+**`70 verify`.** Every *Expect:* line of F5's guide, as an assertion: FLO running, CRDs present, no crash
+loops, no image pull errors, licence Active, GatewayClass accepted, VLANs programmed. Then the
+installer writes down who installed what, from which commit, on the cluster itself. You will read
+that record on Day 2.
 
 ---
 
@@ -139,34 +181,73 @@ loops, no image pull errors, licence Active, GatewayClass accepted, VLANs progra
 
 When `deploy` is green, look at the result three ways.
 
-The **Lab Topology** tab: the TMM box and the BNK control plane are green, with version, licence
-and GatewayClass filled in.
+The **Lab Topology** tab: the TMM box and the BNK control plane turn green, with the version, the
+licence and the GatewayClass filled in.
 
-The cluster's own view:
+The cluster's own view, in the **Terminal**:
 
 ```run
 kubectl -n f5-bnk get cneinstance f5-bnk-instance -o jsonpath='{range .status.conditions[*]}{.type}={.status}{"\n"}{end}'
-kubectl -n f5-bnk get pods -l app=f5-tmm -o wide
-kubectl get license.k8s.f5net.com -A
 ```
 
-And the moment of truth from the router: TMM now answers on `10.10.10.11`:
+Sixteen conditions, all `True`. Each one is a part of BNK the operator brought up and checked.
+
+```run
+kubectl -n f5-bnk get pods -l app=f5-tmm -o wide
+lab status
+```
+
+TMM runs on `bnk-worker` with five containers ready, and the licence is `Active`, an evaluation
+entitlement with its expiry date.
+
+And the moment of truth, from Sam's router:
 
 ```run
 docker exec edge-router ping -c2 10.10.10.11
 ```
 
-Two challenges ago, nothing owned that address. Now TMM does, through its macvlan on `bnk-worker`'s
+This morning nothing owned that address. Now TMM does, through its interface on `bnk-worker`'s
 `eth1`.
 
 ---
 
-## Step 4: Prove it is repeatable
+## Step 4: Look inside TMM
 
-Re-run the deploy on purpose. In **Gitea > Actions**, select the `deploy` workflow and use **Run
-workflow** (leave the cluster empty to target every enabled cluster). Every phase reports
-*already present* or *already installed*, and the run is quick: the installer **converges**. It
-brings the cluster to the declared state and does nothing if it is already there. That is what makes
-it safe to run from a pipeline as often as you like.
+Read that ping's replies again. One echo, **two replies**: the first with `ttl=255`, then a `DUP!`
+with `ttl=64`. Two different things answered. Find out who:
 
-Press **Check**: it confirms the deploy succeeded and BNK is Available.
+```run
+kubectl -n f5-bnk exec "$(kubectl -n f5-bnk get pod -l app=f5-tmm -o name | head -1)" -c f5-tmm -- ip -br addr
+```
+
+| Interface | What it is |
+|---|---|
+| `eth0` | the pod's ordinary Calico interface, the one every pod gets |
+| `net1`, `net2` | the two **Multus** interfaces from phase 45, on the node's `eth1` and `eth2`. TMM's data plane takes them over, so Linux shows them without an address |
+| `external` `10.10.10.11/24`, `internal` `172.18.0.250/16` | Linux **mirrors** of TMM's two VLANs, carrying the same self IPs |
+| `tmm`, `tmm_bp` | private channels between TMM and the pod's Linux side |
+
+This is the split every BIG-IP has had for twenty years. **TMM owns the wire.** It receives on `net1`
+and `net2`, and it answers with BIG-IP's TTL of 255. The pod's **Linux side** holds the same self
+IPs on the mirror interfaces, so ordinary Linux programs can speak on those networks too. The most
+important of those programs is the routing daemon, which lets BNK peer BGP with routers like Sam's
+when dynamic routing is switched on. TMM passes some traffic up to Linux, Linux answers the ping as
+well with TTL 64, and you see a duplicate. Harmless for a ping, and invisible for VIP traffic, which
+belongs to TMM alone.
+
+---
+
+## Step 5: Prove it repeats safely
+
+Run the deploy again, on purpose. In **Gitea > Actions**, select the `deploy` workflow and press
+**Run workflow**. Leave the cluster field empty to target every enabled cluster.
+
+This time every phase reports *already present* or *already installed*, and the run is quick.
+
+> ### Concept: convergence (idempotency)
+> An installer that only works on an empty cluster is a script. One that brings any cluster to the
+> declared state, and does nothing when the cluster is already there, is a **converging** installer.
+> Convergence is what makes it safe to run from a pipeline as often as you like: after a failure,
+> after a node replacement, or every night just to prove nothing has drifted.
+
+Press **Check**. It confirms the deploy succeeded and BNK is Available.
