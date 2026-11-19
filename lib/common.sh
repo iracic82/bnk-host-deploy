@@ -23,6 +23,16 @@ warn()   { printf '    \033[0;33m!!\033[0m  %s\n' "$*"; _PHASE_WARN=1
              printf '    \033[0;31mXX\033[0m  strict environment %s: preflight warnings are fatal\n' "${BNK_ENV_NAME:-}" >&2
              exit 1
            fi; }
+# A waiting loop's status line. A terminal gets one line that updates in place. Anything else (Forge's
+# step log, a CI job log) reads output line by line, so it gets a full line, at most once a minute.
+progress() {  # progress <printf format> [args...]
+  if [[ -t 1 ]]; then printf "\r$1 " "${@:2}"
+  else
+    local now; now=$(date +%s)
+    if (( now - ${_PROGRESS_LAST:-0} >= 60 )); then printf "$1\n" "${@:2}"; _PROGRESS_LAST=$now; fi
+  fi
+}
+progress_end() { [[ -t 1 ]] && printf '\r%-78s\r' ' '; _PROGRESS_LAST=0; return 0; }
 # progress while waiting for something that is still starting (a retry is not a warning)
 wait_note() { printf '    \033[2m..\033[0m  %s\n' "$*"; }
 die()    { printf '    \033[0;31mXX\033[0m  %s\n' "$*" >&2; _PHASE_ERR="$*"; exit 1; }
@@ -32,7 +42,7 @@ report_diff() {  # report_diff <title> <diff text>
   printf '%s\n' "$1" >> "$_CHANGES"
   { echo; echo "<details><summary>${1}</summary>"; echo; echo '```diff'; printf '%s\n' "$2"; echo '```'; echo '</details>'; } >> "$_SUMMARY"
 }
-export -f _sum log ok warn wait_note die docref report_diff
+export -f _sum log ok warn wait_note progress progress_end die docref report_diff
 
 phase_begin() { _P_ID="$1"; _P_TITLE="$2"; _P_DOC="$3"; _P_T0=$(date +%s); _PHASE_WARN=0; _PHASE_ERR=""; }
 phase_end() {

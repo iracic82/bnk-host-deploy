@@ -49,10 +49,10 @@ while [[ $(date +%s) -lt $deadline ]]; do
                  -o jsonpath='{.status.conditions[?(@.type=="Reconciled")].status}' 2>/dev/null || true)
   if kubectl get crd licenses.k8s.f5net.com >/dev/null 2>&1 && [[ "$reconciled" == "True" ]]; then break; fi
   running=$(kubectl get pods -n "$NS_BNK" --no-headers 2>/dev/null | grep -c Running || true)
-  printf '\r    reconciling: Reconciled=%-6s %3s pods running in %s ' "${reconciled:-?}" "$running" "$NS_BNK"
+  progress '    reconciling: Reconciled=%-6s %3s pods running in %s' "${reconciled:-?}" "$running" "$NS_BNK"
   sleep 15
 done
-printf '\r%-78s\r' ' '
+progress_end
 kubectl get crd licenses.k8s.f5net.com >/dev/null 2>&1 \
   || die "the License CRD never appeared within ${BNK_WAIT_TIMEOUT}s. kubectl logs -n $NS_CORE deploy/f5-lifecycle-operator"
 ok "operator reconciled the CNEInstance and registered BNK's CRDs ($(kubectl get crd -o name | grep -c 'k8s.f5') F5 CRDs)"

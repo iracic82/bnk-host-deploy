@@ -21,10 +21,10 @@ while [[ $(date +%s) -lt $deadline ]]; do
     pending=$(tr ',' '\n' <<<"$pending" | grep -vE '^(Available|F5TmmAvailable)$' | paste -sd, - || true)
     [[ -z "$pending" && "$conds" == *"Reconciled=True"* ]] && break
   fi
-  printf '\r    waiting, not ready yet: %-52s' "${pending:-starting}"
+  progress '    waiting, not ready yet: %s' "${pending:-starting}"
   sleep 15
 done
-printf '\r%-80s\r' ' '
+progress_end
 
 if [[ "$avail" == "True" ]]; then
   ok "CNEInstance Available: TMM is up on $(kubectl get pods -n "$NS_BNK" -l app=f5-tmm -o jsonpath='{.items[0].spec.nodeName}' 2>/dev/null || echo '?')"
