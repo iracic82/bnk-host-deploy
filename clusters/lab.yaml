@@ -20,7 +20,7 @@ pseudo_cni_exclude:           # never steer these through TMM: services, the nod
   - 10.30.30.0/24
 
 tmm:
-  nodes: []                   # TODO: the node TMM runs on, e.g. [bnk-worker] (kubectl get nodes)
+  nodes: []                   # the node TMM runs on, e.g. [bnk-worker] (kubectl get nodes)
   manage_labels: true         # the installer applies app=f5-tmm to it
   networks:                   # TMM interfaces in order: 1.1, 1.2 (defined in lab.attachments.yaml)
     - external-net            # 1.1: toward the data-center router, where clients come from
