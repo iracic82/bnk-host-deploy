@@ -30,6 +30,7 @@ PORT_GITEA=3000
 PORT_CODE=8444
 PORT_FORGE_TAB=8090               # plain-HTTP front for Forge's TLS proxy on :8443 (Instruqt tabs want HTTP)
 PORT_TOPOLOGY=5050
+PORT_INFERENCE=5060
 PORT_REGISTRY=5000
 PORT_ARGOCD=8091
 FRR_IMAGE="quay.io/frrouting/frr:10.6.2"

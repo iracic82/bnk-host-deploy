@@ -11,7 +11,7 @@
 #
 # Inputs, from the environment:
 #   BNK_CLUSTER_FILE   a clusters/<name>.yaml to use as-is, or, to have one generated:
-#     CLUSTER_NAME (default lab)  BNK_ENVIRONMENT (default lab)  TMM_NODE  STORAGE_CLASS
+#     CLUSTER_NAME (default lab)  BNK_ENVIRONMENT (default lab)  TMM_NODE  STORAGE_CLASS  EPP_NAMESPACES
 #   KUBECONFIG         default: $WORK/secrets/kubeconfig when present
 #   FAR_PULL_JSON      default: $WORK/secrets/cne_pull_64.json
 #   BNK_LICENSE_FILE   default: $WORK/secrets/license.jwt
@@ -66,6 +66,8 @@ cluster_file() {
     TMM_NODE="$TMM_NODE" yq -i '.tmm.nodes = [strenv(TMM_NODE)] | .enabled = true | del(.kube_context)' "$dst"
     [[ -n "${BNK_ENVIRONMENT:-}" ]] && E="$BNK_ENVIRONMENT" yq -i '.environment = strenv(E)' "$dst"
     [[ -n "${STORAGE_CLASS:-}" ]] && S="$STORAGE_CLASS" yq -i '.storage_class = strenv(S)' "$dst"
+    # Forge form field epp_namespaces (comma list) -> inference.epp_namespaces. Unset keeps the file's.
+    [[ -n "${EPP_NAMESPACES:-}" ]] && E="$EPP_NAMESPACES" yq -i '.inference.epp_namespaces = (strenv(E) | split(",") | map(select(. != "")))' "$dst"
   else
     : "${TMM_NODE:?TMM_NODE is required: the node TMM runs on}"
     cat > "$dst" <<EOF2
@@ -107,7 +109,7 @@ case "$cmd" in
   registry)    phase 20 ;;
   flo)         phase 30 ;;
   certs)       phase 40 ;;
-  cneinstance) phase 50 ;;
+  cneinstance) phase 47 && phase 50 ;;
   license)     phase 60 ;;
   ready)       phase 65 ;;
   verify)      BNK_RECORD_PROVENANCE=true phase 70; write_outputs ;;

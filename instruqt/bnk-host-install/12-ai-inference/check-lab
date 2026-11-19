@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+[ -n "${BASH_ENV:-}${ENV:-}" ] && echo "note: runner set BASH_ENV=${BASH_ENV:-} ENV=${ENV:-}, unset for child scripts" >&2
+unset BASH_ENV ENV
+set -uo pipefail
+export PATH=/usr/local/bin:$PATH KUBECONFIG=/root/.kube/config
+kubectl get crd inferencepools.inference.networking.k8s.io >/dev/null 2>&1 \
+  || { fail-message "The InferencePool CRDs are missing. Step 2: add inference.epp_namespaces to clusters/lab.yaml and let your install tool apply it."; exit 1; }
+kubectl -n f5-bnk get cneinstance f5-bnk-instance -o jsonpath='{.spec.eppNamespaces[*]}' | grep -qw inference \
+  || { fail-message "The CNEInstance does not list 'inference' in eppNamespaces yet. Finish step 2 through your install path (lab owner)."; exit 1; }
+[[ "$(kubectl -n inference get deploy model -o jsonpath='{.status.readyReplicas}' 2>/dev/null)" -ge 1 ]] 2>/dev/null \
+  || { fail-message "The model servers are not running. Step 3: ship apps/inference/inference.yaml and let it be delivered (lab owner)."; exit 1; }
+kubectl -n inference get deploy -o name | grep -q epp \
+  || { fail-message "BNK has not rendered the endpoint picker yet. Check: kubectl -n inference get f5epp,deploy"; exit 1; }
+out=$(docker exec client curl -s -m 30 -H 'Content-Type: application/json' \
+  -d '{"model":"Qwen/Qwen3-0.6B","max_tokens":4,"messages":[{"role":"user","content":"hello"}]}' http://10.30.30.11/v1/chat/completions)
+echo "$out" | grep -q '"choices"' \
+  || { fail-message "No answer from the inference VIP 10.30.30.11 yet. Try: lab ask 1 hello   and   kubectl -n inference get gateway,httproute"; exit 1; }
+exit 0

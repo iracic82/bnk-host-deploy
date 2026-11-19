@@ -11,3 +11,5 @@ cd ${WORKSPACE} 2>/dev/null || true
 PROFILE
 grep -q bnk-lab.sh /root/.bashrc || echo '[ -f /etc/profile.d/bnk-lab.sh ] && . /etc/profile.d/bnk-lab.sh' >> /root/.bashrc
 ok "lab command installed: $(command -v lab)"
+# the AI Inference tab (challenge 12): installed here too, so a running sandbox gets it with `lab update`
+bash "$(dirname "$0")/75-inference.sh"

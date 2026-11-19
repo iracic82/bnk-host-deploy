@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Inference</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #ffffff; --ink: #1d2430; --muted: #687385; --line: #e3e6eb;
+    --f5: #e4002b; --ok: #2f9e44; --warn: #e8590c;
+    --g0: #3b5bdb; --g1: #7048e8; --g2: #0c8599;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font: 14px/1.45 Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  header { padding: 18px 24px 14px; background: var(--card); border-bottom: 1px solid var(--line); }
+  h1 { margin: 0; font-size: 20px; font-weight: 800; }
+  h1 span { display: inline-block; width: 44px; height: 4px; background: var(--f5); border-radius: 2px; vertical-align: middle; margin-left: 10px; }
+  .sub { color: var(--muted); margin-top: 4px; }
+  main { padding: 18px 24px 40px; display: grid; gap: 18px; max-width: 1280px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .chip { border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; font-size: 12.5px; color: var(--muted); background: #fafbfc; }
+  .chip.ok { color: #1b5e2b; border-color: #b2e2c0; background: #effaf3; }
+  .chip.no { color: #7a2e05; border-color: #f5c9a8; background: #fff4e6; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
+  .card h2 { margin: 0 0 10px; font-size: 15px; }
+  .gpus { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  .gpu { border-top: 5px solid var(--c); }
+  .gpu .name { font-weight: 800; font-size: 16px; color: var(--c); }
+  .gpu .pod { color: var(--muted); font-size: 12px; word-break: break-all; }
+  .kv { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; margin-top: 10px; font-size: 13px; }
+  .bar { grid-column: 1 / -1; height: 8px; border-radius: 4px; background: #eef0f3; overflow: hidden; }
+  .bar i { display: block; height: 100%; background: var(--c); width: 0; transition: width .6s; }
+  .runs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .run h2 small { font-weight: 400; color: var(--muted); }
+  button { font: inherit; font-weight: 700; border: 0; border-radius: 10px; padding: 9px 14px; cursor: pointer; color: #fff; background: var(--f5); }
+  button.alt { background: #495057; }
+  button:disabled { opacity: .45; cursor: default; }
+  .big { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 14px 0 10px; }
+  .big div { background: #fafbfc; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+  .big b { display: block; font-size: 22px; }
+  .big span { color: var(--muted); font-size: 12px; }
+  .strip { display: flex; flex-wrap: wrap; gap: 3px; min-height: 18px; }
+  .sq { width: 14px; height: 14px; border-radius: 3px; border: 2px solid var(--c); background: transparent; }
+  .sq.warm { background: var(--c); }
+  .sq.err { border-color: #adb5bd; background: repeating-linear-gradient(45deg,#dee2e6 0 3px,#fff 3px 6px); }
+  .legend { color: var(--muted); font-size: 12px; margin: 6px 0 12px; }
+  table.grid { border-collapse: collapse; font-size: 12px; }
+  table.grid td, table.grid th { padding: 2px 4px; text-align: center; }
+  table.grid th { color: var(--muted); font-weight: 600; }
+  table.grid td.cell { width: 34px; height: 18px; border-radius: 3px; color: #fff; font-weight: 700; }
+  .progress { color: var(--muted); font-size: 12.5px; margin-left: 10px; }
+  .ask { display: grid; grid-template-columns: auto auto 1fr auto; gap: 10px; align-items: center; }
+  select, input { font: inherit; padding: 8px 10px; border: 1px solid var(--line); border-radius: 9px; background: #fff; }
+  .answer { margin-top: 12px; padding: 10px 12px; background: #fafbfc; border: 1px solid var(--line); border-radius: 10px; display: none; }
+  .note { color: var(--muted); font-size: 12.5px; }
+  @media (max-width: 860px) { .gpus, .runs { grid-template-columns: 1fr; } .ask { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Northwind AI, inference console<span></span></h1>
+  <div class="sub">Every request here takes the real path: client &rarr; edge router &rarr; TMM (VIP) &rarr; a simulated GPU. Twelve customers, each with a long system prompt, share three GPUs whose KV cache holds about four prompts each.</div>
+  <div class="chips" id="chips"><span class="chip">loading…</span></div>
+</header>
+<main>
+  <section class="gpus" id="gpus"></section>
+
+  <section class="runs">
+    <div class="card run" id="run-picker">
+      <h2>BNK endpoint picker <small>VIP 10.30.30.11 &rarr; InferencePool</small></h2>
+      <button onclick="burst('picker')">Send 48 requests</button><span class="progress"></span>
+      <div class="body"></div>
+    </div>
+    <div class="card run" id="run-roundrobin">
+      <h2>Round robin <small>VIP 10.30.30.12 &rarr; Service</small></h2>
+      <button class="alt" onclick="burst('roundrobin')">Send the same 48 requests</button><span class="progress"></span>
+      <div class="body"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Ask one question</h2>
+    <div class="ask">
+      <select id="a-mode"><option value="picker">via BNK picker (.11)</option><option value="roundrobin">via round robin (.12)</option></select>
+      <select id="a-cust"></select>
+      <input id="a-q" value="How do I reach my service from outside the cluster?">
+      <button onclick="ask()">Send</button>
+    </div>
+    <div class="answer" id="a-out"></div>
+    <p class="note">Ask the same customer twice: the second answer comes from a warm KV cache if it lands on the same GPU. The simulator's answer text is filler, its timings and cache are realistic.</p>
+  </section>
+</main>
+<script>
+const COLORS = ['var(--g0)', 'var(--g1)', 'var(--g2)'];
+const LETTER = ['A', 'B', 'C'];
+let busy = false;
+for (let c = 1; c <= 12; c++) document.getElementById('a-cust').insertAdjacentHTML('beforeend', `<option value="${c}">customer ${String(c).padStart(2, '0')}</option>`);
+
+function chip(ok, text) { return `<span class="chip ${ok ? 'ok' : 'no'}">${ok ? '✓' : '·'} ${text}</span>`; }
+function pct(x) { return Math.round((x || 0) * 100) + '%'; }
+
+function renderPlatform(p) {
+  const g = p.gateways || {};
+  document.getElementById('chips').innerHTML =
+    chip(p.crds, 'InferencePool CRDs') + chip(p.epp_allowed, 'picker allowed in namespace inference') +
+    chip(p.picker_ready, 'endpoint picker running') +
+    chip(g['ai-picker'] && g['ai-picker'].programmed, 'VIP .11 programmed') +
+    chip(g['ai-roundrobin'] && g['ai-roundrobin'].programmed, 'VIP .12 programmed');
+}
+
+function renderGpus(gpus) {
+  const el = document.getElementById('gpus');
+  if (!gpus.length) { el.innerHTML = '<div class="card" style="grid-column:1/-1">No model servers yet. Ship <code>apps/inference/</code> (challenge 12, step 3).</div>'; return; }
+  el.innerHTML = gpus.slice(0, 3).map((g, i) => `
+    <div class="card gpu" style="--c:${COLORS[i]}">
+      <div class="name">GPU ${LETTER[i]} ${g.ready ? '' : '<span class="chip no">starting</span>'}</div>
+      <div class="pod">${g.name} on ${g.node}</div>
+      <div class="kv">
+        <span>requests served</span><b>${g.requests ?? 0}</b>
+        <span>KV-cache hit rate (prompt tokens)</span><b>${pct(g.hit_rate)}</b>
+        <div class="bar"><i style="width:${pct(g.hit_rate)}"></i></div>
+        <span>KV cache in use right now</span><b>${pct(g.kv_usage)}</b>
+        <div class="bar"><i style="width:${pct(g.kv_usage)}"></i></div>
+      </div>
+    </div>`).join('');
+}
+
+function renderRun(mode, run) {
+  const box = document.getElementById('run-' + mode);
+  box.querySelector('.progress').textContent = run && !run.finished ? `running… ${run.done}/${run.n}` : '';
+  if (!run) { box.querySelector('.body').innerHTML = '<p class="note">Not run yet.</p>'; return; }
+  const s = run.summary;
+  const sq = run.results.map(r => r.ok
+    ? `<span class="sq ${r.cached > 0 ? 'warm' : ''}" style="--c:${COLORS[r.gpu] || '#adb5bd'}" title="#${r.i + 1} customer ${r.customer}: GPU ${LETTER[r.gpu] || '?'}, ${r.ms} ms, ${r.cached}/${r.prompt} tokens cached"></span>`
+    : `<span class="sq err" title="#${r.i + 1}: ${r.error || r.code}"></span>`).join('');
+  const counts = {};
+  run.results.forEach(r => { if (r.gpu >= 0) { counts[r.customer] = counts[r.customer] || [0, 0, 0]; counts[r.customer][r.gpu]++; } });
+  const rows = Object.keys(counts).sort((a, b) => a - b).map(c => `<tr><th>cust ${String(c).padStart(2, '0')}</th>` +
+    counts[c].map((n, i) => `<td class="cell" style="background:${n ? COLORS[i] : '#f1f3f5'};opacity:${n ? 0.35 + 0.65 * Math.min(n, 4) / 4 : 1}">${n || ''}</td>`).join('') + '</tr>').join('');
+  box.querySelector('.body').innerHTML = `
+    <div class="big">
+      <div><b>${s ? s.warm + '/' + s.ok : run.results.filter(r => r.cached > 0).length + '/' + run.done}</b><span>warm KV-cache hits</span></div>
+      <div><b>${s ? s.avg_ms + ' ms' : '…'}</b><span>average latency</span></div>
+      <div><b>${s ? s.p95_ms + ' ms' : '…'}</b><span>p95 latency</span></div>
+    </div>
+    <div class="strip">${sq}</div>
+    <div class="legend">One square per request, coloured by the GPU that answered. Filled: warm (prompt found in that GPU's KV cache). Hollow: cold (full prefill).</div>
+    <table class="grid"><tr><th></th>${LETTER.map((l, i) => `<th style="color:${COLORS[i]}">GPU ${l}</th>`).join('')}</tr>${rows}</table>
+    <div class="legend">Which GPU served each customer. A picker that keeps a customer on one GPU keeps that customer's prompt warm.</div>`;
+}
+
+async function refresh() {
+  try {
+    const st = await (await fetch('api/state')).json();
+    busy = st.busy;
+    document.querySelectorAll('.run button').forEach(b => b.disabled = busy || !st.gpus.length);
+    renderPlatform(st.platform); renderGpus(st.gpus);
+    renderRun('picker', st.runs.picker); renderRun('roundrobin', st.runs.roundrobin);
+  } catch (e) { document.getElementById('chips').innerHTML = chip(false, 'console not reachable'); }
+}
+
+async function burst(mode) {
+  const r = await fetch('api/burst', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({mode, n: 48, customers: 12})});
+  if (r.status === 409) alert('A run is already in progress.');
+  refresh();
+}
+
+async function ask() {
+  const out = document.getElementById('a-out');
+  out.style.display = 'block'; out.textContent = 'sending…';
+  const body = {mode: document.getElementById('a-mode').value, customer: +document.getElementById('a-cust').value, question: document.getElementById('a-q').value};
+  const r = await (await fetch('api/ask', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)})).json();
+  out.innerHTML = r.ok
+    ? `<b>${r.ms} ms</b> via ${r.vip} &middot; customer ${String(r.customer).padStart(2, '0')} &middot; <b>${r.cached}</b> of ${r.prompt} prompt tokens ${r.cached ? 'found in KV cache (warm)' : 'prefilled from scratch (cold)'}<br><span class="note">${(r.answer || '').replace(/[<>&]/g, '')}</span>`
+    : `No answer: ${(r.error || r.code)}`;
+  refresh();
+}
+
+refresh(); setInterval(refresh, 1500);
+</script>
+</body>
+</html>

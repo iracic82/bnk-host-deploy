@@ -6,7 +6,7 @@ set -euo pipefail
 HERE="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
 cmd="${1:-help}"; shift || true
 case "$cmd" in
-  network|runner|ci-secrets|image|forge|forge-secrets|forge-catalog|forge-deploy|forge-register|forge-ready|owner|plan|argocd) exec bash "$HERE/steps/${cmd}.sh" "$@" ;;
+  network|runner|ci-secrets|image|forge|forge-secrets|forge-catalog|forge-deploy|forge-register|forge-ready|owner|plan|argocd|ask|gpus|burst) exec bash "$HERE/steps/${cmd}.sh" "$@" ;;
   status)  exec bash "$HERE/steps/status.sh" "$@" ;;
   update)  git -C /root/bnk-host-deploy pull -q --ff-only && exec bash /root/bnk-host-deploy/lab/80-learner.sh ;;
   curl)    exec docker exec client curl -s -m 5 "$@" ;;

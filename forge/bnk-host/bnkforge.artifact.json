@@ -73,7 +73,8 @@
           "TMM_NODE": "{{inputs.tmm_node}}",
           "CLUSTER_NAME": "{{inputs.cluster_name}}",
           "BNK_ENVIRONMENT": "{{inputs.environment}}",
-          "STORAGE_CLASS": "{{inputs.storage_class}}"
+          "STORAGE_CLASS": "{{inputs.storage_class}}",
+          "EPP_NAMESPACES": "{{inputs.epp_namespaces}}"
         }
       },
       {
@@ -87,7 +88,8 @@
           "TMM_NODE": "{{inputs.tmm_node}}",
           "CLUSTER_NAME": "{{inputs.cluster_name}}",
           "BNK_ENVIRONMENT": "{{inputs.environment}}",
-          "STORAGE_CLASS": "{{inputs.storage_class}}"
+          "STORAGE_CLASS": "{{inputs.storage_class}}",
+          "EPP_NAMESPACES": "{{inputs.epp_namespaces}}"
         }
       },
       {
@@ -101,7 +103,8 @@
           "TMM_NODE": "{{inputs.tmm_node}}",
           "CLUSTER_NAME": "{{inputs.cluster_name}}",
           "BNK_ENVIRONMENT": "{{inputs.environment}}",
-          "STORAGE_CLASS": "{{inputs.storage_class}}"
+          "STORAGE_CLASS": "{{inputs.storage_class}}",
+          "EPP_NAMESPACES": "{{inputs.epp_namespaces}}"
         },
         "retry": {
           "max_attempts": 2,
@@ -119,7 +122,8 @@
           "TMM_NODE": "{{inputs.tmm_node}}",
           "CLUSTER_NAME": "{{inputs.cluster_name}}",
           "BNK_ENVIRONMENT": "{{inputs.environment}}",
-          "STORAGE_CLASS": "{{inputs.storage_class}}"
+          "STORAGE_CLASS": "{{inputs.storage_class}}",
+          "EPP_NAMESPACES": "{{inputs.epp_namespaces}}"
         }
       },
       {
@@ -133,7 +137,8 @@
           "TMM_NODE": "{{inputs.tmm_node}}",
           "CLUSTER_NAME": "{{inputs.cluster_name}}",
           "BNK_ENVIRONMENT": "{{inputs.environment}}",
-          "STORAGE_CLASS": "{{inputs.storage_class}}"
+          "STORAGE_CLASS": "{{inputs.storage_class}}",
+          "EPP_NAMESPACES": "{{inputs.epp_namespaces}}"
         }
       },
       {
@@ -147,7 +152,8 @@
           "TMM_NODE": "{{inputs.tmm_node}}",
           "CLUSTER_NAME": "{{inputs.cluster_name}}",
           "BNK_ENVIRONMENT": "{{inputs.environment}}",
-          "STORAGE_CLASS": "{{inputs.storage_class}}"
+          "STORAGE_CLASS": "{{inputs.storage_class}}",
+          "EPP_NAMESPACES": "{{inputs.epp_namespaces}}"
         }
       },
       {
@@ -161,7 +167,8 @@
           "TMM_NODE": "{{inputs.tmm_node}}",
           "CLUSTER_NAME": "{{inputs.cluster_name}}",
           "BNK_ENVIRONMENT": "{{inputs.environment}}",
-          "STORAGE_CLASS": "{{inputs.storage_class}}"
+          "STORAGE_CLASS": "{{inputs.storage_class}}",
+          "EPP_NAMESPACES": "{{inputs.epp_namespaces}}"
         }
       },
       {
@@ -175,7 +182,8 @@
           "TMM_NODE": "{{inputs.tmm_node}}",
           "CLUSTER_NAME": "{{inputs.cluster_name}}",
           "BNK_ENVIRONMENT": "{{inputs.environment}}",
-          "STORAGE_CLASS": "{{inputs.storage_class}}"
+          "STORAGE_CLASS": "{{inputs.storage_class}}",
+          "EPP_NAMESPACES": "{{inputs.epp_namespaces}}"
         }
       },
       {
@@ -189,7 +197,8 @@
           "TMM_NODE": "{{inputs.tmm_node}}",
           "CLUSTER_NAME": "{{inputs.cluster_name}}",
           "BNK_ENVIRONMENT": "{{inputs.environment}}",
-          "STORAGE_CLASS": "{{inputs.storage_class}}"
+          "STORAGE_CLASS": "{{inputs.storage_class}}",
+          "EPP_NAMESPACES": "{{inputs.epp_namespaces}}"
         }
       },
       {
@@ -203,7 +212,8 @@
           "TMM_NODE": "{{inputs.tmm_node}}",
           "CLUSTER_NAME": "{{inputs.cluster_name}}",
           "BNK_ENVIRONMENT": "{{inputs.environment}}",
-          "STORAGE_CLASS": "{{inputs.storage_class}}"
+          "STORAGE_CLASS": "{{inputs.storage_class}}",
+          "EPP_NAMESPACES": "{{inputs.epp_namespaces}}"
         }
       }
     ],
@@ -249,6 +259,13 @@
         "source": "user",
         "default": "standard",
         "description": "StorageClass for BNK's stateful components."
+      },
+      {
+        "name": "epp_namespaces",
+        "type": "string",
+        "source": "user",
+        "default": "",
+        "description": "AI inference: comma-separated namespaces where BNK may run F5 Endpoint Pickers, e.g. inference. Empty keeps the cluster file. The same field as inference.epp_namespaces in clusters/<name>.yaml."
       }
     ]
   },

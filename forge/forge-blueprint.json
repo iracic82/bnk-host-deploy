@@ -58,6 +58,13 @@
         "source": "user",
         "default": "lab",
         "description": "Cluster name."
+      },
+      {
+        "name": "epp_namespaces",
+        "type": "string",
+        "source": "user",
+        "default": "",
+        "description": "AI inference: namespaces where BNK may run F5 Endpoint Pickers (comma-separated, e.g. inference). Empty: none."
       }
     ]
   },
@@ -69,7 +76,8 @@
       "depends_on": [],
       "inputs": {
         "tmm_node": "${tmm_node}",
-        "cluster_name": "${cluster_name}"
+        "cluster_name": "${cluster_name}",
+        "epp_namespaces": "${epp_namespaces}"
       }
     }
   ]

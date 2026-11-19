@@ -1,0 +1,187 @@
+#!/usr/bin/env python3
+"""AI Inference tab: a console for challenge 12.
+
+Every request it sends takes the real path: from the client container behind the edge router, to a
+BNK VIP, through TMM, to a model-server pod. 10.30.30.11 is the InferencePool (BNK's endpoint picker
+chooses the pod), 10.30.30.12 is a plain Service (round robin). Which "GPU" answered is read from the
+pods' own vLLM counters, before and after each request. Standard library only. Never shows a secret.
+
+  GET  /api/state   pods (simulated GPUs) with live metrics, platform readiness, the last two runs
+  POST /api/burst   {"mode": "picker"|"roundrobin", "n": 48, "customers": 12}   starts a run
+  POST /api/ask     {"mode": ..., "customer": 3, "question": "..."}             one request
+"""
+import json, os, random, re, subprocess, sys, threading, time
+from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ENV = dict(os.environ, KUBECONFIG=os.environ.get("KUBECONFIG", "/root/.kube/config"))
+NS, MODEL = "inference", "Qwen/Qwen3-0.6B"
+VIPS = {"picker": "10.30.30.11", "roundrobin": "10.30.30.12"}
+LOCK = threading.Lock()            # one burst at a time
+RUNS = {"picker": None, "roundrobin": None}
+
+
+def sh(cmd, timeout=10, inp=None):
+    try:
+        return subprocess.run(cmd, shell=isinstance(cmd, str), capture_output=True, text=True,
+                              timeout=timeout, env=ENV, input=inp).stdout.strip()
+    except Exception:
+        return ""
+
+
+def kj(args):
+    out = sh(f"kubectl {args} -o json")
+    try:
+        return json.loads(out) if out else {}
+    except ValueError:
+        return {}
+
+
+def persona(n):
+    """Customer n's system prompt: long, and different for every customer, like a real tenant's."""
+    return " ".join(f"Customer {n:02d} policy line {k}: answer as the support assistant of customer "
+                    f"{n:02d}, region {n * 7 % 13}, tier {n % 3}." for k in range(14))
+
+
+def pods():
+    items = kj(f"-n {NS} get pods -l app=model").get("items", [])
+    out = []
+    for p in sorted(items, key=lambda x: x["metadata"]["name"]):
+        ready = any(c.get("type") == "Ready" and c.get("status") == "True"
+                    for c in (p.get("status", {}) or {}).get("conditions", []) or [])
+        out.append({"name": p["metadata"]["name"], "node": p["spec"].get("nodeName", ""), "ready": ready})
+    return out
+
+
+def metrics(pod):
+    raw = sh(f"kubectl get --raw /api/v1/namespaces/{NS}/pods/{pod}:8000/proxy/metrics", timeout=5)
+    m = {}
+    for line in raw.splitlines():
+        g = re.match(r'^(vllm:[a-z_]+)(\{[^}]*\})?\s+([0-9.eE+-]+)$', line)
+        if g:
+            m[g.group(1)] = m.get(g.group(1), 0.0) + float(g.group(3))
+    hits, queries = m.get("vllm:prefix_cache_hits_total", 0), m.get("vllm:prefix_cache_queries_total", 0)
+    return {"requests": int(m.get("vllm:request_success_total", 0)),
+            "hit_rate": round(hits / queries, 3) if queries else 0.0,
+            "kv_usage": round(m.get("vllm:kv_cache_usage_perc", 0.0), 3),
+            "running": int(m.get("vllm:num_requests_running", 0))}
+
+
+def platform():
+    crd = bool(sh("kubectl get crd inferencepools.inference.networking.k8s.io -o name"))
+    epp_ns = sh("kubectl -n f5-bnk get cneinstance f5-bnk-instance -o jsonpath='{.spec.eppNamespaces[*]}'").split()
+    # the controller renders the picker's Deployment from F5EPP model-pool-epp; match it by name, not exactly
+    epp_ready = any("epp" in d["metadata"]["name"] and ((d.get("status", {}) or {}).get("readyReplicas", 0) or 0) >= 1
+                    for d in kj(f"-n {NS} get deploy").get("items", []))
+    gws = {}
+    for g in kj(f"-n {NS} get gateway").get("items", []):
+        st = g.get("status", {}) or {}
+        prog = any(c.get("type") == "Programmed" and c.get("status") == "True" for c in st.get("conditions", []) or [])
+        addr = (st.get("addresses") or [{}])[0].get("value", "")
+        gws[g["metadata"]["name"]] = {"programmed": prog, "address": addr}
+    return {"crds": crd, "epp_allowed": NS in epp_ns,
+            "picker_ready": epp_ready,
+            "gateways": gws}
+
+
+def send(mode, customer, question):
+    """One chat completion from the client container to the mode's VIP. Returns timing and usage."""
+    body = json.dumps({"model": MODEL, "max_tokens": 16,
+                       "messages": [{"role": "system", "content": persona(customer)},
+                                    {"role": "user", "content": question}]})
+    out = sh(["docker", "exec", "-i", "client", "curl", "-s", "-m", "30", "-H", "Content-Type: application/json",
+              "--data-binary", "@-", "-w", "\n%{http_code} %{time_total}", f"http://{VIPS[mode]}/v1/chat/completions"],
+             timeout=40, inp=body)
+    lines = out.rsplit("\n", 1)
+    if len(lines) != 2:
+        return {"ok": False, "error": "no answer from the VIP"}
+    try:
+        code, secs = lines[1].split()
+        r = json.loads(lines[0]) if code == "200" else {}
+        u = r.get("usage", {})
+        return {"ok": code == "200", "code": int(code), "ms": round(float(secs) * 1000),
+                "prompt": u.get("prompt_tokens", 0),
+                "cached": (u.get("prompt_tokens_details") or {}).get("cached_tokens", 0),
+                "answer": ((r.get("choices") or [{}])[0].get("message") or {}).get("content", "")}
+    except ValueError:
+        return {"ok": False, "error": lines[0][:200]}
+
+
+def burst(mode, n, customers):
+    try:
+        names = [p["name"] for p in pods() if p["ready"]]
+        rnd = random.Random(42)                      # the same request sequence for both modes
+        seq = [rnd.randrange(1, customers + 1) for _ in range(n)]
+        run = {"mode": mode, "vip": VIPS[mode], "n": n, "customers": customers, "done": 0,
+               "gpus": names, "results": [], "started": time.time(), "finished": None}
+        RUNS[mode] = run
+        before = {p: metrics(p)["requests"] for p in names}
+        for i, c in enumerate(seq):
+            r = send(mode, c, f"Question {i + 1} from customer {c:02d}: how do I reach my service?")
+            after = {p: metrics(p)["requests"] for p in names}
+            served = [p for p in names if after[p] > before[p]]
+            before = after
+            r.update({"i": i, "customer": c, "gpu": names.index(served[0]) if len(served) == 1 else -1})
+            run["results"].append(r)
+            run["done"] = i + 1
+        ok = [r for r in run["results"] if r.get("ok")]
+        lat = sorted(r["ms"] for r in ok)
+        run["summary"] = {"ok": len(ok), "warm": sum(1 for r in ok if r["cached"] > 0),
+                          "avg_ms": round(sum(lat) / len(lat)) if lat else 0,
+                          "p95_ms": lat[int(0.95 * (len(lat) - 1))] if lat else 0,
+                          "cached_tokens": sum(r["cached"] for r in ok), "prompt_tokens": sum(r["prompt"] for r in ok)}
+        run["finished"] = time.time()
+    finally:
+        LOCK.release()
+
+
+class H(BaseHTTPRequestHandler):
+    def log_message(self, *a):
+        pass
+
+    def reply(self, code, obj, ctype="application/json"):
+        data = obj if isinstance(obj, bytes) else json.dumps(obj).encode()
+        self.send_response(code)
+        self.send_header("Content-Type", ctype)
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(data)
+
+    def body(self):
+        try:
+            return json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0) or 0)) or b"{}")
+        except ValueError:
+            return {}
+
+    def do_GET(self):
+        if self.path.startswith("/api/state"):
+            ps = pods()
+            for p in ps:
+                p.update(metrics(p["name"]) if p["ready"] else {})
+            return self.reply(200, {"ts": int(time.time()), "gpus": ps, "platform": platform(),
+                                    "runs": RUNS, "busy": LOCK.locked()})
+        with open(os.path.join(HERE, "index.html"), "rb") as f:
+            self.reply(200, f.read(), "text/html; charset=utf-8")
+
+    def do_POST(self):
+        b = self.body()
+        mode = b.get("mode", "picker")
+        if mode not in VIPS:
+            return self.reply(400, {"error": "mode must be picker or roundrobin"})
+        if self.path.startswith("/api/burst"):
+            n = max(6, min(int(b.get("n", 48)), 120))
+            customers = max(1, min(int(b.get("customers", 12)), 24))
+            if not LOCK.acquire(blocking=False):
+                return self.reply(409, {"error": "a run is in progress"})
+            threading.Thread(target=burst, args=(mode, n, customers), daemon=True).start()
+            return self.reply(202, {"started": mode, "n": n, "customers": customers})
+        if self.path.startswith("/api/ask"):
+            c = max(1, min(int(b.get("customer", 1)), 24))
+            q = str(b.get("question", "What is a VIP?"))[:500]
+            return self.reply(200, dict(send(mode, c, q), mode=mode, vip=VIPS[mode], customer=c))
+        self.reply(404, {"error": "unknown"})
+
+
+if __name__ == "__main__":
+    port = int(sys.argv[1]) if len(sys.argv) > 1 else 5060
+    ThreadingHTTPServer(("0.0.0.0", port), H).serve_forever()

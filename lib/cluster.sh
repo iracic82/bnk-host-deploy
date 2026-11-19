@@ -37,6 +37,17 @@ load_cluster() {
   # TMM's data-plane legs, in TMM interface order (1.1, 1.2, ...). Each is a NetworkAttachmentDefinition
   # in <name>.attachments.yaml next to this file. None: TMM has only its pod interface.
   BNK_NETWORK_ATTACHMENTS="$(yq -r '(.tmm.networks // []) | join(",")' "$f")"
+  # AI inference: namespaces where BNK's controller may run F5 Endpoint Pickers (F5EPP). Phase 47
+  # prepares them (InferencePool CRDs, namespace, pull secret), phase 50 names them on the CNEInstance.
+  BNK_EPP_NAMESPACES="$(yq -r '(.inference.epp_namespaces // []) | join(",")' "$f")"
+  local _ns
+  for _ns in ${BNK_EPP_NAMESPACES//,/ }; do
+    [[ "$_ns" =~ ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$ && ${#_ns} -le 63 ]] \
+      || { echo "$f: inference.epp_namespaces: '$_ns' is not a valid namespace name" >&2; return 2; }
+    case "$_ns" in kube-*|f5-*|default|cert-manager|bnk-installer|argocd)
+      echo "$f: inference.epp_namespaces: '$_ns' is a platform namespace, use one of your own (e.g. inference)" >&2; return 2 ;;
+    esac
+  done
   # pseudoCNI steers pod traffic through TMM except for these ranges (pods, services, node network, VIPs).
   BNK_POD_CIDR="$(yq -r '([.pod_cidr] + (.pseudo_cni_exclude // [])) | map(select(. != null)) | join(",")' "$f")"
   [[ -n "$BNK_POD_CIDR" ]] || BNK_POD_CIDR="192.168.0.0/16"
@@ -72,5 +83,5 @@ load_cluster() {
 
   export CLUSTER_NAME CLUSTER_ENABLED CLUSTER_ENV KUBE_CONTEXT BNK_STORAGECLASS BNK_POD_CIDR \
          BNK_DEPLOYMENT_SIZE BNK_TMM_NODES BNK_TMM_MANAGE_LABELS BNK_WATCH_NAMESPACES \
-         BNK_NETWORK_ATTACHMENTS CLUSTER_ATTACHMENTS CLUSTER_NETWORK BNK_LEGACY_NETWORK
+         BNK_NETWORK_ATTACHMENTS CLUSTER_ATTACHMENTS CLUSTER_NETWORK BNK_LEGACY_NETWORK BNK_EPP_NAMESPACES
 }

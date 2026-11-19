@@ -26,4 +26,6 @@ bad unknown-env    'name: x' 'environment: moon' 'enabled: false'
 bad enabled-no-tmm 'name: x' 'environment: lab' 'enabled: true'
 bad two-tmm        'name: x' 'environment: lab' 'enabled: true' 'tmm: {nodes: [a, b]}'
 bad enabled-typo   'name: x' 'environment: lab' 'enabled: yes please'
+bad epp-bad-name   'name: x' 'environment: lab' 'enabled: false' 'inference: {epp_namespaces: [Inference_NS]}'
+bad epp-platform   'name: x' 'environment: lab' 'enabled: false' 'inference: {epp_namespaces: [f5-bnk]}'
 exit $rc

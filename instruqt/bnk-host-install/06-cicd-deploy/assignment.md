@@ -224,18 +224,82 @@ kubectl -n f5-bnk exec "$(kubectl -n f5-bnk get pod -l app=f5-tmm -o name | head
 
 | Interface | What it is |
 |---|---|
-| `eth0` | the pod's ordinary Calico interface, the one every pod gets |
+| `xeth0` | the pod's ordinary Calico interface, the one every pod gets. TMM takes it over too, so Linux renames it and shows it without an address |
+| `eth0` | a Linux **mirror** of that pod interface, carrying the pod's IP (`/32`) |
 | `net1`, `net2` | the two **Multus** interfaces from phase 45, on the node's `eth1` and `eth2`. TMM's data plane takes them over, so Linux shows them without an address |
 | `external` `10.10.10.11/24`, `internal` `172.18.0.250/16` | Linux **mirrors** of TMM's two VLANs, carrying the same self IPs |
-| `tmm`, `tmm_bp` | private channels between TMM and the pod's Linux side |
+| `tmm`, `tmm_bp`, `lo` | private channels between TMM and the pod's Linux side, and loopback |
 
-This is the split every BIG-IP has had for twenty years. **TMM owns the wire.** It receives on `net1`
-and `net2`, and it answers with BIG-IP's TTL of 255. The pod's **Linux side** holds the same self
+The middle column is each interface's state. `UP` means the kernel sees a link, which it can for the
+real veth and macvlan cables (`xeth0`, `net1`, `net2`). TMM's mirror interfaces show **`UNKNOWN`**:
+they are virtual devices TMM feeds itself, with no physical link to report, just like `lo` on any
+Linux machine. They work perfectly well, as the ping's second reply is about to show.
+
+This is the split every BIG-IP has had for twenty years. **TMM owns the wire.** It receives on `net1`,
+`net2` and `xeth0`, and it answers with BIG-IP's TTL of 255. The pod's **Linux side** holds the same self
 IPs on the mirror interfaces, so ordinary Linux programs can speak on those networks too. The most
 important of those programs is the routing daemon, which lets BNK peer BGP with routers like Sam's
 when dynamic routing is switched on. TMM passes some traffic up to Linux, Linux answers the ping as
 well with TTL 64, and you see a duplicate. Harmless for a ping, and invisible for VIP traffic, which
 belongs to TMM alone.
+
+### Ask TMM itself: the debug sidecar
+
+Linux's view of the pod is only half the story. TMM keeps its own route table, ARP table and
+statistics, and BNK ships a **debug sidecar** next to it to read them. List the TMM pod's containers:
+
+```run
+T=$(kubectl -n f5-bnk get pod -l app=f5-tmm -o name | head -1)
+kubectl -n f5-bnk get $T -o jsonpath='{.spec.containers[*].name}{"\n"}'
+```
+
+`f5-tmm` is TMM itself, and **`debug`** carries F5's tools: `bdt_cli` for TMM's networking tables,
+`tmctl` for its statistics, plus `tcpdump`, `ping` and `traceroute` that run *as TMM*. Ask TMM for
+its routes:
+
+```run
+kubectl -n f5-bnk exec $T -c debug -- bdt_cli -u -s tmm0:8850 route | grep 'isIpv6:false'
+```
+
+| Route | Interface | Meaning |
+|---|---|---|
+| `10.10.10.0/24` | `external` | Sam's network, from the `external` VLAN's self IP |
+| `172.18.0.0/16` | `internal` | the node network, from the `internal` VLAN's self IP |
+| `0.0.0.0/0` via `169.254.1.1` | `eth0` | the default route every Calico pod gets |
+| `169.254.0.0/24`, `127.20.0.0/16` | `tmm`, `tmm_bp` | TMM's private channels to its Linux side |
+
+Look for the client's network, `10.20.20.0/24`. It is **not there**. So how will TMM answer a user
+behind Sam's router? BIG-IP remembers the router a connection arrived through and sends the replies
+back the same way, a feature called **auto last hop**. It is also why the installer switched off
+TMM's `arp.verifyreturnroute` check in phase 65: without that, TMM would refuse traffic it has no
+return route for.
+
+Now TMM's ARP table, filtered to IPv4:
+
+```run
+kubectl -n f5-bnk exec $T -c debug -- bdt_cli -u -s tmm0:8850 arp | grep -v 'fe80\|fc00'
+```
+
+Its own self IPs, `10.10.10.11` and `172.18.0.250`, are `permanent` entries. Sam's router,
+`10.10.10.254`, is **missing**, even though it just pinged TMM: TMM answered the router's MAC
+address directly and never needed to look it up. Auto last hop again.
+
+Finally, TMM's own load:
+
+```run
+kubectl -n f5-bnk exec $T -c debug -- tmctl -d blade tmm_stat -s cpu_usage_5secs,memory_used,client_side_traffic.tot_conns
+```
+
+One row per **TMM thread**, four here. Each shows tens of percent of CPU even with no traffic, and
+that is normal. TMM **polls** its interfaces in a tight loop instead of waiting for the kernel to
+interrupt it, which is how it moves packets at line rate. You will come back to `tmctl` in
+challenge 10, when there is traffic to count.
+
+> ### Concept: two network stacks in one pod
+> `ip addr` showed you Linux's view, `bdt_cli` shows you TMM's. They share the self IPs but keep
+> separate routes, ARP tables and counters. When traffic misbehaves, check both: a route Linux has
+> but TMM lacks (or the reverse) is the classic cause. F5's troubleshooting guide for BNK starts
+> exactly here, with the TMM logs and this debug sidecar.
 
 ---
 

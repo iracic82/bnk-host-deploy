@@ -1,0 +1,149 @@
+# The AI team's first model, behind BIG-IP Next for Kubernetes. No GPUs in this lab: each "GPU" is
+# llm-d's vLLM simulator, which speaks the OpenAI API and vLLM's metrics, and simulates what costs
+# time on a real GPU: prefill per prompt token, decode per output token, and a KV cache whose hits
+# skip the prefill. Its answers are filler text. Its timings and cache behave like the real thing.
+#
+#   Deployment model         3 simulated GPUs, each with a small KV cache (about four long prompts)
+#   InferencePool model-pool the model servers, as one pool the Gateway API Inference Extension routes to
+#   F5EPP model-pool-epp     BNK's endpoint picker: for every request, picks the pod by prompt prefix
+#                            (who already holds this prompt in KV cache?) and by load
+#   Gateway ai-picker        VIP 10.30.30.11:80 -> HTTPRoute chat -> InferencePool (the picker decides)
+#   Gateway ai-roundrobin    VIP 10.30.30.12:80 -> HTTPRoute chat-rr -> Service model-rr (round robin)
+#
+# Prerequisite, owned by the platform team: clusters/lab.yaml lists this namespace under
+# inference.epp_namespaces. The install then creates the namespace with F5's pull secret and lets the
+# BNK controller run endpoint pickers here. That is why this file has no Namespace object.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: model
+  namespace: inference
+spec:
+  replicas: 3
+  selector:
+    matchLabels: {app: model}
+  template:
+    metadata:
+      labels: {app: model}
+    spec:
+      automountServiceAccountToken: false
+      # one "GPU" per node where possible, as on a real GPU cluster
+      topologySpreadConstraints:
+      - {maxSkew: 1, topologyKey: kubernetes.io/hostname, whenUnsatisfiable: ScheduleAnyway, labelSelector: {matchLabels: {app: model}}}
+      containers:
+      - name: vllm-sim
+        image: ghcr.io/llm-d/llm-d-inference-sim:v1.0.0
+        args:
+        - --model=Qwen/Qwen3-0.6B
+        - --port=8000
+        - --max-num-seqs=4
+        - --max-model-len=4096
+        - --enable-kvcache              # simulate the KV cache: report cached_tokens, skip prefill on a hit
+        - --kv-cache-size=96            # blocks of 16 tokens: room for about four long system prompts
+        - --block-size=16
+        - --prefill-overhead=20ms
+        - --prefill-time-per-token=2ms  # a cache miss pays this for every prompt token
+        - --inter-token-latency=10ms
+        env:
+        - name: POD_IP                  # the simulator's KV-cache mode needs its own address
+          valueFrom: {fieldRef: {fieldPath: status.podIP}}
+        ports:
+        - {name: http, containerPort: 8000}
+        readinessProbe:
+          httpGet: {path: /health, port: http}
+        resources:
+          requests: {cpu: 100m, memory: 64Mi}
+---
+# The same pods behind a plain Service: what you get without an endpoint picker.
+apiVersion: v1
+kind: Service
+metadata:
+  name: model-rr
+  namespace: inference
+spec:
+  selector: {app: model}
+  ports:
+  - {name: http, port: 8000, targetPort: http}
+---
+apiVersion: inference.networking.k8s.io/v1
+kind: InferencePool
+metadata:
+  name: model-pool
+  namespace: inference
+spec:
+  selector:
+    matchLabels: {app: model}
+  targetPorts:
+  - number: 8000
+  endpointPickerRef:
+    name: model-pool-epp
+    port: {number: 9002}
+    failureMode: FailOpen           # if the picker is down, fall back to any pod rather than fail
+---
+# BNK's controller renders the picker's Deployment, Service, ConfigMap and RBAC from this one object.
+# The simulator does not publish KV-cache events, so the zmq-wire plugin is removed and the picker
+# tracks prompt prefixes itself, from the requests it routes.
+apiVersion: inference.k8s.f5.com/v1alpha1
+kind: F5EPP
+metadata:
+  name: model-pool-epp
+  namespace: inference
+spec:
+  poolRef:
+    name: model-pool
+  engine: vllm
+  server:
+    modelServerMetricsPort: 8000
+    secureServing: false
+    metricsEndpointAuth: false
+  tokenizer:
+    name: Qwen/Qwen3-0.6B
+  eppConfig:
+    config:
+      plugins:
+      - name: zmq-wire
+        parameters: {"$patch": "delete"}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: ai-picker
+  namespace: inference
+spec:
+  gatewayClassName: f5-gateway-class
+  addresses: [{type: IPAddress, value: 10.30.30.11}]
+  listeners:
+  - {name: http, protocol: HTTP, port: 80}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: chat
+  namespace: inference
+spec:
+  parentRefs: [{name: ai-picker, sectionName: http}]
+  rules:
+  - matches: [{path: {type: PathPrefix, value: /v1}}]
+    backendRefs: [{group: inference.networking.k8s.io, kind: InferencePool, name: model-pool, port: 8000}]
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: ai-roundrobin
+  namespace: inference
+spec:
+  gatewayClassName: f5-gateway-class
+  addresses: [{type: IPAddress, value: 10.30.30.12}]
+  listeners:
+  - {name: http, protocol: HTTP, port: 80}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: chat-rr
+  namespace: inference
+spec:
+  parentRefs: [{name: ai-roundrobin, sectionName: http}]
+  rules:
+  - matches: [{path: {type: PathPrefix, value: /v1}}]
+    backendRefs: [{name: model-rr, port: 8000}]

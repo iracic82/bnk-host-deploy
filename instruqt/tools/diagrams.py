@@ -210,6 +210,24 @@ def day2():
     svg("day2", 1220, 420, "Day 2: git says what should be, the cluster records what is, Forge audits it", "\n".join(b))
 
 
+def inference():
+    b = [band(20, 80, 330, 330, "Sam's network"), band(370, 80, 860, 330, "cluster six")]
+    b += [box(35, 150, 155, 80, "customer 07", "long system prompt\n+ question", "person"),
+          box(210, 150, 125, 80, "edge router", "", "net"),
+          box(400, 130, 230, 120, "TMM", "VIP 10.30.30.11:80\nHTTPRoute to\nInferencePool", "bnk"),
+          box(400, 300, 230, 90, "BNK endpoint picker", "F5EPP: prefix + load\nwhich GPU holds it?", "bnk", dashed=True),
+          box(760, 95, 220, 70, "GPU A", "KV: cust 02, 04, 10", "k8s"),
+          box(760, 185, 220, 70, "GPU B", "KV: cust 05, 07, 09", "k8s"),
+          box(760, 275, 220, 70, "GPU C", "KV: cust 03, 06, 11", "k8s"),
+          box(1010, 150, 200, 110, "warm hit", "prefill skipped\n~50 ms, not ~700 ms", "ci")]
+    b += [arrow(190, 190, 208, 190), arrow(335, 190, 398, 190),
+          arrow(470, 250, 470, 298, "asks", color="#e4002b", lx=495, ly=280),
+          arrow(560, 298, 560, 252, "GPU B", color="#e4002b", lx=600, ly=280),
+          arrow(630, 190, 758, 220, color="#e4002b"), arrow(980, 220, 1008, 205, color="#2f9e44")]
+    b.append(note(400, 438, "Round robin (VIP .12) ignores who holds which prompt: most requests land on a GPU that must prefill from scratch.", 13.5))
+    svg("inference", 1240, 460, "AI inference: BNK picks the GPU that already holds your prompt", "\n".join(b))
+
+
 if __name__ == "__main__":
-    for f in (three_paths, cicd_flow, install_phases, forge_flow, forge_steps, argo_flow, traffic, day2):
+    for f in (three_paths, cicd_flow, install_phases, forge_flow, forge_steps, argo_flow, traffic, day2, inference):
         f()

@@ -40,3 +40,13 @@ names="$(yq -N -r 'select(.kind == "F5SPKVlan") | .metadata.name' clusters/lab.n
 [[ "$names" == "external,internal" ]] || { echo "VLAN names read as '$names'"; exit 1; }
 if grep -nE "yq +-r[^|]*(CLUSTER_NETWORK|CLUSTER_ATTACHMENTS)" lib/*.sh; then echo "read multi-document files with yq -N"; exit 1; fi
 echo "render: ok (multi-document reads: $names)"
+
+# AI inference: inference.epp_namespaces in the cluster file becomes the CNEInstance's eppNamespaces,
+# and without it the field is absent (an empty list would still make the controller watch InferencePool).
+cp clusters/lab.yaml "$t/lab.yaml"
+yq -i '.inference.epp_namespaces = ["inference", "models-b"]' "$t/lab.yaml"
+load_cluster "$t/lab.yaml"
+out4="$(render_cneinstance profiles/host.yaml)"
+[[ "$(yq -r '.spec.eppNamespaces | join(",")' <<<"$out4")" == "inference,models-b" ]] || { echo "eppNamespaces not rendered"; exit 1; }
+[[ "$(yq -r '.spec.eppNamespaces // "absent"' <<<"$out3")" == "absent" ]] || { echo "eppNamespaces rendered without inference.epp_namespaces"; exit 1; }
+echo "render: ok (inference: eppNamespaces=$(yq -r '.spec.eppNamespaces | join(",")' <<<"$out4"), absent by default)"

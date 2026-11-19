@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+[ -n "${BASH_ENV:-}${ENV:-}" ] && echo "note: runner set BASH_ENV=${BASH_ENV:-} ENV=${ENV:-}, unset for child scripts" >&2
+unset BASH_ENV ENV
+set -euxo pipefail
+export PATH=/usr/local/bin:$PATH KUBECONFIG=/root/.kube/config
+source /opt/lab/lib.sh; source /opt/lab/ci-helpers.sh
+cd "$WORKSPACE"; git checkout -q main; git pull -q
+owner=$(gitea_api GET "${REPO_PATH}/actions/variables/BNK_INSTALLER" 2>/dev/null | jq -r '.data // .value // empty')
+
+# 1. the platform change: allow endpoint pickers in namespace inference
+if ! yq -e '.inference.epp_namespaces | contains(["inference"])' clusters/lab.yaml >/dev/null 2>&1; then
+  git checkout -q -B enable-inference
+  yq -i '.inference.epp_namespaces = ["inference"]' clusters/lab.yaml
+  "$WORKSPACE"/tests/cluster.sh clusters/lab.yaml
+  git commit -qam "clusters/lab: let BNK run endpoint pickers in namespace inference"; git push -q -f -u origin enable-inference
+  merge_pr "$(open_pr enable-inference 'Allow BNK endpoint pickers in namespace inference')"
+  git checkout -q main; git pull -q
+fi
+if [[ "$owner" == pipeline ]]; then
+  sleep 10; echo "deploy: $(wait_run deploy.yml "$(main_sha)" 1800 || true)"
+fi
+# any owner: converge phases 47 and 50 directly (idempotent; a no-op when the pipeline already did it)
+"$WORKSPACE"/install.sh --cluster "$WORKSPACE"/clusters/lab.yaml --phase 47
+"$WORKSPACE"/install.sh --cluster "$WORKSPACE"/clusters/lab.yaml --phase 50
+wait_bnk 900
+
+# 2. the app: model servers, InferencePool, picker, two VIPs
+if [[ ! -f apps/inference/inference.yaml ]]; then
+  git checkout -q -B inference-app; mkdir -p apps/inference; cp docs/examples/inference/inference.yaml apps/inference/
+  git add apps/inference; git commit -qm "apps: inference, three simulated GPUs behind BNK's endpoint picker"; git push -q -f -u origin inference-app
+  merge_pr "$(open_pr inference-app 'apps: inference')"; git checkout -q main; git pull -q
+fi
+kubectl apply -f apps/inference/inference.yaml >/dev/null
+kubectl -n inference rollout status deploy/model --timeout=300s
+for _ in $(seq 1 60); do
+  docker exec client curl -s -m 30 -H 'Content-Type: application/json' \
+    -d '{"model":"Qwen/Qwen3-0.6B","max_tokens":4,"messages":[{"role":"user","content":"hello"}]}' \
+    http://10.30.30.11/v1/chat/completions | grep -q '"choices"' && exit 0
+  sleep 10
+done
+echo "no answer on 10.30.30.11"; exit 1

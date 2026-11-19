@@ -32,6 +32,7 @@ PHASES=(
   "30-flo:F5 Lifecycle Operator:install/prepare-the-cne-core-and-install-flo.html"
   "40-certs:CWC and OTEL certificates:install/prepare-the-cne-core-and-install-flo.html"
   "45-attachments:TMM data-plane attachments (Multus NADs):install/install-a-cne-instance-using-flo.html"
+  "47-inference:Inference routing prerequisites (InferencePool CRDs, endpoint-picker namespaces):install/install-a-cne-instance-using-flo.html"
   "50-cneinstance:CNEInstance:install/install-a-cne-instance-using-flo.html"
   "55-network:TMM network (VLANs, self IPs, VIP pool, GatewayClass):install/install-a-cne-instance-using-flo.html"
   "60-license:Licence:install/license-your-cluster-flo.html"
@@ -104,7 +105,7 @@ export BNK_DYNAMIC_ROUTING BNK_CORE_COLLECTION BNK_PROFILE_NAME BNK_DPU_ENABLED 
 export BNK_ZEBOS_STATE BNK_NEEDS_HUGEPAGES BNK_NEEDS_SRIOV
 export BNK_TMM_NODES="${BNK_TMM_NODES:-}" BNK_TMM_MANAGE_LABELS="${BNK_TMM_MANAGE_LABELS:-false}"
 export BNK_WATCH_NAMESPACES="${BNK_WATCH_NAMESPACES:-}" BNK_TMM_MAPRES="${BNK_TMM_MAPRES:-false}"
-export BNK_LEGACY_NETWORK="${BNK_LEGACY_NETWORK:-false}" CLUSTER_ATTACHMENTS="${CLUSTER_ATTACHMENTS:-}" CLUSTER_NETWORK="${CLUSTER_NETWORK:-}"
+export BNK_EPP_NAMESPACES="${BNK_EPP_NAMESPACES:-}" BNK_LEGACY_NETWORK="${BNK_LEGACY_NETWORK:-false}" CLUSTER_ATTACHMENTS="${CLUSTER_ATTACHMENTS:-}" CLUSTER_NETWORK="${CLUSTER_NETWORK:-}"
 export BNK_REQUIRE_LICENSE="${BNK_REQUIRE_LICENSE:-true}" BNK_STRICT_PREFLIGHT="${BNK_STRICT_PREFLIGHT:-false}"
 export BNK_WAIT_TIMEOUT="${BNK_WAIT_TIMEOUT:-1800}"
 

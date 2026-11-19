@@ -23,6 +23,10 @@ if [[ -n "${CLUSTER_NETWORK:-}" ]] && grep -q '^kind: GatewayClass' "$CLUSTER_NE
     chk "TMM VLAN $v programmed" "kubectl get f5-spk-vlans -n $NS_BNK $v -o jsonpath='{.status.conditions[*].type}' | grep -q ."
   done
 fi
+if [[ -n "${BNK_EPP_NAMESPACES:-}" ]]; then
+  chk "Inference Extension CRDs present (InferencePool)" "kubectl get crd inferencepools.inference.networking.k8s.io"
+  chk "CNEInstance allows endpoint pickers in ${BNK_EPP_NAMESPACES}" "[ \"\$(kubectl get cneinstance -n $NS_BNK f5-bnk-instance -o jsonpath='{.spec.eppNamespaces[*]}' | tr ' ' ',')\" = '${BNK_EPP_NAMESPACES}' ]"
+fi
 chk "control plane has pods" "[ \$(kubectl get pods -n $NS_CORE --no-headers 2>/dev/null | grep -c Running) -ge 5 ]"
 if [[ "$SKIP_LICENSE" == "0" ]]; then
   chk "licence Active"       "kubectl get license.k8s.f5net.com f5-cne-cluster-license -n $NS_CORE -o jsonpath='{.status.state}' | grep -q Active"
