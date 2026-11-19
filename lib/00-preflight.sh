@@ -21,7 +21,10 @@ if [[ "$DRY_RUN" == "0" && "$SKIP_LICENSE" == "0" && -z "${BNK_LICENSE_JWT:-}" ]
   SKIP_LICENSE=1; export SKIP_LICENSE
 fi
 
-kubectl version --request-timeout=15s >/dev/null 2>&1 || die "no reachable cluster, check KUBECONFIG / kube_context"
+if ! _kv_err=$(kubectl version --request-timeout=15s 2>&1 >/dev/null); then
+  printf '%s\n' "$_kv_err" | tail -3 | sed 's/^/        /' >&2
+  die "no reachable cluster (KUBECONFIG=${KUBECONFIG:-in-cluster service account}, context=${KUBE_CONTEXT:-current})"
+fi
 minor=$(kubectl version -o json 2>/dev/null | sed -n 's/.*"minor": *"\([0-9]*\).*/\1/p' | tail -1)
 ok "API server reachable: $(kubectl config current-context 2>/dev/null), Kubernetes 1.${minor}"
 [[ "$minor" == "${K8S_MINOR#*.}" ]] || warn "Kubernetes 1.${minor}; BNK ${BNK_VERSION} host mode is qualified on ${K8S_MINOR}"
