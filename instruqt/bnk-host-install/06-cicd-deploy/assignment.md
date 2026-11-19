@@ -68,6 +68,34 @@ enhanced_loading: null
 
 # Path A, Monday 14:30: the merge is the install
 
+<!-- story -->
+### The quietest button in the building
+
+Priya reads the plan comment over your shoulder, checks the three answers, and approves.
+
+*"Go on, then."*
+
+You hover over **Merge**. On clusters one to five this moment was a two-hour screen-share, someone
+reading the guide aloud and someone else typing. Here it is one click, and the click is the
+approval. The pipeline will do exactly what the plan said, with the image you pinned, and write
+down everything it did.
+
+*"While it runs,"* Priya says, *"follow along. When the auditors ask what's on this cluster, I want
+you to be able to name every pod."*
+
+### What arrives, in order
+
+```
+ node prep ──▶ helpers ──▶ registry ──▶ operator ──▶ certificates ──▶ CNEInstance ──▶ network ──▶ licence ──▶ TMM
+   05          10           20           30           40               50              55           60          65
+```
+
+Each number is one file in `lib/`, and one page of F5's guide. The order matters. The operator
+needs the registry credentials to pull its charts. TMM needs a licence before the controller will
+start it. The installer encodes that order once, so nobody has to remember it again.
+
+---
+
 > **Path A, CI/CD.** On path B or C? Press **Skip** until you reach challenge 7 (Forge) or 9 (Argo CD).
 
 ---

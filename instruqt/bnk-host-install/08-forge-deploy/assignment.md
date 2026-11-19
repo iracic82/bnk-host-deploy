@@ -68,6 +68,34 @@ enhanced_loading: null
 
 # Path B, Monday 14:45: press Deploy, watch ten steps
 
+<!-- story -->
+### A different kind of audience
+
+Northwind's operations desk gathers behind your chair. They have never opened the repository, and
+they never will. What they want is the thing on your screen now: a project page, a big **Deploy
+all** button, and a promise that they will see every step as it happens.
+
+*"If something breaks at step six,"* asks Ana from the night shift, *"do I start again from the
+beginning?"*
+
+*"No,"* says Priya. *"You read step six's log, fix the cause, and press Retry. Forge picks up from
+there."*
+
+### Same installer, different window
+
+Nothing about the install changes on this path. The same ten phases run, in the same order, from
+the same image digest you pinned in challenge 4. What changes is the *window* you watch them
+through:
+
+| | Path A, pipeline | Path B, Forge |
+|---|---|---|
+| started by | a merge | a button |
+| one run is | one job, one log | ten containers, ten logs |
+| a failure | re-run the workflow | **Retry** from the failed step |
+| who watches | the engineers in git | anyone with a Forge login |
+
+---
+
 > **Path B, BNK Forge.** On path A? You can **Skip** this challenge. On path C? Press **Skip** until
 > challenge 9.
 

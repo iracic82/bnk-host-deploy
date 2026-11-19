@@ -78,6 +78,39 @@ enhanced_loading: null
 
 # Four weeks later: Jonas comes to audit
 
+<!-- story -->
+### Tuesday, 09:00, four weeks on
+
+Cluster six has run quietly for a month. Then a calendar invite arrives from **Jonas**, Northwind's
+auditor: *"BNK estate review, cluster six. Please bring evidence."*
+
+On clusters one to five, "evidence" meant a week of screenshots and a spreadsheet nobody trusted.
+Jonas will ask the same five questions he always asks:
+
+1. Which release is running?
+2. Is it healthy, and is it licensed?
+3. What does it expose to the outside?
+4. Who installed it, from what, and when?
+5. Does it still match what was approved?
+
+Today you answer every one of them in under ten minutes, from systems of record rather than from
+memory.
+
+### What should be, and what is
+
+Two sources answer Jonas, and a good platform needs both:
+
+- **git** says *what should be*. Every version, every cluster file, every app, and the review
+  history of every change.
+- **the running cluster** says *what is*. BNK's objects, their health, and the provenance record
+  the installer stamped on it.
+
+**BNK Forge** reads the second one for any cluster you give it a kubeconfig for, however BNK got
+there. **Drift** is the gap between the two. Day 2 is the discipline of keeping that gap at zero,
+and proving it.
+
+---
+
 ![Day 2: git says what should be, the cluster records what is, Forge audits it, and a plan compares the two](../assets/diag-day2.png)
 
 ---

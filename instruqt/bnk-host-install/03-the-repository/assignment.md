@@ -66,6 +66,32 @@ enhanced_loading: null
 
 # Monday, 11:30: reading the install guide that runs itself
 
+<!-- story -->
+### The repository that remembers
+
+Back at the desk, Priya opens a browser tab. *"This is the reason cluster six will be different."*
+
+It is the team's `bnk-host-deploy` repository. Every step of F5's install guide is in it, as code,
+together with everything the team learned the hard way on clusters one to five: the order that
+matters, the race conditions, the certificate that once came out empty.
+
+*"Before you run anything,"* Priya says, *"read it the way you would review a colleague's pull
+request. If you can't explain what a step does, it doesn't run on my cluster."*
+
+### Four questions, four files
+
+A good install repository answers four questions without anyone having to ask a person:
+
+1. **What** gets installed? Exact versions, never "latest".
+2. **Where?** Which cluster, which node, which network.
+3. **How strictly?** A lab forgives a warning. Production does not.
+4. **Who changed what, when?** Git history, and the pipeline's run logs.
+
+`bnk-host-deploy` keeps each answer in its own file, so a change to one question touches one file,
+and a reviewer can tell what kind of change a pull request is from the file list alone.
+
+---
+
 ---
 
 ## Step 1: Find the repository

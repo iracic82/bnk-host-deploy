@@ -78,6 +78,20 @@ enhanced_loading: null
 
 # Path B, Monday 14:00: teach BNK Forge your installer
 
+<!-- story -->
+### Why a platform team likes Forge
+
+The pipeline is perfect for people who live in git. Northwind's operations desk does not. They
+want to *see* an install: which step is running, which one failed and why, and a **Retry** button
+that starts from the failed step, not from the beginning.
+
+**BNK Forge** is F5's platform tool for BIG-IP Next for Kubernetes. It installs BNK from
+**modules** (packaged installers) and **blueprints** (recipes that combine modules with a form), and
+it keeps watching the clusters it knows: versions, health, gateways, drift. Today you teach it to
+run *your* installer, the exact image you pinned this morning.
+
+---
+
 > **Path B, BNK Forge.** On path A? You can **Skip** this and challenge 8. On path C? Press **Skip**
 > until challenge 9.
 

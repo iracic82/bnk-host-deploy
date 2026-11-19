@@ -77,6 +77,22 @@ enhanced_loading: null
 
 # Path C, Monday 14:00: let the cluster pull its own install
 
+<!-- story -->
+### Push or pull?
+
+Paths A and B **push** an install at the cluster. Something outside it (a pipeline runner, a Forge
+container) holds a kubeconfig and reaches in.
+
+**GitOps** turns that around. A controller *inside* the cluster watches git and **pulls** the
+desired state in. Jonas from security likes this very much: no kubeconfig ever leaves the cluster,
+no pipeline needs admin rights to it, and the cluster can report at any moment whether it still
+matches git, which is called being **in sync**.
+
+**Argo CD** is the most widely used GitOps controller. Today it will install BNK, and later it
+will deliver your apps.
+
+---
+
 > **Path C, Argo CD.** On path A or B? BNK is already installed. Press **Skip** to go to challenge 10.
 
 ![Three drivers, one installer, one cluster: CI/CD in challenges 5 and 6, BNK Forge in 7 and 8, Argo CD in 9, all meeting in challenge 10](../assets/diag-three-paths.png)

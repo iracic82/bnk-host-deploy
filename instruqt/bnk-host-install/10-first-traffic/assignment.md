@@ -75,6 +75,36 @@ enhanced_loading: null
 
 # Monday, 16:00: the first request through BIG-IP Next
 
+<!-- story -->
+### Everyone back in the room
+
+Whichever path you took, the result is the same: BNK 2.4.2 on cluster six, TMM on `bnk-worker`,
+answering Sam's router. Priya gathers the team around one screen.
+
+*"An installed load balancer with nothing behind it is a very expensive ping target,"* she says.
+*"Let's give it a job."*
+
+The app team's request has been waiting since Friday: a small web service called **hello**,
+reachable from outside the cluster on its own address. Sam's router already sends the whole VIP
+range `10.30.30.0/24` to TMM. All that is missing is the app, and someone asking BNK for an
+address.
+
+### Two teams, one API
+
+The Kubernetes **Gateway API** splits "make my app reachable" into roles, and that is how BNK is
+meant to be used:
+
+| Role | Owns | Here |
+|---|---|---|
+| **NetOps / platform** | the `GatewayClass` (which load balancer), the addresses, the VLANs | `clusters/lab.network.yaml`, applied by the install |
+| **App team** | a `Gateway` (a listener on a VIP) and an `HTTPRoute` (which requests go to which Service) | what you ship now |
+
+The app team never touches TMM, VLANs or routers. They ask for a listener in `f5-gateway-class`,
+and BNK programs TMM to answer on a VIP. The platform team decides *what is possible*, the app team
+decides *what they need*, and neither waits for the other.
+
+---
+
 ![First traffic: the client connects to the VIP on TMM through the edge router, TMM opens a second connection from its internal self IP to a hello pod](../assets/diag-traffic.png)
 
 ---

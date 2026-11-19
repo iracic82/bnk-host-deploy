@@ -91,6 +91,42 @@ enhanced_loading: null
 
 # Two days later: the AI team moves in
 
+<!-- story -->
+### A new tenant with expensive hardware
+
+Two days after the audit, a message from **Mei**, who leads Northwind's new AI team:
+
+> *"We're putting our support assistant on cluster six. Twelve customers, each with their own long
+> system prompt, three GPUs. Our first test behind a plain load balancer was slow and our GPU bill
+> was not. Can BNK do better?"*
+
+Priya forwards it to you with one line: *"This is what BNK was built for. Show them."*
+
+The team runs its models on **NVIDIA Dynamo**, an open-source inference framework. There are no
+GPUs in this lab, so each "GPU" is a Dynamo worker running **Mocker**, Dynamo's GPU-free engine. It
+models what a real worker does, scheduling, the KV cache, prefill and decode, and, like a real worker,
+it **publishes KV-cache events**: a running report of which prompt blocks it holds. Its answer text is
+random tokens. Its cache behaves like the real thing.
+
+### How a GPU answers a question
+
+Every LLM request has two phases:
+
+| Phase | What the GPU does | What it costs |
+|---|---|---|
+| **prefill** | reads the whole prompt and computes attention data for every token, the **KV cache** | grows with prompt length, and sets the *time to first token* |
+| **decode** | writes the answer one token at a time, reusing that KV cache | grows with answer length |
+
+Mei's customers each send a long system prompt, the same few hundred tokens every time, plus a
+short question. If the GPU that receives the request **already holds that prompt's KV cache**, it
+skips most of the prefill. If not, it computes it all again, and evicts somebody else's to make
+room, because GPU memory is small and expensive.
+
+So *which GPU gets the request* decides whether the GPU computes the prompt again or reuses it. A
+load balancer that only counts connections cannot know. **An endpoint picker can.**
+
+---
+
 ![AI inference: the request reaches TMM on VIP 10.30.30.11, BNK's endpoint picker names the GPU that already holds the customer's prompt, and the warm GPU skips the prefill](../assets/diag-inference.png)
 
 ---

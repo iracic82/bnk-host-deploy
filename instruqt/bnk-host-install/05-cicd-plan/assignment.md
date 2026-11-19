@@ -76,6 +76,23 @@ enhanced_loading: null
 
 # Path A, Monday 14:00: say it in a pull request, read the plan
 
+<!-- story -->
+### CI/CD in one minute
+
+**Continuous Integration (CI)** means every proposed change is checked automatically, the moment it
+is proposed. **Continuous Delivery (CD)** means an approved change is applied automatically, the
+same way every time.
+
+Put together, the pull request becomes the meeting where a change is discussed, and the merge
+becomes the decision. Nobody logs in to a cluster to type commands. If it is not in git, it did
+not happen.
+
+The catch with infrastructure is that "checked" has to mean more than *the YAML is valid*. A
+reviewer wants to know what *this* change will do to *this* cluster. That is what the **plan** is
+for, and it is the heart of this challenge.
+
+---
+
 > **Path A, CI/CD.** On path B or C? Press **Skip** until you reach challenge 7 (Forge) or 9 (Argo CD).
 
 In this path **you never run the installer yourself**. You describe what you want in git, and the

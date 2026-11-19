@@ -70,6 +70,36 @@ enhanced_loading: null
 
 # Monday, 13:30: one installer, sealed, and your first pull request
 
+<!-- story -->
+### After lunch: the question that ends arguments
+
+Jonas from security stops by with a question that has ended many projects:
+
+*"When this cluster gets audited next year, can you prove exactly which code installed BNK on it? Not
+'the script in the repo'. The exact build."*
+
+Priya smiles. She has been waiting for someone to ask. The answer is to stop running the installer
+as loose files and **package** it: one container image holding the installer and the exact versions
+of kubectl, helm and yq it needs, identified by a fingerprint of its content. The pipeline, BNK Forge
+and Argo CD will all run *that image*, so whichever tool installs BNK, it is provably the same code.
+
+Your job: build it, publish it, write its fingerprint into the repository, and get that change onto
+`main` the proper way.
+
+### Tags move. Digests do not.
+
+A container image lives in a **registry** under a name like `registry/repository:tag`. The trouble with
+tags is that they are labels anyone can move: `:2.4.2` today and `:2.4.2` next month might be
+different images.
+
+Every image also has a **digest**, `sha256:…`, the hash of its content. Change one byte and the digest
+changes. A digest cannot be moved or reused. Pin an image by digest and you have Jonas's proof.
+
+BNK Forge enforces this: it refuses to run any module image that is not pinned by digest, and any
+image that runs as root.
+
+---
+
 ---
 
 ## Step 1: Look at what you are about to package
