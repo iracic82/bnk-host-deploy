@@ -18,5 +18,9 @@ fi
 while IFS= read -r f; do yq -e '.' "$f" >/dev/null || { echo "bad YAML: $f"; fail=1; }; done \
   < <(git ls-files '*.yaml' '*.yml' | grep -v '^profiles/')
 while IFS= read -r f; do jq -e . "$f" >/dev/null || { echo "bad JSON: $f"; fail=1; }; done < <(git ls-files '*.json')
+# Forge manifests stay in jq's canonical layout, so pinning an image digest is a one-line diff.
+for f in forge/*/*.json forge/*.json; do
+  [[ "$(jq . "$f")" == "$(cat "$f")" ]] || { echo "not canonical JSON (run: jq . $f): $f"; fail=1; }
+done
 [[ $fail == 0 ]] && echo "lint: ok"
 exit $fail

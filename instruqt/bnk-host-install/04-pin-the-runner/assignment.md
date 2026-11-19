@@ -2,23 +2,39 @@
 slug: pin-the-runner
 id: yrjhl4348d59
 type: challenge
-title: Build the installer image and land your first pull request
-teaser: Package the installer as a container image, pin it by digest, and get the
-  change into main the way every change will go in from now on, through a pull request
-  and CI.
+title: 'Monday, 13:30: one installer, sealed, and your first pull request'
+teaser: Package the installer as a container image, seal it with its digest, and land the change the way
+  every change lands at Northwind, through a pull request that CI checks first.
 notes:
 - type: text
-  contents: |-
-    ## One installer, three orchestrators
+  contents: |
+    ## After lunch: the question that ends arguments
 
-    The pipeline, BNK Forge and Argo CD will all run the same installer. To guarantee that they run
-    *exactly* the same code, the installer is packaged once as a **container image**, with kubectl,
-    helm and yq at pinned versions inside it, and every orchestrator refers to that image by its
-    **digest**, a fingerprint of its content.
+    Jonas from security stops by with a question that has ended many projects:
 
-    You build it, publish it to the lab's registry, write its digest into the repository, and merge
-    that change. It is the smallest real change you can make, which makes it the right one to learn
-    the pull-request flow on.
+    *"When this cluster gets audited next year, can you prove exactly which code installed BNK on it? Not
+    'the script in the repo'. The exact build."*
+
+    Priya smiles; she has been waiting for someone to ask. The answer is to stop running the installer
+    as loose files and **package** it: one container image holding the installer and the exact versions
+    of kubectl, helm and yq it needs, identified by a fingerprint of its content. The pipeline, BNK Forge
+    and Argo CD will all run *that image*, so whichever tool installs BNK, it is provably the same code.
+
+    Your job: build it, publish it, write its fingerprint into the repository, and get that change onto
+    `main` the proper way.
+- type: text
+  contents: |
+    ## Tags move. Digests do not.
+
+    A container image lives in a **registry** under a name like `registry/repository:tag`. The trouble with
+    tags is that they are labels anyone can move: `:2.4.2` today and `:2.4.2` next month might be
+    different images.
+
+    Every image also has a **digest**, `sha256:…`, the hash of its content. Change one byte and the digest
+    changes. A digest cannot be moved or reused. Pin an image by digest and you have Jonas's proof.
+
+    BNK Forge enforces this: it refuses to run any module image that is not pinned by digest, and any
+    image that runs as root.
 tabs:
 - id: 4hbviokx19qn
   title: Terminal
@@ -47,108 +63,137 @@ timelimit: 2400
 enhanced_loading: null
 ---
 
-# Build the installer image and land your first pull request
+# Monday, 13:30: one installer, sealed, and your first pull request
 
 ---
 
-## Step 1: Why an image, and why a digest
+## Step 1: Look at what you are about to package
 
-> ### Concept: container images and registries
-> A **container image** is a frozen filesystem plus a start command: here, Debian with `kubectl`,
-> `helm`, `yq`, `make`, `python3` and the installer in `/opt/bnk-host-deploy`. Images are stored in
-> a **registry** (Docker Hub, GHCR, Harbor, or the plain `registry:2` this lab runs on port 5000),
-> named like `registry/repository:tag`.
+Open **VS Code** and read two files.
 
-> ### Concept: tags move, digests do not
-> A **tag** such as `:2.4.2` is a label someone can point at a different image tomorrow. A
-> **digest** such as `@sha256:9f2c…` is the hash of the image's content: if one byte changes, the
-> digest changes. Pinning by digest is how you prove, months later, exactly which build installed a
-> cluster. BNK Forge goes further and **refuses** any module image that is not pinned by digest, or
-> that runs as root.
+`Dockerfile` builds the image: a small Debian base, the tools the installer needs (`kubectl`, `helm`,
+`yq`, plus `make` and `python3`, which F5's certificate generator quietly depends on), each one
+downloaded at the version in `versions.env` and **checked against the checksum its publisher
+publishes**, and finally the installer itself. Note the last lines: `USER 1000` (the image never runs
+as root) and `ENTRYPOINT ["bnk-host"]`.
 
-Open `Dockerfile` in VS Code. Note the last lines: `USER 1000` and `ENTRYPOINT ["bnk-host"]`. Then
-open `bin/bnk-host`: one verb per install phase (`preflight`, `prereqs`, `flo`, …), so an
-orchestrator can run and report the install step by step.
+`bin/bnk-host` is that entrypoint. It turns every install phase into a verb (`preflight`, `prereqs`,
+`flo`, `certs`, …), so a tool can run the install step by step and show you each step separately. Keep
+that in mind if you choose the Forge path later.
 
 ---
 
-## Step 2: Build, publish and pin
+## Step 2: Build it, publish it, pin it
 
 ```run
 lab image
 ```
 
-Four things happen:
+Read the four blocks as they go by:
 
-1. a registry starts on `localhost:5000` (the address the VM's Docker uses, and so Forge) and on
-   `172.18.0.1:5000` (the address the cluster's nodes use, and so Argo CD's install job)
-2. `docker build` produces the image from **your working copy**, with tool versions read from
-   `versions.env`, and proves it runs as uid 1000
-3. the image is pushed, and the registry's digest is read back
-4. the digest is written into the two files that reference the image:
-   `forge/bnk-host/bnkforge.artifact.json` and `argocd/bnk-install/job.yaml`
+1. **A registry starts.** Northwind would use Harbor or GHCR; the lab runs a plain `registry:2` on
+   port 5000. It answers on two addresses: `localhost:5000`, which is how this machine's Docker (and so
+   BNK Forge) pulls, and `172.18.0.1:5000`, which is how the cluster's nodes (and so Argo CD's install
+   job) pull. One registry, two front doors.
+2. **`docker build`** runs the Dockerfile against **your working copy**, then proves the result runs
+   as uid 1000.
+3. **Push, then read back the digest.** The registry stores the image and returns its fingerprint:
+   `sha256:` followed by 64 hex characters.
+4. **Pin.** The digest is written into the two files that point at the image:
+   `forge/bnk-host/bnkforge.artifact.json` (for Forge) and `argocd/bnk-install/job.yaml` (for Argo CD).
 
-The `git diff --stat` at the end shows two changed files. That change is not in effect anywhere yet:
-it is on your disk only.
+The change is on your disk only. Look at it the way a reviewer will:
+
+```run
+git -C /root/workspace/bnk-host-deploy diff
+```
+
+Only the image references changed: the registry, the repository, and the digest. That is a pin.
 
 ---
 
-## Step 3: Commit on a branch
-
-In **VS Code**, open the **Source Control** view (the branch icon on the left, or `Ctrl+Shift+G`).
-You will see the two modified files. Click one to see the diff: only the image line changed.
-
-Create a branch and commit. The terminal way:
+## Step 3: Commit it on a branch, and push the branch
 
 ```run
-cd /root/workspace/bnk-host-deploy
-git checkout -b pin-runner-image
+cd /root/workspace/bnk-host-deploy && git checkout -b pin-runner-image
+```
+
+```run
 git commit -am "runner: pin the installer image built in this lab"
+```
+
+```run
 git push -u origin pin-runner-image
 ```
 
-(Or in VS Code: click the branch name in the status bar > *Create new branch*, type a message, and
-press *Commit*, then *Publish Branch*.)
+Gitea answers with a link to create a pull request. That link uses the address the runner and the
+other tools reach Gitea on, which your browser cannot; use the **Gitea** tab instead.
 
-> ### Concept: why a branch
-> A **branch** is a line of commits separate from `main`. You can push it, run CI on it and discuss
-> it, while `main` stays exactly what is deployed. Try pushing to `main` directly and Gitea refuses:
-> `main` is protected so that every change is reviewed.
+(Prefer VS Code? The **Source Control** view on the left does the same: click the branch name in the
+status bar to create the branch, write the message, **Commit**, then **Publish Branch**.)
 
 ---
 
 ## Step 4: Open the pull request
 
-In **Gitea**, open the repository. A banner offers to create a pull request from `pin-runner-image`.
-Click **New Pull Request**, check that the base is `main`, give it a title such as *Pin the
-installer image*, and create it.
+In the **Gitea** tab, open the repository. A banner offers to create a pull request from
+`pin-runner-image`. Click **New Pull Request**, check that it merges into `main`, give it the title
+*Pin the installer image*, and create it.
 
-On the pull request, open the **Checks** (or the repository's **Actions** tab): the `ci` workflow
-started by itself. Click into the run and watch your runner execute it, job by job:
-
-- `pinned tools`: the runner fetches the exact yq and shellcheck versions in `versions.env`
-- `shell and YAML lint`, `CNEInstance renders…`, `cluster files are valid`: the tests you ran by
-  hand in the previous challenge
-
-Notice what does **not** run: `plan`. Your change touched only the image pin, not anything about how
-or where BNK is installed, so there is nothing to plan. Workflows are triggered by *paths*, so a
-runner is only woken for work that matters.
+A pull request is a conversation about a change: what it is, why, and whether it is safe. Open
+**Files Changed** and read your own diff as if a colleague had written it. One file says *Forge, run
+this exact image*; the other says *Argo CD, run this exact image*.
 
 ---
 
-## Step 5: Merge
+## Step 5: Watch CI check it
 
-When `ci` is green, press **Merge**. Your commit is now on `main`.
+Open the repository's **Actions** tab:
 
-> ### What you just practised
-> Branch, push, pull request, automatic checks, review, merge. Every change to BNK from here on, a
-> new cluster, a version upgrade, a network change, goes in exactly this way. The repository's
-> history becomes the change log of your BNK estate.
+![Gitea Actions: ci runs green for the pull request and for the merge into main; deploy and apps show as skipped from the first push](../assets/gitea-5-actions.png)
 
-Pull `main` back into your working copy so it matches:
+Your runner picked up the `ci` workflow the moment you pushed. Click the run for your pull request:
+
+![A ci run in Gitea: two jobs, "lint, render, cluster files" and "Forge module (Forge's own validator)", both green](../assets/gitea-6-ci-run.png)
+
+Two jobs, side by side:
+
+- **lint, render, cluster files**: the tests you ran by hand this morning, now running on every change
+  without anyone remembering to.
+- **Forge module (Forge's own validator)**: the pipeline downloads BNK Forge's own catalog validator and
+  runs it against `forge/`, the same checks Forge applies when it loads the module. A broken Forge
+  module can no longer reach `main`.
+
+Two things are worth noticing in the list of runs:
+
+- **No `plan` ran.** Your change touched only the image pin, not *how* or *where* BNK is installed, so
+  there is nothing to plan. Workflows trigger on the paths a change touches, so the runner is only woken
+  for work that matters.
+- **`deploy` and `apps` show as skipped** from the very first push. That is a safety catch, not an
+  error: those workflows only act once the repository says which tool *owns* installing BNK on this
+  cluster. Nobody has said so yet, so they stand aside. You will set that owner when you choose your
+  install path.
+
+---
+
+## Step 6: Merge
+
+Back on the pull request, press **Merge**:
+
+![The pull request "runner: pin the installer image built in this lab", merged into main](../assets/gitea-7-pr-merged.png)
+
+Your commit is on `main`, and `ci` runs once more for the merge, because every change to `main` is
+checked again. Bring your working copy up to date:
 
 ```run
 git checkout main && git pull -q && git log --oneline -3
 ```
 
-Press **Check**: it confirms `main` now pins the image you built.
+The top line is the merge, then your commit.
+
+Branch, push, pull request, automatic checks, review, merge. Every change to BNK from now on goes in
+exactly this way, so the repository's history becomes the change log of Northwind's BNK estate. When
+Jonas asks next year which build installed cluster six, the answer is one digest, in one commit, merged
+by one pull request.
+
+Press **Check**: it confirms `main` pins the image you built.
