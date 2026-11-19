@@ -48,5 +48,8 @@ yq -i '.inference.epp_namespaces = ["inference", "models-b"]' "$t/lab.yaml"
 load_cluster "$t/lab.yaml"
 out4="$(render_cneinstance profiles/host.yaml)"
 [[ "$(yq -r '.spec.eppNamespaces | join(",")' <<<"$out4")" == "inference,models-b" ]] || { echo "eppNamespaces not rendered"; exit 1; }
-[[ "$(yq -r '.spec.eppNamespaces // "absent"' <<<"$out3")" == "absent" ]] || { echo "eppNamespaces rendered without inference.epp_namespaces"; exit 1; }
+# absence is checked on a copy with no inference block, whatever the repository's lab.yaml says today
+yq -i 'del(.inference)' "$t/lab.yaml"; load_cluster "$t/lab.yaml"
+out5="$(render_cneinstance profiles/host.yaml)"
+[[ "$(yq -r '.spec.eppNamespaces // "absent"' <<<"$out5")" == "absent" ]] || { echo "eppNamespaces rendered without inference.epp_namespaces"; exit 1; }
 echo "render: ok (inference: eppNamespaces=$(yq -r '.spec.eppNamespaces | join(",")' <<<"$out4"), absent by default)"
