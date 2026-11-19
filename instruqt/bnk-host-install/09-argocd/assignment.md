@@ -159,7 +159,8 @@ and switch it on with `enabled: true`. Save, then validate, commit and push:
 ./tests/cluster.sh clusters/lab.yaml && git commit -am "clusters/lab: install BNK, TMM on bnk-worker" && git push -u origin enable-lab-cluster
 ```
 
-In **Gitea**, open the pull request and **merge** it. Notice that `plan` and `deploy` do not run. The
+**Now open and merge the pull request.** In the **Gitea** tab, use the green banner's **New Pull
+Request** button, create it, wait for `ci` to go green, then press **Merge**. Notice that `plan` and `deploy` do not run. The
 repository says Argo CD owns this cluster.
 
 ---

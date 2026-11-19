@@ -127,7 +127,9 @@ mkdir -p apps/hello && cp docs/examples/hello/hello.yaml apps/hello/hello.yaml
 git add apps/hello && git commit -m "apps: hello, the first app behind BNK" && git push -u origin hello-app
 ```
 
-In **Gitea**, open the pull request and **merge** it.
+**Now open and merge the pull request.** In the **Gitea** tab, the green banner *You pushed on branch
+hello-app* has a **New Pull Request** button, as in challenge 4. Create the pull request, wait for
+`ci` to go green, then press **Merge**. Nothing reaches the cluster until this merge lands on `main`.
 
 How the merged app reaches the cluster depends on the path you took. Ask the lab:
 
@@ -235,6 +237,19 @@ for i in $(seq 1 12); do lab curl -o /dev/null -w '%{http_code} ' http://10.30.3
 
 Twelve times `200`. The Deployment started a replacement, Kubernetes reported both changes, and
 BNK's controller updated TMM's pool: the dying pod out, the new one in. No request failed.
+
+Now ask TMM what it saw. The debug sidecar from challenge 6 also keeps per-virtual-server counters:
+
+```run
+T=$(kubectl -n f5-bnk get pod -l app=f5-tmm -o name | head -1)
+kubectl -n f5-bnk exec $T -c debug -- tmctl -w 250 -d blade virtual_server_stat -s name,clientside.cur_conns,clientside.tot_conns
+```
+
+One line is yours: **`hello-hello-10.30.30.10-http-80-vs`**. BNK named the virtual server after where
+it came from: namespace `hello`, Gateway `hello`, VIP `10.30.30.10`, listener `http`, port `80`.
+`clientside.tot_conns` counts every client connection TMM accepted on it, one per `lab curl` you sent.
+Send three more requests and run it again: the count goes up by three. Your Gateway is now an object
+inside TMM, with its own statistics, exactly like a virtual server on any BIG-IP.
 
 The **Lab Topology** tab now lists `hello/hello @ 10.30.30.10 (programmed)` under Gateways.
 

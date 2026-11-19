@@ -178,7 +178,9 @@ kubectl -n f5-cne-core get configmap bnk-deploy-ledger -o json | jq -r '.data | 
 ```
 
 Each line says when, which orchestrator and which actor, which release, which commit, and, for the
-pipeline, a link to the very run that did it. A commit ending in `-dirty` would mean the image was
+pipeline, a link to the very run that did it. Notice the two kinds of commit. A pipeline line records the commit
+on `main` it deployed. A Forge or Argo CD line records the commit the installer **image** was built
+from in challenge 4, because that image, pinned by digest, is the code they ran. A commit ending in `-dirty` would mean the image was
 built from uncommitted changes, and the record says so rather than claiming more than it can prove.
 
 > ### Concept: provenance
@@ -194,7 +196,7 @@ built from uncommitted changes, and the record says so rather than claiming more
 Run a plan against `main`. If nothing has drifted, it finds nothing to do:
 
 ```run
-lab plan 2>&1 | grep -E '^ +(ok|!!|XX)  |planned change|No changes'
+lab plan 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep -E '^ +(ok|!!|XX)  |planned change|No changes'
 ```
 
 Every phase reports *already*: the label, the operator, `CNEInstance f5-bnk-instance: live object
@@ -216,8 +218,9 @@ sed -i 's/replicas: 3/replicas: 5/' apps/hello/hello.yaml && git diff
 git commit -qam "apps/hello: 5 replicas" && git push -u origin hello-five
 ```
 
-In **Gitea**, open the pull request and **merge** it. Then let your path deliver it, exactly as in
-challenge 10:
+**Now open and merge the pull request** in **Gitea** (the green banner's **New Pull Request**, then
+**Merge** once `ci` is green). Nothing changes on the cluster until it lands on `main`. Then let your
+path deliver it, exactly as in challenge 10:
 
 | `lab owner` says | Delivery |
 |---|---|

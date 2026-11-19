@@ -134,7 +134,8 @@ Save, then validate, commit and push:
 ./tests/cluster.sh clusters/lab.yaml && git commit -qam "clusters/lab: let BNK run endpoint pickers in namespace inference" && git push -u origin enable-inference
 ```
 
-Open the pull request in **Gitea**. What this change makes the installer do:
+**Now open the pull request** in **Gitea**: the green banner's **New Pull Request** button, then
+**Create**. Do not merge yet, read on first. What this change makes the installer do:
 
 | Phase | Action |
 |---|---|
@@ -193,7 +194,8 @@ mkdir -p apps/inference && cp docs/examples/inference/inference.yaml apps/infere
 git add apps/inference && git commit -qm "apps: inference, three simulated GPUs behind BNK's endpoint picker" && git push -u origin inference-app
 ```
 
-**Merge** it in **Gitea**, then hand it over as in challenge 10:
+**Now open and merge this pull request** in **Gitea** (the green banner's **New Pull Request**, then
+**Merge** once `ci` is green). Then hand it over as in challenge 10:
 
 ```run
 lab deliver apps/inference/inference.yaml
