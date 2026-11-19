@@ -4,7 +4,7 @@
 source "$(dirname "$0")/../lib.sh"
 P="${1:-bnk-lab}"; NODE="${2:-bnk-worker}"
 rid=$(forge_api GET /api/blueprint-catalog/releases | jq -r '[.[]? | select(.blueprint_id == "bnk-host-2-4" and .release_state == "imported")] | sort_by(.id) | last | .id // empty')
-[[ -n "$rid" ]] || fail "no imported bnk-host-2-4 release: run 'lab forge-catalog' (or import it in Build > Catalog)"
+[[ -n "$rid" ]] || fail "no imported bnk-host-2-4 release: run 'lab forge-catalog' (or import it in Build > Catalog & Blueprints)"
 pid=$(forge_api GET /api/projects | jq -r --arg n "$P" '(if type=="array" then . else (.items // .sources // .projects // .clusters // .modules // .secrets // []) end)[] | select(.name == $n) | .id' | head -1)
 if [[ -z "$pid" ]]; then
   pid=$(forge_api POST "/api/stacks/releases/${rid}/projects" \
@@ -16,7 +16,7 @@ fi
 bash "$(dirname "$0")/forge-secrets.sh" "$P"
 step "deploy"
 h=$(forge_api POST "/api/projects/${pid}/deploy-all" '{}' | jq -r '.run_handle // .handle // .id // empty')
-ok "deploy started${h:+ (run $h)}: follow it in Forge > Projects > ${P}"
+ok "deploy started${h:+ (run $h)}: follow it in Forge > Build > Workspaces > ${P}"
 for _ in $(seq 1 240); do
   m=$(forge_api GET "/api/project-modules/project/${pid}" | jq -c '[(if type=="array" then . else (.items // .sources // .projects // .clusters // .modules // .secrets // []) end)[] | {s: (.status // .state)}] | first')
   s=$(jq -r '.s // "?"' <<<"$m")

@@ -127,7 +127,7 @@ This is safe to run on any path:
 | Your path | What the command does |
 |---|---|
 | **B, Forge** | Forge is already running, and it registered cluster `lab` when it installed BNK. Nothing to do |
-| **A or C** | installs Forge as an **operations tool only**, so `BNK_INSTALLER` keeps its value, then registers cluster `lab` in a Forge project called `operations` |
+| **A or C** | installs Forge as an **operations tool only**, so `BNK_INSTALLER` keeps its value, then registers cluster `lab` in a Forge workspace called `operations` |
 
 **Sign in to the BNK Forge tab.** The user is `admin`. Print the password:
 
@@ -148,7 +148,7 @@ lab owner
 
 ## Step 2: Answer Jonas from Forge
 
-In Forge, pick your project (`bnk-lab` on path B, `operations` on paths A and C) and the cluster
+In Forge, pick your workspace (`bnk-lab` on path B, `operations` on paths A and C) and the cluster
 `lab` at the top of each page. Then work through Jonas's questions.
 
 **1. Which release is running?** Open **Operate > Kubernetes**, scroll to **F5 BNK Installation**:

@@ -13,4 +13,4 @@ step "module #$mid of project $P: $K"
 echo "      before: $(jq -c --arg k "$K" '.variable_overrides[$k] // "(unset)"' <<<"$m")"
 forge_api PUT "/api/project-modules/${mid}" "$(jq -c --arg k "$K" --arg v "$V" '{variable_overrides: ((.variable_overrides // {}) + {($k): $v})}' <<<"$m")" \
   | jq -r --arg k "$K" '"      after:  " + (.variable_overrides[$k] // "(unset)" | tojson)'
-ok "now press Deploy all on project $P (Build > Projects > $P)"
+ok "now press Deploy all on project $P (Build > Workspaces > $P)"

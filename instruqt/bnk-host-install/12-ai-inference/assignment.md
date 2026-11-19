@@ -224,7 +224,7 @@ lab owner
    lab forge-input bnk-lab epp_namespaces inference
    ```
 
-2. In **BNK Forge**, open project **bnk-lab** and press **Deploy all**. In the module's log, the
+2. In **BNK Forge**, open **Build > Workspaces > bnk-lab** and press **Deploy all**. In the module's log, the
    `50 CNEInstance` step now runs phase 47 first, then applies the CNEInstance.
 
 When it has landed, confirm:

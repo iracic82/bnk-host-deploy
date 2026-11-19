@@ -102,10 +102,13 @@ through:
 
 ## Step 1: Deploy
 
-In **BNK Forge**, open **Build > Projects > bnk-lab**. One module, *BNK 2.4.2 Host install*,
-engine **Container**, status **Pending**.
+In **BNK Forge**, open **Build > Workspaces**. Workspace **bnk-lab** holds one module, *BNK 2.4.2
+Host install*, engine **Container**.
 
-Press **Deploy all** (top right).
+Press **Deploy all** (top right). The workspace turns to **Deploying**, the module to **Applying**,
+and the Deployment Pipeline box above shows the module **Running**:
+
+![Forge workspace bnk-lab after Deploy all: Deployment Pipeline with BNK 2.4.2 Host install Running, the workspace Deploying, the module Applying](../assets/forge-7-workspace-running.png)
 
 ---
 
@@ -151,7 +154,7 @@ And the cluster filling up, in the **Terminal**:
 kubectl get pods -A --no-headers | grep -vE 'kube-system|calico|tigera|local-path' | awk '{print $1}' | sort | uniq -c
 ```
 
-A cold install takes about **6 to 10 minutes**. The project's pipeline turns to **Done**:
+A cold install takes about **6 to 10 minutes**. The workspace's Deployment Pipeline turns to **Done**:
 
 ![Forge project bnk-lab: the deployment pipeline shows BNK 2.4.2 Host install, Done](../assets/forge-8-pipeline-done.png)
 
@@ -211,7 +214,7 @@ manages? Not by editing anything in Forge. It goes the way every change goes, th
    manifests
 3. `lab forge-catalog`. Forge's sources follow `main`, so it now finds release **v1.0.1** and imports
    it
-4. in the project, on the module's **⋮** menu, **Change Version** to `1.0.1`, then **Deploy all**
+4. in workspace `bnk-lab`, on the module's **⋮** menu, **Change Version** to `1.0.1`, then **Deploy all**
 
 > ### Concept: why a new digest needs a new version
 > Forge treats a released version as **immutable**. Publish different content under the same

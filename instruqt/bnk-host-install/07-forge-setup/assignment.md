@@ -190,21 +190,21 @@ Three blocks, each one a thing you could also click in the UI:
    2.4.2 Host on an existing cluster** appears
 3. **import**. The blueprint moves from *discovered* to *imported*
 
-Now look at the result in the UI. In **BNK Forge**, open **Build > Catalog**, stay on the
-**Blueprints** tab, and press **Sources**. Your repository sits next to Forge's built-in blueprints:
-
-![Forge Catalog, Blueprint Sources dialog: bnk-host-deploy from the lab's Gitea, synced successfully, next to builtin-blueprints](../assets/forge-1-sources.png)
-
-Close the dialog. Your blueprint is at the top of the list, **imported**, with **Deploy** enabled:
+Now look at the result in the UI. In **BNK Forge**, open **Build > Catalog & Blueprints**. Under
+**Architecture Pattern**, pick **Existing Cluster (BYO K8s)** to hide the cloud blueprints. Your
+blueprint, **BNK 2.4.2 Host on an existing cluster**, comes from source **bnk-host-deploy
+blueprints**. It is **imported**, and its **Deploy** button is enabled:
 
 ![Forge Catalog, Blueprints: BNK 2.4.2 Host on an existing cluster from source bnk-host-deploy, v1.0.0, state imported](../assets/forge-3-imported.png)
 
+> **The BNK RELEASE box on the card says `2.4.1 (Latest)`.** That is Forge's own list of the BNK
+> releases it knows, and every card shows it. Your blueprint resolves to one module, and that module
+> runs the installer image pinned in your repository, which installs **2.4.2**. Leave the box alone.
+
 > ### Concept: discovered, imported, immutable
 > **Discovered** means *Forge has seen this blueprint in a source*. **Imported** means *an admin has
-> accepted it, and it may be deployed*. Before the import the row looks like this, with Deploy
-> greyed out:
->
-> ![Before import: the blueprint row shows state discovered and an Import button](../assets/forge-2-discovered.png)
+> accepted it, and it may be deployed*. Before the import, the card says **discovered** and its
+> Deploy button stays greyed out.
 >
 > Each imported version is a **release**, and releases are immutable. Change the blueprint or the
 > module and you must give it a new version number. Nobody can quietly swap what *v1.0.0* means.
@@ -230,13 +230,14 @@ Every word of that page came from `forge/forge-blueprint.json` in your repositor
 
 Forge creates the project and waits. In Forge, **Deploy** on a blueprint means *create the deployment*,
 and **Deploy all** on the project, in the next challenge, means *run it*. The module is **Pending** and the pipeline says **Waiting**,
-because the three secrets the blueprint needs are not there yet:
-
-![Project bnk-lab: one module, BNK 2.4.2 Host install, engine Container, status Pending](../assets/forge-6-project-pending.png)
+because the three secrets the blueprint needs are not there yet. Forge lists projects under
+**Build > Workspaces**. Open it and you see **bnk-lab** with one module, *BNK 2.4.2 Host install*,
+engine **Container**.
 
 > ### Concept: a project
 > A Forge **project** is one deployment: which modules, which inputs, which secrets, which cluster,
-> and the history of every run. Make a second project with another `tmm_node` and you have a second,
+> and the history of every run. The menu calls it a **workspace**, the Deploy dialog calls it a
+> **project**. Same thing. Make a second project with another `tmm_node` and you have a second,
 > independent install recipe, in the same Forge.
 
 ---

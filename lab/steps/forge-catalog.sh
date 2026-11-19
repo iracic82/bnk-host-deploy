@@ -26,4 +26,4 @@ ok "release $(jq -r '"#\(.id) \(.blueprint_id) v\(.blueprint_version) state=\(.r
 step "3/3  import it (make it deployable)"
 rid=$(jq -r .id <<<"$rel")
 [[ "$(jq -r .release_state <<<"$rel")" == imported ]] || forge_api POST "/api/blueprint-catalog/releases/${rid}/import" >/dev/null
-ok "BNK 2.4.2 Host on an existing cluster: imported (Build > Catalog)"
+ok "BNK 2.4.2 Host on an existing cluster: imported (Build > Catalog & Blueprints)"
