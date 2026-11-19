@@ -3,9 +3,9 @@ slug: ai-inference
 id: 3jopevlo1xrd
 type: challenge
 title: 'Two days later: the AI team moves in'
-teaser: Put three NVIDIA Dynamo workers behind BIG-IP Next for Kubernetes and let BNK's endpoint
-  picker send each request to the GPU that already holds its prompt. Then measure
-  what that is worth against round robin.
+teaser: Put three NVIDIA Dynamo workers behind BIG-IP Next for Kubernetes and let
+  BNK's endpoint picker send each request to the GPU that already holds its prompt.
+  Then measure what that is worth against round robin.
 notes:
 - type: text
   contents: |
