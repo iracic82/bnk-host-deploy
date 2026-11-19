@@ -18,6 +18,12 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+      - name: namespaces first
+        # A server-side dry run only pretends to create a Namespace, so a new app's other objects would
+        # fail it with "namespace not found". Creating the app's Namespaces for real is harmless.
+        run: |
+          find apps -name '*.yaml' -o -name '*.yml' | xargs -r yq -N 'select(.kind == "Namespace")' > "$RUNNER_TEMP/ns.yaml"
+          if [ -s "$RUNNER_TEMP/ns.yaml" ]; then kubectl apply -f "$RUNNER_TEMP/ns.yaml"; else echo "no Namespace objects"; fi
       - name: server-side dry run first
         run: kubectl apply -R -f apps/ --dry-run=server
       - name: apply
