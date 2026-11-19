@@ -33,3 +33,10 @@ yq -e '.' >/dev/null <<<"$out3"
 yq -r '.spec.advanced.pseudoCNI.env[] | select(.name=="EXCLUDE_CIDR") | .value' <<<"$out3" | grep -q '10.30.30.0/24' || { echo "EXCLUDE_CIDR misses the VIP pool"; exit 1; }
 yq -r '.spec.advanced.tmm.env[] | select(.name=="TMM_MAPRES_ADDL_VETHS_ON_DP") | .value' <<<"$out3" | grep -q true || { echo "MAPRES not on"; exit 1; }
 echo "render: ok (lab shape: 2 legs, legacy network model, EXCLUDE_CIDR=$(yq -r '.spec.advanced.pseudoCNI.env[] | select(.name=="EXCLUDE_CIDR") | .value' <<<"$out3"))"
+
+# Multi-document files are read with yq -N: without it yq prints the "---" separators, and a loop over
+# object names gets "---" as a name (it once made 70-verify check a VLAN called "---").
+names="$(yq -N -r 'select(.kind == "F5SPKVlan") | .metadata.name' clusters/lab.network.yaml | paste -sd, -)"
+[[ "$names" == "external,internal" ]] || { echo "VLAN names read as '$names'"; exit 1; }
+if grep -nE "yq +-r[^|]*(CLUSTER_NETWORK|CLUSTER_ATTACHMENTS)" lib/*.sh; then echo "read multi-document files with yq -N"; exit 1; fi
+echo "render: ok (multi-document reads: $names)"

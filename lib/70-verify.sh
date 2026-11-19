@@ -13,13 +13,13 @@ chk "no image pull errors"   "! kubectl get pods -A --no-headers | grep -qE 'Ima
 # rather than that the cluster is missing something.
 chk "Gateway API present"    "kubectl get crd gatewayclasses.gateway.networking.k8s.io"
 if [[ -n "${CLUSTER_NETWORK:-}" ]] && grep -q '^kind: GatewayClass' "$CLUSTER_NETWORK"; then
-  gc=$(yq -r 'select(.kind == "GatewayClass") | .metadata.name' "$CLUSTER_NETWORK" | head -1)
+  gc=$(yq -N -r 'select(.kind == "GatewayClass") | .metadata.name' "$CLUSTER_NETWORK" | head -1)
   for _ in $(seq 1 24); do
     [[ "$(kubectl get gatewayclass "$gc" -o jsonpath='{.status.conditions[?(@.type=="Accepted")].status}' 2>/dev/null)" == "True" ]] && break
     sleep 5
   done
   chk "GatewayClass $gc accepted by BNK" "kubectl get gatewayclass $gc -o jsonpath='{.status.conditions[?(@.type==\"Accepted\")].status}' | grep -q True"
-  for v in $(yq -r 'select(.kind == "F5SPKVlan") | .metadata.name' "$CLUSTER_NETWORK"); do
+  for v in $(yq -N -r 'select(.kind == "F5SPKVlan") | .metadata.name' "$CLUSTER_NETWORK"); do
     chk "TMM VLAN $v programmed" "kubectl get f5-spk-vlans -n $NS_BNK $v -o jsonpath='{.status.conditions[*].type}' | grep -q ."
   done
 fi

@@ -21,7 +21,7 @@ i=0
 for a in ${BNK_NETWORK_ATTACHMENTS//,/ }; do
   i=$((i+1))
   if [[ "$DRY_RUN" == "1" ]] || kubectl get net-attach-def -n "$NS_BNK" "$a" >/dev/null 2>&1; then
-    ok "TMM interface 1.${i} <- NetworkAttachmentDefinition ${a} ($(yq -r "select(.metadata.name == \"$a\") | .spec.config | from_json | .type + \" on \" + .master" "$CLUSTER_ATTACHMENTS" 2>/dev/null))"
+    ok "TMM interface 1.${i} <- NetworkAttachmentDefinition ${a} ($(yq -N -r "select(.metadata.name == \"$a\") | .spec.config | from_json | .type + \" on \" + .master" "$CLUSTER_ATTACHMENTS" 2>/dev/null))"
   else
     die "tmm.networks names '$a' but $(basename "$CLUSTER_ATTACHMENTS") does not define it"
   fi

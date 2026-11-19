@@ -14,7 +14,7 @@ if [[ "$DRY_RUN" == "1" ]]; then
     if [[ -n "$d" ]]; then report_diff "TMM network ($(basename "$CLUSTER_NETWORK")) would change" "$d"; echo "$d" | sed 's/^/    /'
     else ok "TMM network: live objects already match $(basename "$CLUSTER_NETWORK")"; fi
   else
-    ok "plan: would apply $(basename "$CLUSTER_NETWORK"): $(yq -r '.kind + "/" + .metadata.name' "$CLUSTER_NETWORK" | paste -sd' ' -)"
+    ok "plan: would apply $(basename "$CLUSTER_NETWORK"): $(yq -N -r '.kind + "/" + .metadata.name' "$CLUSTER_NETWORK" | paste -sd' ' -)"
   fi
   return 0
 fi
