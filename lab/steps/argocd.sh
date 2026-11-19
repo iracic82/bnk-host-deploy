@@ -18,7 +18,7 @@ ok "manifests applied"
 step "2/5  settings: plain HTTP behind the tab, kustomize may read clusters/ from the repo root"
 kubectl -n argocd patch cm argocd-cmd-params-cm --type merge -p '{"data":{"server.insecure":"true"}}' >/dev/null
 kubectl -n argocd patch cm argocd-cm --type merge -p '{"data":{"kustomize.buildOptions":"--load-restrictor LoadRestrictionsNone","timeout.reconciliation":"60s"}}' >/dev/null
-kubectl -n argocd rollout restart deploy/argocd-server deploy/argocd-repo-server >/dev/null
+kubectl -n argocd rollout restart deploy/argocd-server deploy/argocd-repo-server sts/argocd-application-controller >/dev/null
 echo "      waiting for the Argo CD pods (first start pulls their images: 1-3 minutes)"
 for d in argocd-server argocd-repo-server argocd-applicationset-controller; do
   kubectl -n argocd rollout status deploy/$d --timeout=300s >/dev/null && echo "      ready: $d"
