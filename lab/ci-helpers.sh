@@ -22,6 +22,20 @@ wait_run() {  # wait_run <workflow> <sha> <seconds>: waits for completion, print
   done
   echo "timeout($st)"; return 1
 }
+# run_debug <workflow> [sha]: after a run that did not succeed, print what Gitea and the runner know.
+run_debug() {
+  local run id
+  run=$(latest_run "$@" 2>/dev/null); id=$(jq -r '.id // empty' <<<"$run")
+  echo "---- $1 run ${id:-?}: $(jq -c '{status, conclusion, event, head_sha}' <<<"$run" 2>/dev/null)"
+  if [[ -n "$id" ]]; then
+    gitea_api GET "${REPO_PATH}/actions/runs/${id}/jobs" 2>/dev/null \
+      | jq -r '(.jobs // [])[] | "job \(.id) \(.name): \(.status)/\(.conclusion // "") steps: \([(.steps // [])[] | "\(.name)=\(.conclusion // .status)"] | join(", "))"' 2>/dev/null || true
+    for j in $(gitea_api GET "${REPO_PATH}/actions/runs/${id}/jobs" 2>/dev/null | jq -r '(.jobs // [])[].id' 2>/dev/null); do
+      echo "---- job $j log (tail)"; gitea_api GET "${REPO_PATH}/actions/jobs/${j}/logs" 2>/dev/null | tail -40 || true
+    done
+  fi
+  echo "---- runner journal (tail)"; journalctl -u gitea-runner --no-pager -n 40 2>/dev/null || true
+}
 pr_for_branch() {  # pr_for_branch <branch> [state]: PR number or nothing
   gitea_api GET "${REPO_PATH}/pulls?state=${2:-all}&limit=50" | jq -r --arg b "$1" '[.[] | select(.head.ref == $b)] | sort_by(.number) | last | .number // empty'
 }

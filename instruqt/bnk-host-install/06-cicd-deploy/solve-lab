@@ -8,6 +8,14 @@ n=$(pr_for_branch enable-lab-cluster open)
 [[ -n "$n" ]] && merge_pr "$n"
 sleep 10
 sha=$(main_sha)
-echo "deploy: $(wait_run deploy.yml "$sha" 3300 || true)"
+d=$(wait_run deploy.yml "$sha" 3300 || true); echo "deploy: $d"
+if [[ "$d" != success ]]; then
+  run_debug deploy.yml "$sha"
+  echo "dispatching deploy once more"
+  gitea_api POST "${REPO_PATH}/actions/workflows/deploy.yml/dispatches" '{"ref":"main","inputs":{"cluster":""}}' >/dev/null
+  sleep 15
+  d=$(wait_run deploy.yml "" 3300 || true); echo "deploy (dispatched): $d"
+  [[ "$d" == success ]] || run_debug deploy.yml
+fi
 wait_bnk 600
 cd "$WORKSPACE" && git checkout -q main && git pull -q

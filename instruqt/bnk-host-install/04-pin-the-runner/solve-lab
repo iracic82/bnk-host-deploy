@@ -12,6 +12,7 @@ git push -q -f -u origin pin-runner-image
 sha=$(git rev-parse HEAD)
 n=$(open_pr pin-runner-image "Pin the installer image")
 echo "PR #$n, waiting for ci"
-echo "ci: $(wait_run ci.yml "$sha" 900 || true)"
+c=$(wait_run ci.yml "$sha" 900 || true); echo "ci: $c"
+[[ "$c" == success ]] || run_debug ci.yml "$sha"
 merge_pr "$n"
 git checkout -q main && git pull -q
