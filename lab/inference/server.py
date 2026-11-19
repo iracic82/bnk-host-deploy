@@ -86,11 +86,13 @@ def platform():
 
 def send(mode, customer, question):
     """One chat completion from the client container to the mode's VIP. Returns timing and usage."""
+    # Plain completions, not chat: the prompt is the customer's long instructions plus the question,
+    # as text. The endpoint picker tokenizes and hashes it directly. (With the chat API it has to apply
+    # the model's chat template first, and with this simulator that yields no prefix hashes at all.)
     body = json.dumps({"model": MODEL, "max_tokens": 16,
-                       "messages": [{"role": "system", "content": persona(customer)},
-                                    {"role": "user", "content": question}]})
+                       "prompt": f"{persona(customer)}\n\nQuestion: {question}\nAnswer:"})
     out = sh(["docker", "exec", "-i", "client", "curl", "-s", "-m", "30", "-H", "Content-Type: application/json",
-              "--data-binary", "@-", "-w", "\n%{http_code} %{time_total}", f"http://{VIPS[mode]}/v1/chat/completions"],
+              "--data-binary", "@-", "-w", "\n%{http_code} %{time_total}", f"http://{VIPS[mode]}/v1/completions"],
              timeout=40, inp=body)
     lines = out.rsplit("\n", 1)
     if len(lines) != 2:
@@ -102,7 +104,7 @@ def send(mode, customer, question):
         return {"ok": code == "200", "code": int(code), "ms": round(float(secs) * 1000),
                 "prompt": u.get("prompt_tokens", 0),
                 "cached": (u.get("prompt_tokens_details") or {}).get("cached_tokens", 0),
-                "answer": ((r.get("choices") or [{}])[0].get("message") or {}).get("content", "")}
+                "answer": ((r.get("choices") or [{}])[0].get("text") or "").strip()}
     except ValueError:
         return {"ok": False, "error": lines[0][:200]}
 
