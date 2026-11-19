@@ -256,12 +256,17 @@ stores it encrypted and writes it, mode 0600, into the runner container at
 `/work/secrets/kubeconfig`, `/work/secrets/cne_pull_64.json` and `/work/secrets/license.jwt`, only
 for the length of a run. The last block of the output lists each required secret as **present**.
 
-Open the project's **Secrets** tab. Under **Required Secrets**, all three rows now say **Configured**.
+In **Build > Workspaces**, open **bnk-lab** and pick **Secrets** in its left-hand menu, under
+*Provisioning & IaC*. Under **Required Secrets**, all three rows now say **Configured**.
 Under **Project Secrets**, each file is listed with an arrow to the requirement it satisfies, for
 example `license.jwt → bnk_license_jwt`. That link is what tells Forge *this* file is *that*
 credential. The values themselves are never shown.
 
-![Forge project bnk-lab, Secrets tab: kubeconfig, far_service_account_key and bnk_license_jwt all Configured, each project secret linked to its requirement](../assets/forge-7-secrets.png)
+> The **Quick Import (BNK)** panel at the top, with *Import FAR Secret File* and *Import JWT File*,
+> is how you would attach these by hand. Leave it alone here: `lab forge-secrets` has already attached
+> both from the lab vault, and importing again would add a second copy.
+
+![Forge workspace bnk-lab, Secrets tab: kubeconfig, far_service_account_key and bnk_license_jwt all Configured, each project secret linked to its requirement](../assets/forge-7-secrets.png)
 
 > ### Concept: why the kubeconfig is a secret here
 > The CI runner lives beside the cluster with its own access. Forge's runner is a short-lived
