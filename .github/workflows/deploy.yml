@@ -48,11 +48,21 @@ jobs:
         run: ./ci/tools.sh
 
       - name: which clusters does this merge affect?
+        env:
+          EVENT: ${{ github.event_name }}
+          INPUT_CLUSTER: ${{ inputs.cluster }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            if [ -n "${{ inputs.cluster }}" ]; then echo "${{ inputs.cluster }}"; else ./ci/targets.sh --all; fi
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            if [ -n "$INPUT_CLUSTER" ]; then
+              # a typed input is untrusted: accept only an existing cluster file
+              printf '%s' "$INPUT_CLUSTER" | grep -qxE 'clusters/[a-z0-9-]+\.yaml' && [ -f "$INPUT_CLUSTER" ] \
+                || { echo "::error::cluster must be an existing clusters/<name>.yaml"; exit 1; }
+              echo "$INPUT_CLUSTER"
+            else ./ci/targets.sh --all; fi
           else
-            ./ci/targets.sh "${{ github.event.before }}" "${{ github.sha }}"
+            ./ci/targets.sh "$BEFORE" "$AFTER"
           fi | tee "$RUNNER_TEMP/targets"
           [ -s "$RUNNER_TEMP/targets" ] || echo "no cluster is affected by this merge"
 

@@ -27,7 +27,12 @@ jobs:
   plan:
     # One owner per cluster: these workflows act only when the repository says the pipeline owns
     # BNK installs (variable BNK_INSTALLER=pipeline). Forge or Argo CD owners never race them.
-    if: vars.BNK_INSTALLER == 'pipeline'
+    #
+    # This job runs the pull request's code with the FAR key on a runner that can reach the cluster,
+    # because a plan against the live cluster needs both. So it never runs for pull requests from
+    # forks. Harden further in production: give the plan job a read-only RBAC identity (plan mode
+    # only reads and dry-runs), and require approval for outside contributors' workflow runs.
+    if: vars.BNK_INSTALLER == 'pipeline' && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: [self-hosted, bnk]
     timeout-minutes: 20
     steps:
@@ -39,8 +44,10 @@ jobs:
         run: ./ci/tools.sh
 
       - name: which clusters does this change affect?
+        env:
+          BASE_REF: ${{ github.base_ref }}
         run: |
-          base="$(git merge-base "origin/${{ github.base_ref }}" HEAD)"
+          base="$(git merge-base "origin/${BASE_REF}" HEAD)"
           echo "comparing $(git rev-parse --short "$base")..$(git rev-parse --short HEAD):"
           git diff --stat "$base" HEAD | sed 's/^/  /'
           ./ci/targets.sh "$base" HEAD | tee "$RUNNER_TEMP/targets"
@@ -49,6 +56,9 @@ jobs:
       - name: plan each cluster
         env:
           FAR_PULL_B64: ${{ secrets.FAR_PULL_B64 }}
+          # untrusted values reach the script as environment variables, never as expanded text
+          HEAD_REF: ${{ github.head_ref }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           [ -s "$RUNNER_TEMP/targets" ] || exit 0
           [ -n "$FAR_PULL_B64" ] || { echo "::error::repository secret FAR_PULL_B64 is not set"; exit 1; }
@@ -56,7 +66,7 @@ jobs:
           export FAR_PULL_JSON="$RUNNER_TEMP/far.json"
           out="$RUNNER_TEMP/plan.md"; rc=0; n=0
           {
-            echo "## BNK plan for \`${{ github.head_ref }}\` at \`$(git rev-parse --short HEAD)\`"
+            printf '## BNK plan for `%s` at `%s`\n' "$(printf '%s' "$HEAD_REF" | tr -cd 'A-Za-z0-9._/-')" "$(git rev-parse --short HEAD)"
             echo
             echo "| Cluster | Environment | Release | Result | Changes |"
             echo "|---|---|---|---|---|"
@@ -73,7 +83,7 @@ jobs:
             echo "| \`$name\` | $(yq -r .environment "$f") | $(sed -n 's/^BNK_VERSION=//p' versions.env) | $res | $ch |" >> "$out"
             { echo; echo "<details><summary><b>$name</b>: full plan</summary>"; echo; cat "$BNK_REPORT_MD" 2>/dev/null; echo; echo "</details>"; } >> "$RUNNER_TEMP/details.md"
           done < "$RUNNER_TEMP/targets"
-          { cat "$RUNNER_TEMP/details.md"; echo; echo "_Merging applies this plan. Re-plans on every push. Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}_"; } >> "$out"
+          { cat "$RUNNER_TEMP/details.md"; echo; echo "_Merging applies this plan. Re-plans on every push. Run: ${RUN_URL}_"; } >> "$out"
           cat "$out" >> "${GITHUB_STEP_SUMMARY:-/dev/null}" 2>/dev/null || true
           exit $rc
 
@@ -81,9 +91,10 @@ jobs:
         if: always()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           [ -f "$RUNNER_TEMP/plan.md" ] || exit 0
-          ./ci/comment.sh "${{ github.event.pull_request.number }}" "$RUNNER_TEMP/plan.md"
+          ./ci/comment.sh "$PR_NUMBER" "$RUNNER_TEMP/plan.md"
 
       - name: wipe credentials
         if: always()

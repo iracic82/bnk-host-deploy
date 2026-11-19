@@ -23,9 +23,14 @@ jobs:
       - name: pinned tools
         run: ./ci/tools.sh
       - name: uninstall
+        env:
+          CLUSTER: ${{ inputs.cluster }}
+          CONFIRM: ${{ inputs.confirm }}
         run: |
-          name="$(yq -r .name "${{ inputs.cluster }}")"
-          [ "$name" = "${{ inputs.confirm }}" ] || { echo "::error::confirmation '${{ inputs.confirm }}' does not match cluster '$name'"; exit 1; }
-          ctx="$(yq -r '.kube_context // ""' "${{ inputs.cluster }}")"
+          printf '%s' "$CLUSTER" | grep -qxE 'clusters/[a-z0-9-]+\.yaml' && [ -f "$CLUSTER" ] \
+            || { echo "::error::cluster must be an existing clusters/<name>.yaml"; exit 1; }
+          name="$(yq -r .name "$CLUSTER")"
+          [ "$name" = "$CONFIRM" ] || { echo "::error::confirmation does not match cluster '$name'"; exit 1; }
+          ctx="$(yq -r '.kube_context // ""' "$CLUSTER")"
           [ -n "$ctx" ] && kubectl config use-context "$ctx"
           ./uninstall.sh

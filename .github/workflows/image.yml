@@ -38,5 +38,7 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}:${{ github.ref_name }}
             ghcr.io/${{ github.repository }}:latest
-      - name: digest for the Forge module
-        run: echo "pin this in forge/bnk-host/bnkforge.artifact.json -> ${{ steps.push.outputs.digest }}"
+      - name: digest for the Forge module and the Argo CD Job
+        env:
+          DIGEST: ${{ steps.push.outputs.digest }}
+        run: echo "pin it with forge/pin-image.sh ghcr.io ${GITHUB_REPOSITORY} ${DIGEST} && argocd/pin-image.sh ghcr.io/${GITHUB_REPOSITORY}@${DIGEST}"
