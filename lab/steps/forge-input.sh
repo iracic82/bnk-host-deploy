@@ -11,6 +11,10 @@ m=$(forge_api GET "/api/project-modules/project/${pid}" | jq -c '(if type=="arra
 mid=$(jq -r '.id // empty' <<<"$m"); [[ -n "$mid" ]] || fail "project $P has no module"
 step "module #$mid of project $P: $K"
 echo "      before: $(jq -c --arg k "$K" '.variable_overrides[$k] // "(unset)"' <<<"$m")"
-forge_api PUT "/api/project-modules/${mid}" "$(jq -c --arg k "$K" --arg v "$V" '{variable_overrides: ((.variable_overrides // {}) + {($k): $v})}' <<<"$m")" \
-  | jq -r --arg k "$K" '"      after:  " + (.variable_overrides[$k] // "(unset)" | tojson)'
+# Forge 4.3 answers the update with {success, message, warnings?}, not the module, so read it back.
+r=$(forge_api PUT "/api/project-modules/${mid}" "$(jq -c --arg k "$K" --arg v "$V" '{variable_overrides: ((.variable_overrides // {}) + {($k): $v})}' <<<"$m")")
+jq -r '.warnings // [] | .[] | "   warn  Forge: " + (if type=="string" then . else tojson end)' <<<"$r"
+got=$(forge_api GET "/api/project-modules/project/${pid}" | jq -c --arg id "$mid" --arg k "$K" '(if type=="array" then . else (.items // .modules // []) end)[] | select((.id|tostring) == $id) | .variable_overrides[$k] // "(unset)"')
+echo "      after:  $got"
+[[ "$got" == "$(jq -c -n --arg v "$V" '$v')" ]] || fail "Forge did not keep $K=$V"
 ok "now press Deploy all on project $P (Build > Workspaces > $P)"
