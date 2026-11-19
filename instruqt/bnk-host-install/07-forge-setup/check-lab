@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -uo pipefail
 source /opt/lab/lib.sh
-curl -fsSk -o /dev/null https://127.0.0.1/api/health || { fail-message "Forge is not running. Run 'lab forge' (step 1)."; exit 1; }
+curl -fsSk -o /dev/null https://127.0.0.1/api/system/health || { fail-message "Forge is not running. Run 'lab forge' (step 1)."; exit 1; }
 forge_api GET /api/blueprint-catalog/releases 2>/dev/null | jq -e '[.[]? | select(.blueprint_id=="bnk-host-2-4" and .release_state=="imported")] | length > 0' >/dev/null \
   || { fail-message "The blueprint 'BNK 2.4.2 Host on an existing cluster' is not imported yet (step 3)."; exit 1; }
 pid=$(forge_api GET /api/projects | jq -r '(.projects // .items // .)[]? | select(.name=="bnk-lab") | .id' | head -1)

@@ -3,7 +3,7 @@
 # Forge does not need to have installed BNK to operate it: give it a kubeconfig and it reads the
 # cluster's BNK objects (versions, health, gateways, licence), takes snapshots and detects drift.
 source "$(dirname "$0")/../lib.sh"
-curl -fsSk -o /dev/null https://127.0.0.1/api/health || fail "Forge is not installed: run 'lab forge' first"
+curl -fsSk -o /dev/null https://127.0.0.1/api/system/health || fail "Forge is not installed: run 'lab forge' first"
 existing=$(forge_api GET /api/k8s/clusters | jq -r '(.clusters // .items // .)[]? | select(.name=="lab") | .id' | head -1)
 if [[ -n "$existing" ]]; then ok "cluster 'lab' already registered (#$existing)"; exit 0; fi
 pid=$(forge_api GET /api/projects | jq -r '(.projects // .items // .)[]? | select(.name=="operations" or .name=="bnk-lab") | .id' | head -1)
