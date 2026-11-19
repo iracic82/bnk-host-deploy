@@ -1,9 +1,11 @@
 ---
 slug: ai-inference
+id: 3jopevlo1xrd
 type: challenge
-title: "Two days later: the AI team moves in"
-teaser: Put three simulated GPUs behind BIG-IP Next for Kubernetes and let BNK's endpoint picker send each
-  request to the GPU that already holds its prompt. Then measure what that is worth against round robin.
+title: 'Two days later: the AI team moves in'
+teaser: Put three simulated GPUs behind BIG-IP Next for Kubernetes and let BNK's endpoint
+  picker send each request to the GPU that already holds its prompt. Then measure
+  what that is worth against round robin.
 notes:
 - type: text
   contents: |
@@ -40,36 +42,44 @@ notes:
     So *which GPU gets the request* decides whether it costs 50 ms or 700 ms. A load balancer that only
     counts connections cannot know. **An endpoint picker can.**
 tabs:
-- title: AI Inference
+- id: pghtnmrzyebl
+  title: AI Inference
   type: service
   hostname: lab
   port: 5060
-- title: Terminal
+- id: gigy9zazr8dg
+  title: Terminal
   type: terminal
   hostname: lab
-- title: Terminal 2
+- id: i4hkhiot0pyx
+  title: Terminal 2
   type: terminal
   hostname: lab
-- title: VS Code
+- id: yxmmhtqjt8i3
+  title: VS Code
   type: service
   hostname: lab
   port: 8444
-- title: Gitea
+- id: uduoxsnjrs0l
+  title: Gitea
   type: service
   hostname: lab
   port: 3000
   custom_request_headers:
   - key: X-WEBAUTH-USER
     value: learner
-- title: Argo CD
+- id: hexdrhtnig18
+  title: Argo CD
   type: service
   hostname: lab
   port: 8091
-- title: BNK Forge
+- id: xkfpr5nu9x8h
+  title: BNK Forge
   type: service
   hostname: lab
   port: 8090
-- title: Lab Topology
+- id: jx5nwahpnzka
+  title: Lab Topology
   type: service
   hostname: lab
   port: 5050
