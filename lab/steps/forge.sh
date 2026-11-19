@@ -7,7 +7,7 @@ source "$(dirname "$0")/../lib.sh"
 SRC=/opt/bnk-forge-src; DST=/opt/bnk-forge
 
 step "1/6  the release bundle (bnk-forge ${FORGE_VERSION}, dist/)"
-[[ -d "$SRC/.git" ]] || git clone -q --depth 1 --branch "$FORGE_REF" https://github.com/iracic82/bnk-forge.git "$SRC"
+[[ -d "$SRC/.git" ]] || git -c advice.detachedHead=false clone -q --depth 1 --branch "$FORGE_REF" https://github.com/iracic82/bnk-forge.git "$SRC"
 mkdir -p "$DST"; cp -r "$SRC/dist/." "$DST/"
 ok "$DST: $(ls "$DST" | paste -sd' ' -)"
 
