@@ -44,6 +44,13 @@ tabs:
   type: service
   hostname: lab
   port: 5050
+- title: Gitea
+  type: service
+  hostname: lab
+  port: 3000
+  custom_request_headers:
+  - key: X-WEBAUTH-USER
+    value: learner
 difficulty: intermediate
 timelimit: 3000
 enhanced_loading: null
