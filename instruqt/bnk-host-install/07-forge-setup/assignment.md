@@ -193,7 +193,13 @@ Three blocks, each one a thing you could also click in the UI:
 Now look at the result in the UI. In **BNK Forge**, open **Build > Catalog & Blueprints**. Under
 **Architecture Pattern**, pick **Existing Cluster (BYO K8s)** to hide the cloud blueprints. Your
 blueprint, **BNK 2.4.2 Host on an existing cluster**, comes from source **bnk-host-deploy
-blueprints**. It is **imported**, and its **Deploy** button is enabled:
+blueprints**. Look at the badge at the top right of its card:
+
+- **imported**: Forge has accepted it, and **Deploy** is enabled. Go on
+- **discovered**: Forge has seen it but nobody has accepted it yet, and **Deploy** stays greyed out.
+  Press **Import** on the card first. The badge turns to **imported** and **Deploy** unlocks
+
+It should look like this:
 
 ![Forge Catalog, Blueprints: BNK 2.4.2 Host on an existing cluster from source bnk-host-deploy, v1.0.0, state imported](../assets/forge-3-imported.png)
 
