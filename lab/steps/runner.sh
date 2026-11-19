@@ -31,10 +31,11 @@ step "3/4  register with the labels the workflows ask for"
 # lets the static checks in ci.yml run here too.
 mkdir -p "$DIR"; cd "$DIR" || exit 1
 if [[ ! -s .runner ]]; then
-  gitea-runner generate-config > config.yaml
+  gitea-runner config generate > config.yaml
   yq -i '.runner.capacity = 2 | .runner.envs.KUBECONFIG = "/root/.kube/config" | .runner.envs.PATH = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" | .runner.timeout = "2h" | .log.level = "info"' config.yaml
   gitea-runner -c config.yaml register --no-interactive --instance "http://${IP}:${PORT_GITEA}" --token "$TOKEN" \
-    --name bnk-lab-runner --labels "self-hosted:host,bnk:host,ubuntu-latest:host" >/dev/null
+    --name bnk-lab-runner --labels "self-hosted:host,bnk:host,ubuntu-latest:host" >/dev/null 2>&1 \
+    || fail "registration with Gitea failed"
 fi
 ok "registered as bnk-lab-runner, labels: self-hosted, bnk, ubuntu-latest (executor: host)"
 
