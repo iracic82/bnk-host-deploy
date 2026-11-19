@@ -6,6 +6,9 @@
 source "$(dirname "$0")/../lib.sh"
 DYNAMO_VERSION=1.5.1
 step "1/3  NVIDIA Dynamo platform ${DYNAMO_VERSION} (operator + NATS) in dynamo-system"
+# the chart pulls a sub-chart from prometheus-community: Helm must know that repository first
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts --force-update >/dev/null 2>&1 || true
+helm repo update prometheus-community >/dev/null 2>&1 || fail "could not reach the prometheus-community chart repository"
 helm upgrade --install dynamo-platform "https://helm.ngc.nvidia.com/nvidia/ai-dynamo/charts/dynamo-platform-${DYNAMO_VERSION}.tgz" \
   -n dynamo-system --create-namespace --set global.nats.install=true --wait --timeout 15m >/dev/null \
   || fail "dynamo-platform did not install"
