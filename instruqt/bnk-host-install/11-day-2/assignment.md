@@ -153,19 +153,19 @@ In Forge, pick your workspace (`bnk-lab` on path B, `operations` on paths A and 
 
 **1. Which release is running?** Open **Clusters > Kubernetes**, scroll to **F5 BNK Installation**:
 
-![Forge F5 BNK Installation card: FLO deploy flow, FLO 2.30.0-0.11.4, TMM 5/5 ready, CNE controller running, CNEInstance features, VLANs external 10.10.10.11 (1.1) and internal 172.18.0.250 (1.2)](../assets/day2-5-bnk-installation.png)
+![Forge Kubernetes page: Cluster Ready, 3/3 nodes, cert-manager v1.16.2, Multus 3/3, and the F5 BNK Installation card, install method FLO deploy flow, 32 F5 CRDs](../assets/day2-5-bnk-installation.png)
 
-Install method *FLO deploy flow*, FLO **2.30.0-0.11.4**, TMM 5/5, and the two VLANs with their self
-IPs on interfaces 1.1 and 1.2. Every value matches `versions.env` and `clusters/lab.network.yaml`.
+Forge found BNK by itself: install method *FLO deploy flow*, and BNK's custom resource types
+registered in the cluster. The exact versions come from the terminal check further down.
 
 **2. Is it healthy?** Open **Clusters > F5 BNK** (it opens on **Overview**):
 
-![Forge BNK Health Dashboard: Platform Healthy, 5/5 TMM containers, 1 gateway, 1 route, 2 VLANs, all components Healthy](../assets/day2-1-bnk-health.png)
+![Forge F5 BNK Overview: BNK Platform Healthy, 5/5 TMM containers, 1 gateway, 1 route, 2 VLANs, BNK License Unknown, operator, controller, CRD installer, TMM, Gateways and VLANs all Healthy](../assets/day2-1-bnk-health.png)
 
 *BNK Platform Healthy*, and Forge has noticed your app by itself: **1 gateway, 1 route**.
 
-**Is it licensed?** Forge's **License Status** card is in *passive mode*, so it shows nothing until
-you press its refresh button and Forge asks F5's licensing service. Ask the cluster itself:
+**Is it licensed?** Forge's **BNK License** card says *Unknown, no expiry information available*.
+Forge cannot read the licence status that BNK 2.4.2 reports. Ask the cluster itself:
 
 ```run
 lab status
@@ -174,21 +174,26 @@ lab status
 `licence Active (eval, expires …)`. An auditor accepts the system of record, and for the licence
 that is the cluster's `License` object.
 
-**3. What does it expose?** Open **F5 BNK > Traffic > Backends**:
+**3. What does it expose?** In **Clusters > F5 BNK**, open **Gateways & Traffic > Backends**:
 
-![Forge Traffic, Backends: 42 services, 1 mapped, hello in namespace hello with HTTPRoute hello on listener hello/http port 80](../assets/day2-3-backends.png)
+![Forge Gateways & Traffic, Backends: 33 services, 1 mapped, hello in namespace hello with HTTPRoute hello on listener hello/http port 80](../assets/day2-3-backends.png)
 
 Of every Service in the cluster, exactly **one** is exposed through BNK: `hello`, by HTTPRoute `hello`
 on listener `hello/http`, port 80. Everything else is internal. That one line is the answer to *"what
 does this cluster expose?"*
 
-The **Kubernetes** dashboard tells the same story from the platform side, *Gateways 1* and an F5 BNK
-proxy with backend `hello/hello`:
+**4. How is it wired?** Open **Topology & Insights > Object Topology Graph**. One page holds the
+whole chain, from the Gateway down to the wire:
 
-![Forge Kubernetes dashboard: Gateway API detected with 1 gateway, Existing Proxies F5 BNK with backends hello/hello](../assets/day2-4-cluster.png)
+![Forge Object Topology Graph: gateway hello on VIP 10.30.30.10 with listener http and route hello, the CNEInstance with attachments external-net on interface 1.1 and internal-net on 1.2, VLAN external with self IP 10.10.10.11/24 and VLAN internal with 172.18.0.250/16, both Programmed](../assets/day2-6-topology.png)
+
+Gateway `hello` on VIP `10.30.30.10`, its listener and route. Below it, the data plane: the two
+network attachments as TMM interfaces **1.1** and **1.2**, and the VLANs on them with their self IPs,
+`10.10.10.11` outside and `172.18.0.250` inside. That inside address is the `RemoteAddr` your hello
+pod reported in challenge 10. Every value matches `clusters/lab.network.yaml`.
 
 > ### Going further: build a Gateway in Forge
-> **F5 BNK > Build > Configuration Builder** is a wizard that writes a Gateway, its routes and its
+> **F5 BNK > System & Configuration > Configuration Builder** is a wizard that writes a Gateway, its routes and its
 > security settings for you, then reviews and applies them. It is a quick way to learn the Gateway
 > API's shape. At Northwind, the YAML it produces still goes into git through a pull request.
 >

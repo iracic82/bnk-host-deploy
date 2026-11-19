@@ -184,9 +184,9 @@ Now open **Clusters > F5 BNK**. It opens on **Overview**:
 controller and the CRD installer all green. Zero gateways for now. You will add the first one in
 challenge 10.
 
-> The **License Status** card is in *passive mode*: Forge does not ask F5's licensing service on
-> its own. Press the card's refresh button to make it ask. The cluster itself knows the answer
-> already, and you will check it from the terminal in a moment.
+> The licence card starts in *passive mode*. Press its refresh button and it turns to **BNK License
+> Unknown**: this Forge version cannot read the licence status that BNK 2.4.2 reports. The cluster
+> itself knows the answer, and you will check it from the terminal in a moment.
 
 One more view. **Clusters > Cluster Fleet** is where an operations team with many clusters starts
 the day. Yours has one, **lab**, and it is **Healthy**:
