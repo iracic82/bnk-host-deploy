@@ -42,9 +42,7 @@ def main(cdir, src):
     head, rest = raw.split("===NOTE===", 1)
     parts = rest.split("===BODY===")
     notes, body = parts[0].split("===NOTE==="), parts[1].strip() + "\n"
-    for line in head.strip().splitlines():
-        k, v = line.split(":", 1)
-        meta[k.strip()] = v.strip()
+    meta.update(yaml.safe_load(head) or {})   # title, teaser (may wrap onto indented lines)
     meta["notes"] = [{"type": "text", "contents": Literal(n.strip() + "\n")} for n in notes if n.strip()]
 
     order = ["slug", "id", "type", "title", "teaser", "notes", "tabs", "difficulty", "timelimit", "enhanced_loading"]

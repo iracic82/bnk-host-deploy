@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640" font-family="Inter, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#e4002b"/>
+    </marker>
+    <linearGradient id="tmm" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff1f3"/><stop offset="1" stop-color="#ffe3e8"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="640" fill="#ffffff"/>
+
+  <!-- title -->
+  <text x="40" y="44" font-size="22" font-weight="700" fill="#1d2433">The data-center edge for cluster six</text>
+  <text x="40" y="70" font-size="14" fill="#6b7385">Built by <tspan font-family="ui-monospace, Menlo, monospace" fill="#1d2433">containerlab deploy -t edge.clab.yml</tspan>   ·   solid: built in this challenge   ·   dashed red: added by the BNK install</text>
+
+  <!-- zones -->
+  <rect x="30" y="96" width="330" height="440" rx="16" fill="#f5f8ff" stroke="#c8d3ea"/>
+  <text x="50" y="124" font-size="12" font-weight="700" fill="#5b6b8c" letter-spacing="1.2">USERS · client-net 10.20.20.0/24</text>
+
+  <rect x="380" y="96" width="300" height="440" rx="16" fill="#f6f7f9" stroke="#d4d8e0"/>
+  <text x="400" y="124" font-size="12" font-weight="700" fill="#5b6b8c" letter-spacing="1.2">DATA-CENTER EDGE</text>
+
+  <rect x="700" y="96" width="550" height="440" rx="16" fill="#f3faf6" stroke="#bfe0cc"/>
+  <text x="720" y="124" font-size="12" font-weight="700" fill="#3c7a55" letter-spacing="1.2">KUBERNETES CLUSTER "bnk" (kind)</text>
+
+  <!-- client -->
+  <rect x="70" y="250" width="250" height="110" rx="12" fill="#ffffff" stroke="#8aa0c8" stroke-width="2"/>
+  <text x="90" y="282" font-size="18" font-weight="700" fill="#1d2433">client</text>
+  <text x="90" y="304" font-size="13" fill="#6b7385">netshoot: plays a user</text>
+  <text x="90" y="326" font-size="13" fill="#1d2433" font-family="ui-monospace, Menlo, monospace">eth1 10.20.20.10</text>
+  <text x="90" y="346" font-size="13" fill="#1d2433" font-family="ui-monospace, Menlo, monospace">default via .254</text>
+
+  <!-- router -->
+  <rect x="400" y="210" width="226" height="190" rx="12" fill="#ffffff" stroke="#5b6b8c" stroke-width="2"/>
+  <text x="418" y="242" font-size="18" font-weight="700" fill="#1d2433">edge-router</text>
+  <text x="418" y="264" font-size="13" fill="#6b7385">FRRouting (frr.conf)</text>
+  <text x="418" y="292" font-size="13" fill="#1d2433" font-family="ui-monospace, Menlo, monospace">eth2 10.20.20.254</text>
+  <text x="418" y="312" font-size="13" fill="#1d2433" font-family="ui-monospace, Menlo, monospace">eth1 10.10.10.254</text>
+  <rect x="412" y="328" width="202" height="56" rx="8" fill="#eef2fa"/>
+  <text x="422" y="350" font-size="12" font-weight="700" fill="#5b6b8c">ROUTE TO THE VIPs</text>
+  <text x="422" y="370" font-size="13" fill="#1d2433" font-family="ui-monospace, Menlo, monospace">10.30.30.0/24 via .11</text>
+
+  <!-- cable client-router -->
+  <line x1="320" y1="305" x2="400" y2="305" stroke="#5b6b8c" stroke-width="4"/>
+  <text x="335" y="296" font-size="12" fill="#5b6b8c">veth</text>
+
+  <!-- worker node -->
+  <rect x="740" y="150" width="490" height="300" rx="14" fill="#ffffff" stroke="#3c7a55" stroke-width="2"/>
+  <text x="760" y="180" font-size="18" font-weight="700" fill="#1d2433">bnk-worker</text>
+  <text x="760" y="200" font-size="13" fill="#6b7385">the TMM node · label app=f5-tmm · 4Gi hugepages</text>
+
+  <!-- ports on node -->
+  <rect x="728" y="290" width="70" height="30" rx="6" fill="#1d2433"/>
+  <text x="763" y="310" font-size="13" fill="#ffffff" text-anchor="middle" font-family="ui-monospace, Menlo, monospace">eth1</text>
+  <text x="760" y="340" font-size="11" fill="#6b7385">no address</text>
+
+  <!-- cable router-worker -->
+  <line x1="626" y1="305" x2="728" y2="305" stroke="#5b6b8c" stroke-width="4"/>
+  <text x="640" y="296" font-size="12" fill="#5b6b8c">veth</text>
+  <text x="636" y="328" font-size="12" font-weight="700" fill="#5b6b8c">dc-edge</text>
+  <text x="636" y="344" font-size="11" fill="#5b6b8c" font-family="ui-monospace, Menlo, monospace">10.10.10.0/24</text>
+
+  <!-- TMM (after install) -->
+  <rect x="830" y="230" width="250" height="150" rx="12" fill="url(#tmm)" stroke="#e4002b" stroke-width="2" stroke-dasharray="8 6"/>
+  <text x="850" y="260" font-size="17" font-weight="700" fill="#b8001f">TMM  (BNK data plane)</text>
+  <text x="850" y="284" font-size="13" fill="#1d2433" font-family="ui-monospace, Menlo, monospace">1.1 external 10.10.10.11</text>
+  <text x="850" y="304" font-size="13" fill="#1d2433" font-family="ui-monospace, Menlo, monospace">1.2 internal 172.18.0.250</text>
+  <text x="850" y="330" font-size="12" fill="#6b7385">macvlan legs via Multus NADs</text>
+  <text x="850" y="350" font-size="12" fill="#6b7385">external-net on eth1,</text>
+  <text x="850" y="366" font-size="12" fill="#6b7385">internal-net on eth2</text>
+  <path d="M798 305 C 812 305, 816 290, 830 290" fill="none" stroke="#e4002b" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arr)"/>
+
+  <!-- VIP pool -->
+  <line x1="1080" y1="285" x2="1100" y2="285" stroke="#e4002b" stroke-width="2" stroke-dasharray="5 4"/>
+  <rect x="1100" y="240" width="120" height="90" rx="45" fill="#ffffff" stroke="#e4002b" stroke-width="2" stroke-dasharray="8 6"/>
+  <text x="1160" y="272" font-size="13" font-weight="700" fill="#b8001f" text-anchor="middle">VIP pool</text>
+  <text x="1160" y="292" font-size="12" fill="#1d2433" text-anchor="middle" font-family="ui-monospace, Menlo, monospace">10.30.30.</text>
+  <text x="1160" y="308" font-size="12" fill="#1d2433" text-anchor="middle" font-family="ui-monospace, Menlo, monospace">10 – 29</text>
+
+  <!-- eth2 internal -->
+  <rect x="1050" y="410" width="70" height="30" rx="6" fill="#1d2433"/>
+  <text x="1085" y="430" font-size="13" fill="#ffffff" text-anchor="middle" font-family="ui-monospace, Menlo, monospace">eth2</text>
+  <line x1="1085" y1="440" x2="1085" y2="490" stroke="#3c7a55" stroke-width="4"/>
+  <path d="M1040 380 C 1040 400, 1060 400, 1070 410" fill="none" stroke="#e4002b" stroke-width="2" stroke-dasharray="6 5"/>
+
+  <!-- kind network bar -->
+  <rect x="720" y="490" width="510" height="34" rx="8" fill="#e5f3ea" stroke="#bfe0cc"/>
+  <text x="740" y="512" font-size="12" fill="#3c7a55" font-family="ui-monospace, Menlo, monospace">kind network 172.18.0.0/16 · every node's eth0 · the pods</text>
+
+  <!-- request path -->
+  <rect x="30" y="556" width="1220" height="60" rx="12" fill="#1d2433"/>
+  <text x="50" y="582" font-size="13" font-weight="700" fill="#ff8aa0" letter-spacing="1">A REQUEST, AFTER THE INSTALL</text>
+  <text x="50" y="603" font-size="14" fill="#ffffff">client  →  edge-router (route 10.30.30.0/24 via 10.10.10.11)  →  eth1  →  TMM virtual server on a VIP  →  eth2  →  a pod</text>
+</svg>

@@ -2,21 +2,37 @@
 slug: data-center-edge
 id: 0q09dohbcb8y
 type: challenge
-title: Build the data-center edge BNK will serve
-teaser: A router, a client and two networks. Learn why TMM needs its own network legs,
-  what Multus and macvlan do, and how a VIP gets routed to a pod.
+title: 'Monday, 10:30: Sam builds the edge, and lets you hold the cables'
+teaser: A load balancer needs somewhere to stand. Build the data-center edge BNK will serve, as a containerlab
+  topology file, and learn how TMM gets its own network legs.
 notes:
 - type: text
-  contents: |-
-    ## A load balancer needs somewhere to stand
+  contents: |
+    ## Sam's whiteboard
 
-    BNK is not "inside" Kubernetes the way an app is. Its data plane, TMM, sits on the boundary:
-    one foot in the data-center network where users and routers are, one foot in the cluster where
-    the pods are. Before you install it, you build the boundary.
+    Sam runs Northwind's network. Before anyone installs BNK, Sam wants one question answered:
+    *"Where does it stand?"*
 
-    In a real data center that boundary already exists: a top-of-rack switch, an edge router, a
-    VLAN for your load balancers. Here you create a small copy of it with containers, so you can see
-    every hop.
+    *"Apps live inside the cluster,"* Sam explains, drawing two circles that overlap. *"Users live
+    outside it, behind my routers. A load balancer is the only thing that has to live in both. It needs a
+    leg in my network, with an address my routers know, and a leg in your cluster, where the pods are.
+    If we don't give it those legs, it's a very expensive pod."*
+
+    So this morning you build Sam's side: the edge router and a user behind it, cabled to the node BNK's
+    engine will run on. And because this is cluster six, the one that is supposed to be repeatable, the
+    network is not built by hand either. It is a file.
+- type: text
+  contents: |
+    ## containerlab: the network as a file
+
+    **containerlab** builds networks of containers from a short YAML file: which nodes exist, what they
+    run, and which cables connect which ports. Each cable is a *veth pair*, two virtual network cards
+    joined like the two ends of a patch lead. Network teams use it to build labs of real router images;
+    here it builds a small, faithful copy of Northwind's edge.
+
+    Deploy the file and the network exists. Change the file and redeploy, and the network changes.
+    Destroy it and it is gone, leaving nothing behind. Exactly the property Priya wants for the cluster
+    itself.
 tabs:
 - id: k1ghiw7e903w
   title: Terminal
@@ -37,141 +53,182 @@ timelimit: 1500
 enhanced_loading: null
 ---
 
-# Build the data-center edge BNK will serve
+# Monday, 10:30: Sam builds the edge, and lets you hold the cables
 
-By the end of this challenge you will have this, and you will know why every piece is there:
+By lunchtime this is what will exist, and you will know why each piece is there:
 
-```
-   client 10.20.20.10                                     the TMM node (bnk-worker)
-        |                                                 eth1 (no address of its own)
-   client-net 10.20.20.0/24                                     |
-        |                                                       |
-   edge-router (FRR) .254 ----- dc-edge 10.10.10.0/24 ----------+--> TMM 10.10.10.11 (after the install)
-   "VIPs 10.30.30.0/24 live behind 10.10.10.11"
-```
+![The data-center edge for cluster six: client, edge-router and bnk-worker cabled by containerlab, with TMM and the VIP pool added later by the BNK install](../assets/edge-topology.png)
+
+The solid parts you build now. The dashed red parts are what the BNK install adds this afternoon:
+**TMM** taking the address `10.10.10.11` on `bnk-worker`'s `eth1`, and the **VIP pool** behind it.
 
 ---
 
-## Step 1: Understand the two kinds of networking in this lab
+## Step 1: Why a load balancer needs extra network legs
 
-Kubernetes gives every pod **one** network interface, `eth0`, on the cluster's pod network (Calico,
-from challenge 1). That is enough for apps. It is not enough for a load balancer that must also be
-reachable from outside, on an address your routers know.
+Remember from this morning: Calico gives every pod exactly **one** network interface, `eth0`, on the
+cluster's pod network. For an app that is all it needs. For TMM it is not enough. TMM must be
+reachable from Sam's routers on an address in Sam's network, and it must reach pods on the other side.
 
-> ### Concept: Multus, the "second NIC" for pods
-> **Multus** is a CNI plugin that calls other CNI plugins. With it, a pod gets its normal `eth0`
-> from Calico *plus* extra interfaces described by **NetworkAttachmentDefinition** objects
-> (*NADs*). BNK uses Multus to give TMM its data-plane legs. The F5 Lifecycle Operator won't even
-> start without the Multus resource type present, which is why your installer puts Multus in first.
+Two pieces of Linux and Kubernetes make that possible, and you will meet both again during the
+install.
 
-> ### Concept: macvlan, how a pod gets onto a physical network
-> A **macvlan** interface is a child of a real NIC with its *own MAC address*. To the switch it
-> looks like a separate machine plugged into the same port. When TMM gets a macvlan on the node's
-> `eth1`, TMM appears on the `eth1` network as its own host, with its own self IP, and the node
-> itself does not need an address there at all. One catch you will meet in the repository: a
-> macvlan child cannot talk to its own parent. That is why the TMM node has a second extra NIC,
-> `eth2`, for TMM's *internal* leg toward the nodes.
+**Multus** is a CNI plug-in that calls other CNI plug-ins. With Multus, a pod still gets its normal
+`eth0` from Calico, plus extra interfaces described by **NetworkAttachmentDefinition** objects
+(*NADs* for short). A NAD is a recipe: "when this pod starts, create an interface of this type, on
+that node's card." BNK's installer applies two of them for TMM, and installs Multus itself first.
 
-Look at the TMM node's interfaces now. `eth1` (into `dc-edge`) and `eth2` (into the cluster
-network) were plugged in when the cluster was built; `eth1` deliberately has no IPv4 address:
+**macvlan** is the kind of interface those recipes ask for. A macvlan interface is a child of a real
+network card with its *own MAC address*. To the switch on the other end, it looks like a separate
+machine plugged into the same port. So when TMM gets a macvlan on `bnk-worker`'s `eth1`, TMM appears
+on Sam's network as a host of its own, with its own self IP, and the node itself needs no address
+there at all.
+
+There is one catch, and it explains a detail in the picture: **a macvlan child cannot talk to its own
+parent card.** If TMM's inner leg hung off `bnk-worker`'s main card, `eth0`, TMM could reach every node
+except the one it lives on. So `bnk-worker` has a second card into the cluster network, `eth2`, used
+only as TMM's internal parent. The team added it when they built the cluster. Look at the node's
+cards today:
 
 ```run
-docker exec bnk-worker ip -br addr
+docker exec bnk-worker ip -br link
 ```
+
+`eth0` (the node's own, on the kind network), `eth2` (TMM's future internal parent), and no `eth1`
+yet. That is the port you are about to cable.
 
 ---
 
-## Step 2: Build the edge
+## Step 2: Read the topology before you build it
 
-One command builds the routers and networks. Read its output as it goes, every block explains
-itself:
+Sam's rule: never deploy a network file you have not read.
+
+```run
+cat /opt/lab/edge/edge.clab.yml
+```
+
+Walk through it from the top:
+
+- `name: edge` and `prefix: ""`: the lab is called *edge*, and the containers keep the plain names you
+  will type all day, `edge-router` and `client`.
+- `mgmt`: containerlab gives each node a management interface on its own network
+  (`172.20.40.0/24`), kept out of the data path. That is how a real network keeps its out-of-band
+  management separate from the traffic it carries.
+- **`edge-router`** runs **FRRouting** (FRR), the open-source routing suite that many commercial
+  routers and SONiC are built on, with packet forwarding switched on. Its whole configuration is two
+  files from the repository, mounted in.
+- **`client`** runs *netshoot*, a container full of network tools (`curl`, `traceroute`, `tcpdump`)
+  that plays a user. Its address and its default route, via the router, are set by the `exec` lines.
+- **`bnk-worker`** is `kind: ext-container`: a container that *already exists*, your Kubernetes node.
+  containerlab does not create it; it only plugs a cable into it.
+- `links:` are the cables, one per line: router `eth1` to `bnk-worker` `eth1` (the **dc-edge**
+  segment, where TMM will stand), and router `eth2` to client `eth1` (**client-net**, where the users
+  are).
+
+Now the router's configuration, the same commands a network engineer types on a physical router:
+
+```run
+cat /opt/lab/edge/edge-router/frr.conf
+```
+
+Two interfaces with addresses, and one line that matters more than any other today:
+
+```
+ip route 10.30.30.0/24 10.10.10.11
+```
+
+*"Anything for the VIP range, send to 10.10.10.11."* That is where TMM will stand.
+
+> **A VIP** (*virtual IP*) is an address that belongs to a service, not to a machine. When Lena's team
+> asks BNK for a Gateway this afternoon, BNK hands out a VIP from its pool (`10.30.30.10` to `.29`)
+> and TMM answers on it. Users can only reach a VIP if the network sends the VIP range to TMM. Here a
+> static route does that. Large sites let TMM *announce* its VIPs to the routers with **BGP** instead
+> (BNK's dynamic routing), so the network learns them by itself and stops sending traffic to a TMM that
+> has gone away. This router speaks BGP too, so the lab can grow into that.
+
+---
+
+## Step 3: Deploy it
 
 ```run
 lab network
 ```
 
-What just happened:
+The command prints the topology, runs `containerlab deploy`, and shows containerlab's own view of what
+it built: every node, its image, its management address, its state. Then it shows what got cabled
+and tests the path. Read the four blocks as they go by.
 
-1. **`client-net`** was created: the users' network, `10.20.20.0/24`.
-2. **`edge-router`** started: **FRRouting** (FRR), the open-source routing suite that many
-   commercial routers and SONiC build on. It has a leg in `dc-edge` (`.254`) and one in
-   `client-net` (`.254`), and forwards between them.
-3. **`client`** started: a container full of network tools (`curl`, `dig`, `tcpdump`) that plays a
-   user. Its default route points at the edge router.
-4. A path test: the client reaches the router; the router does **not** yet reach `10.10.10.11`,
-   because nothing answers on TMM's address until BNK is installed.
+Two things to notice:
 
-Switch to **Lab Topology**: the *client* and *edge-router* boxes are now green.
+- `bnk-worker` now has an **`eth1`**, **up, with no address**. Exactly what TMM's macvlan needs: a
+  port into Sam's network that the node itself does not use.
+- The last test says the router **cannot** reach `10.10.10.11` yet. That is the right answer. Nothing
+  owns that address until BNK is installed.
+
+Switch to **Lab Topology**: the *client* and *edge-router* boxes are green.
 
 ---
 
-## Step 3: Read the router's routing table
+## Step 4: Look at it the way Sam would
+
+containerlab's inventory of the lab, any time:
+
+```run
+containerlab inspect -t /opt/lab/edge/edge.clab.yml
+```
+
+The router's routing table, from FRR's own shell (`vtysh` is the command line every FRR router has):
 
 ```run
 docker exec edge-router vtysh -c 'show ip route'
 ```
 
-Find these lines:
-
-| Route | Meaning |
+| You will see | What it means |
 |---|---|
-| `C>* 10.10.10.0/24 ... eth0` | **C**onnected: the router sits directly on `dc-edge` |
-| `C>* 10.20.20.0/24 ... eth1` | Connected: it sits on `client-net` too |
-| `S>* 10.30.30.0/24 [1/0] via 10.10.10.11` | **S**tatic: "the VIP range lives behind 10.10.10.11" |
-
-> ### Concept: VIPs and why the router must know them
-> A **VIP** (*virtual IP*) is an address that belongs to a service, not to a machine. When an app
-> team asks BNK for a Gateway, BNK hands out a VIP from a pool (here `10.30.30.10` to `.29`) and
-> TMM answers on it. Users reach a VIP only if the network routes the VIP range to TMM. Here a
-> static route does that. Large sites use **BGP** instead: TMM *announces* its VIPs to the router
-> (BNK's `dynamicRouting`), so the network learns them by itself and stops sending traffic to a TMM
-> that is down. The FRR router you just started speaks BGP, so the same lab can grow into that.
+| `C>* 10.10.10.0/24 is directly connected, eth1` | **C**onnected: the router sits on dc-edge |
+| `C>* 10.20.20.0/24 is directly connected, eth2` | and on client-net |
+| `S>* 10.30.30.0/24 [1/0] via 10.10.10.11, eth1` | **S**tatic: the VIP range lives behind TMM's address |
 
 ---
 
-## Step 4: Follow a packet that cannot arrive yet
+## Step 5: Follow a packet that cannot arrive yet
 
-Ask the client to reach the VIP your first app will use, and watch where it goes:
+From the user's chair, try to reach the VIP Lena's service will use this afternoon:
 
 ```run
 docker exec client traceroute -n -w 1 -q 1 -m 3 10.30.30.10
 ```
 
-Hop 1 is the edge router (`10.20.20.254`). Hop 2 never answers: the router sends the packet to
-`10.10.10.11`, and nobody owns that address yet. After the install, that hop is TMM, and the
-packet continues to a pod.
+Hop 1 answers: the edge router, `10.20.20.254`. Hop 2 is silence. The router forwards toward
+`10.10.10.11`, and nobody is there.
 
-Now confirm the router really tries to reach TMM's address (an ARP request nobody answers):
+Ask the router what it knows about that neighbour:
 
 ```run
 docker exec edge-router ip neigh show 10.10.10.11
 ```
 
-`FAILED` or `INCOMPLETE` is the right answer today.
+`FAILED` or `INCOMPLETE`: the router asked "who has 10.10.10.11?" on dc-edge (an ARP request) and
+nobody answered. Hold on to this picture. After the install, hop 2 will be TMM and this entry will
+hold TMM's MAC address.
 
 ---
 
-## Step 5: See where TMM's address and the VIPs are declared
+## Step 6: The network and the repository agree
 
-These addresses were not invented by the network: they are written down in the repository, as the
-desired state of this cluster. Open **VS Code** and look at:
+The addresses you just built are not invented by the network. They are already written in the
+repository as the desired state of this cluster. Open **VS Code** and find:
 
-- `clusters/lab.network.yaml`: TMM's VLANs (`external`, self IP `10.10.10.11` on interface `1.1`;
-  `internal`, `172.18.0.250` on `1.2`), the VIP pool and the GatewayClass
-- `clusters/lab.attachments.yaml`: the two NADs, `external-net` on `eth1` and `internal-net` on
-  `eth2`
+- `clusters/lab.network.yaml`: TMM's two VLANs, `external` with self IP `10.10.10.11` on interface
+  `1.1` and `internal` with `172.18.0.250` on `1.2`, the VIP pool, and the GatewayClass.
+- `clusters/lab.attachments.yaml`: the two NADs, the "recipes" from step 1: `external-net` (macvlan on
+  `eth1`) and `internal-net` (macvlan on `eth2`).
 
-You will read them properly in the next challenge. For now notice: the network you just built and
-the files in git agree. Keeping those two in agreement is what the rest of the lab automates.
+Sam's edge says *"VIPs live behind 10.10.10.11"*. The repository says *"TMM takes 10.10.10.11"*. Two
+teams, two files, one fact, and nobody had to send an email. Keeping files like these in agreement,
+and applying them, is what the rest of the day automates.
 
----
+Sam nods at the green boxes on the wall. *"Your turn. Show me what you're going to run."*
 
-## What you built, in F5's terms
-
-| You built | F5 guide / BNK term |
-|---|---|
-| `dc-edge` and the node's `eth1` | the *external* network TMM's external VLAN lives on |
-| the node's `eth2` | the *internal* leg TMM uses to reach nodes and pods |
-| the static route on `edge-router` | how upstream routers reach the VIP pool (later: BGP) |
-
-Press **Check**: it verifies the router, the client and the route to the VIP pool.
+Press **Check**: it verifies the router, the client, the cable to `bnk-worker` and the route to the VIP
+pool.

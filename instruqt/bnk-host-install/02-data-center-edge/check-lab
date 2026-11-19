@@ -7,4 +7,6 @@ docker exec edge-router vtysh -c 'show ip route static' 2>/dev/null | grep -q '1
   || { fail-message "edge-router has no route to the VIP pool 10.30.30.0/24. Run 'lab network' again."; exit 1; }
 docker exec client ip route | grep -q 'default via 10.20.20.254' \
   || { fail-message "The client's default route does not point at the edge router. Run 'lab network' again."; exit 1; }
+docker exec bnk-worker ip link show eth1 >/dev/null 2>&1 \
+  || { fail-message "bnk-worker has no eth1: the cable from edge-router is missing. Run 'lab network' again."; exit 1; }
 exit 0

@@ -2,51 +2,51 @@
 slug: mission
 id: if1yav9gaw8w
 type: challenge
-title: 'Your mission: a bare cluster, and BNK by the end of the day'
-teaser: Meet the cluster you will install BIG-IP Next for Kubernetes on, and the tools
-  around it. Learn what BNK is made of and why platform teams never install it by
-  hand twice.
+title: 'Monday, 09:00: a new cluster, and nothing on it'
+teaser: Join Northwind's platform team on the morning cluster six arrives. Meet the cluster, learn how
+  its pods talk, and find out what BIG-IP Next for Kubernetes will add to it.
 notes:
 - type: text
-  contents: |-
-    ## Welcome to Northwind Networks
+  contents: |
+    ## Northwind Networks, platform team
 
-    Northwind runs GPU clusters for its AI teams. Every new cluster needs **F5 BIG-IP Next for
-    Kubernetes (BNK)** in front of it: it is the ingress, the egress, the firewall and, for AI
-    workloads, the gateway to the models.
+    It is your first Monday on Northwind's platform team, and the sixth GPU cluster arrived overnight.
 
-    Until now, one engineer installed BNK by following F5's guide line by line. It worked on the
-    first cluster. On the fifth, two clusters ran different versions, one had a hand-edited
-    certificate nobody could explain, and the engineer was on holiday when the sixth arrived.
+    Northwind's AI teams live on these clusters. Lena's team runs **Atlas**, the search assistant the
+    whole company asks questions of, and Atlas is waiting for this cluster. Before Atlas can move in,
+    every cluster gets **F5 BIG-IP Next for Kubernetes (BNK)** in front of it: the way in, the way
+    out, the firewall and the gateway to the models.
 
-    Today you fix that. You will take a **bare Kubernetes cluster** to a **licensed BNK 2.4.2
-    serving real traffic** without running a single install command yourself, using the tools a
-    platform team uses: git, pull requests, a pipeline, F5's BNK Forge, or Argo CD.
+    Priya, who leads the team, puts a coffee next to your keyboard.
+
+    *"Here is the honest history. Clusters one to five, we installed BNK by hand from F5's guide. It
+    worked. Then two of them drifted to different versions, one has a certificate nobody can explain,
+    and the person who did them is on holiday. Cluster six is going to be different. By the end of
+    today I want BNK on it without anyone typing an install command, and I want us able to do it again
+    on cluster seven in ten minutes."*
 - type: text
-  contents: |-
-    ## What you have, and what you build
+  contents: |
+    ## What the team has given you
 
-    **Already here (the "company" provides it):**
-    - a three-node Kubernetes cluster, with nothing F5 on it
-    - **Gitea**, your company's git server (think GitHub), with the `bnk-host-deploy` repository
-    - **VS Code** in the browser, opened on your clone of that repository
-    - a **Lab Topology** page that turns green as you build
+    - **The cluster**: three nodes, Kubernetes 1.35, no F5 software on it at all.
+    - **Gitea**: Northwind's git server (think GitHub). It holds `bnk-host-deploy`, the repository
+      with F5's install guide written as code.
+    - **VS Code**, opened on your own copy of that repository.
+    - **Lab Topology**: a live map of your environment that lights up as you build.
 
-    **You build:**
-    1. the data-center edge BNK will serve: a router and a client
-    2. a CI runner beside the cluster, and the installer's container image
-    3. BNK itself, with **one** of three tools: a CI/CD pipeline, BNK Forge, or Argo CD
-    4. a first application behind BNK, tested from the client
-    5. a Day-2 change, through git
+    The day ahead: build the network edge BNK will serve, give the team's pipeline a runner, choose
+    **one** way to install BNK (a CI/CD pipeline, F5's BNK Forge, or Argo CD), put Atlas's first service
+    behind it, and finish the way every platform team should: auditing what you built.
 - type: text
-  contents: |-
+  contents: |
     ## How this lab works
 
-    - Code blocks marked **run** can be clicked to run in the Terminal tab.
-    - Every step says *what* you do and *why*, and which page of F5's install guide it replaces.
-    - Three challenges in the middle are alternatives: you do **one** install path and press
-      **Skip** on the other two. CI/CD is the recommended path.
-    - Nothing in this sandbox is shared with anyone. Break it freely.
+    - Code blocks marked **run** can be clicked; they run in the Terminal tab.
+    - Each challenge starts with what is happening at Northwind, then walks you through the work step by
+      step, explaining every technology the first time you meet it.
+    - Challenges 5 to 9 are three alternative install paths. Do **one** and press **Skip** on the
+      others. The CI/CD path is the one Priya recommends.
+    - Your sandbox is yours alone. Break things; that is what it is for.
 tabs:
 - id: 5c5yhqtmzdor
   title: Terminal
@@ -75,223 +75,233 @@ timelimit: 1200
 enhanced_loading: null
 ---
 
-# Your mission: a bare cluster, and BNK by the end of the day
+# Monday, 09:00: a new cluster, and nothing on it
 
-In this first challenge you look around. You will see the cluster, understand what BIG-IP Next for
-Kubernetes adds to it, and meet the tools you will use to install it. Nothing gets installed yet.
+Priya's first rule for any new cluster: *before you change it, know it.* So this morning you change
+nothing. You walk around the cluster, learn how its pieces talk, and find out exactly what BNK will
+add, so that every step this afternoon makes sense before you take it.
 
 ---
 
-## Step 1: Look at the whole lab on one page
+## Step 1: The map on the wall
 
-Open the **Lab Topology** tab.
+Open the **Lab Topology** tab. The team keeps it on a screen in the corner of the room.
 
-It is a live drawing of your sandbox, refreshed every five seconds. Three zones:
+It has three zones. On the left, the **data-center edge**: where users and routers live. It is empty,
+because building it is your next job. In the middle, the **Kubernetes cluster**: three nodes, green,
+and one big box marked *worker (TMM node)*, which is where BNK's engine will run. On the right, the
+**platform tooling**: Gitea is green, Forge and Argo CD are grey and waiting.
 
-| Zone | What it is |
-|---|---|
-| **Data center edge** | where users and the network live. Empty for now: you build it next challenge |
-| **Kubernetes cluster "bnk"** | three nodes, Ready. Note the large *worker (TMM node)* box: that is where BNK's data plane will run |
-| **Platform tooling** | Gitea is green. Forge, Argo CD and the registry are grey: you will build those |
-
-Keep this tab in mind. Every time you finish something, come back and watch a box turn green.
+Every time you finish something today, come back here. Watching a box turn green is the quickest
+proof that what you did worked.
 
 ---
 
 ## Step 2: Meet the cluster
 
-Switch to the **Terminal** tab and ask Kubernetes which machines it has:
+Switch to the **Terminal** and ask the cluster what it is made of:
 
 ```run
 kubectl get nodes -o wide
 ```
 
-You should see three nodes, all `Ready`:
+Three nodes answer, all `Ready`. `bnk-control-plane` runs the cluster's brain (the API server, the
+scheduler, the etcd database) and, here, ordinary work too. `bnk-worker` is the one Priya has set
+aside for BNK's data plane. `bnk-worker2` will carry everything else.
 
-| Node | Role |
-|---|---|
-| `bnk-control-plane` | runs the Kubernetes API server, the scheduler, etcd. In this lab it also runs workloads |
-| `bnk-worker` | will run **TMM**, BNK's data plane |
-| `bnk-worker2` | a second worker for BNK's control-plane pods and your apps |
+What is Kubernetes actually doing with these three machines? It is easiest to think of it as a
+promise-keeper. You never tell Kubernetes *how* to start something. You tell it *what you want*,
+"three copies of this web server, reachable on port 80", by sending an **object** to its **API
+server**. Small programs inside the cluster, the **controllers**, then work tirelessly until
+reality matches the promise, and keep it matching: kill one of the three copies and a controller
+starts a fourth before you have finished reading the error. `kubectl`, the command you just ran, is
+simply a client for that API. Everything you install today, BNK included, is more objects and more
+controllers keeping more promises.
 
-> ### Concept: Kubernetes in one paragraph
-> Kubernetes runs containers across a group of machines (**nodes**) and keeps them running. You
-> do not tell it *how* to start things; you tell it *what you want* (three copies of this web
-> server, reachable on port 80) by sending **objects** to its **API server**. Controllers inside
-> the cluster then work until reality matches what you asked for. `kubectl` is the command-line
-> client for that API. Everything you install today, BNK included, is just more objects and more
-> controllers.
-
-> ### Concept: why the nodes are containers ("kind")
-> A real cluster's nodes are servers or VMs. To fit a whole data center into one lab VM, this
-> cluster uses **kind** (*Kubernetes in Docker*): each node is a Docker container running its own
-> kubelet and container runtime. Kubernetes cannot tell the difference, and neither can BNK. One
-> consequence matters later: all three nodes share this VM's Linux kernel.
-
-See the node containers for yourself:
+There is one surprise in this cluster. Ask Docker what is running on this machine:
 
 ```run
 docker ps --filter name=bnk- --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}'
 ```
 
+The three "machines" are **containers**. Northwind's real clusters run on racks of servers, but for
+cluster six the team built a faithful copy with **kind**, *Kubernetes in Docker*, where every node
+is a container running a real kubelet and a real container runtime. Kubernetes cannot tell the
+difference, and neither can BNK. Remember one consequence: all three nodes share this VM's Linux
+kernel. That will matter in step 4.
+
 ---
 
-## Step 3: How pods talk: the CNI
+## Step 3: How the pods talk to each other
 
-Pods need IP addresses, and routes so a pod on one node can reach a pod on another. Kubernetes
-does not do that itself: it calls a **CNI plugin**.
+Every application in Kubernetes runs in a **pod**, and every pod gets its own IP address. That
+raises a question Kubernetes deliberately refuses to answer itself: *who hands out those addresses,
+and how does a packet from a pod on one node find a pod on another?*
 
-> ### Concept: CNI, the Container Network Interface
-> When the kubelet starts a pod, it asks the container runtime to create the pod's network
-> namespace, then runs a **CNI plugin**: a small program from `/opt/cni/bin`, chosen by the config
-> file in `/etc/cni/net.d/`. The plugin creates the pod's `eth0`, gives it an IP address and sets up
-> routes. Which plugin you run decides how pod networking works across the cluster: overlay or
-> routed, network policy or not.
+The answer is a plug-in. When the kubelet starts a pod, it creates an empty network namespace for it
+and then calls a **CNI plugin** (*Container Network Interface*): a small program from the node's
+`/opt/cni/bin`, chosen by a config file in `/etc/cni/net.d/`. The plugin gives the pod its `eth0`,
+an address, and the routes it needs. Which plugin you choose decides how your whole cluster's
+network behaves.
 
-This lab's setup installed three things. Check each one yourself.
+Northwind chose **Calico**, and the reason is BNK. F5's installer checks which CNI a cluster runs
+and refuses to install on one it cannot recognise, and Calico is the one F5 tests BNK in host mode
+with. The lesson Priya wants you to take away: *pick your CNI with BNK in mind, not after.*
 
-**1. Calico, the cluster's CNI.** kind normally installs its own simple CNI (*kindnet*); this
-cluster was built with it disabled and **Calico** installed instead, through the **Tigera operator**
-(the operator that installs and upgrades Calico):
+When the cluster was built, kind's own simple CNI was switched off and Calico installed instead,
+through the **Tigera operator**, a controller whose only job is to install and look after Calico.
+See both:
 
 ```run
 kubectl get pods -n tigera-operator
 kubectl get pods -n calico-system -o wide
 ```
 
-One `calico-node` pod runs on every node (a DaemonSet): it programs the routes and policies on that
-node. `calico-kube-controllers` watches the cluster, and `calico-typha` fans changes out to the
-nodes.
+A `calico-node` pod runs on every node (a **DaemonSet**, Kubernetes' way of saying "one on each"),
+programming that node's routes. `calico-kube-controllers` watches the cluster as a whole.
 
-**2. How Calico was configured.** The operator reads one object, the `Installation`:
+The operator reads its instructions from a single object, the `Installation`. Read the network part
+of it, and the pool of addresses Calico hands out:
 
 ```run
 kubectl get installation default -o jsonpath='{.spec.calicoNetwork}' | jq
 kubectl get ippools -o wide
 ```
 
-| Setting | Value | Meaning |
-|---|---|---|
-| `cidr` | `192.168.0.0/16` | every pod gets an address from here |
-| `encapsulation` | `VXLANCrossSubnet` | pod traffic between nodes on the same subnet is routed directly; across subnets it is wrapped in VXLAN |
-| `natOutgoing` | `Enabled` | pods reaching outside the cluster leave with the node's address |
-| `nodeAddressAutodetectionV4` | `interface: eth0` | Calico uses the nodes' `eth0` only. `eth1` and `eth2` on the TMM node are reserved for TMM |
+Every pod's address comes from `192.168.0.0/16`. Between nodes on the same subnet Calico simply
+routes; across subnets it would wrap packets in VXLAN (`VXLANCrossSubnet`). Pods talking to the
+outside world leave with their node's address (`natOutgoing`). And look at the last setting:
+Calico only uses each node's `eth0`. That is deliberate. `bnk-worker` has two more network cards,
+and they are being kept for BNK.
 
-**3. The CNI plugin binaries on each node.** kind ships only four plugins. Setup added the standard
-set, because TMM's legs will need `macvlan`:
+Now look at the plug-ins themselves, on the node BNK will use. kind ships only four; the team added
+the standard set, because BNK will need one called `macvlan` later today:
 
 ```run
 docker exec bnk-worker ls /opt/cni/bin
-docker exec bnk-worker sh -c 'ls /etc/cni/net.d/ && cat /etc/cni/net.d/10-calico.conflist | head -20'
+docker exec bnk-worker sh -c 'ls /etc/cni/net.d/ && head -20 /etc/cni/net.d/10-calico.conflist'
 ```
 
-`10-calico.conflist` is the file the kubelet reads: it says "for every pod, run `calico`, then
-`bandwidth` and `portmap`".
+`10-calico.conflist` is the instruction the kubelet follows for every new pod: a *chain* of plug-ins.
+First `calico` (the interface, the address from `calico-ipam`, the network policy), then `portmap`
+(so a pod's `hostPort` works). Notice the API address inside it, `https://10.96.0.1:443`: the
+plug-in asks the Kubernetes API for every pod it wires up, which is why a node that cannot reach
+that address cannot start a single pod.
 
-**See it work.** Start a throwaway pod on each worker and ping one from the other across nodes:
+Seeing is believing. Start one throwaway pod on each worker and make one ping the other, across
+nodes, through Calico:
 
 ```run
 kubectl run cni-a --image=nicolaka/netshoot:v0.14 --overrides='{"spec":{"nodeName":"bnk-worker"}}' -- sleep 300
 kubectl run cni-b --image=nicolaka/netshoot:v0.14 --overrides='{"spec":{"nodeName":"bnk-worker2"}}' -- sleep 300
-kubectl wait --for=condition=Ready pod/cni-a pod/cni-b --timeout=120s
+kubectl wait --for=condition=Ready pod/cni-a pod/cni-b --timeout=180s
 kubectl get pod cni-a cni-b -o wide
 kubectl exec cni-a -- ping -c2 "$(kubectl get pod cni-b -o jsonpath='{.status.podIP}')"
 kubectl delete pod cni-a cni-b --now
 ```
 
-Two `192.168.x.y` addresses on two nodes, and the ping crosses between them through Calico.
+Two `192.168.x.y` addresses, two different nodes, and replies coming back. That is the cluster's
+pod network, working.
 
-> ### Concept: why Calico, specifically
-> BNK's installer, the **F5 Lifecycle Operator**, checks which CNI the cluster runs and refuses to
-> install on one it cannot classify. Calico is the CNI F5 tests BNK in host mode with (on OpenShift
-> it is OVN-Kubernetes). BNK also adds a **pseudo-CNI** of its own on top: it steers pod traffic
-> that leaves the cluster through TMM, which is how BNK does per-tenant egress and SNAT. Pick your
-> CNI with BNK in mind, not after.
+Look closely at one number in the replies: **`ttl=62`**. Every packet leaves with a *time to live*
+of 64, and every router it passes through takes one off. 62 means the packet crossed exactly **two
+routers**: the node `cni-a` lives on, and the node `cni-b` lives on, each routing for its own pods.
+That is Calico at work: it does not stretch one big switch across the cluster, it makes every node a
+small router and teaches each one where the other nodes' pods live. You can see those lessons on any
+node: `docker exec bnk-worker ip route` shows a route to each other node's block of pod addresses.
 
-> ### What is not here yet: Multus
-> A pod gets exactly one interface from Calico. TMM needs more: one toward the data-center network,
-> one toward the nodes. That is the job of **Multus**, a "meta" CNI that adds extra interfaces to
-> chosen pods. It is a BNK prerequisite, so the **installer** puts it in (phase 10), and you will
-> watch it arrive. Confirm it is absent today:
->
-> ```run
-> kubectl get crd network-attachment-definitions.k8s.cni.cncf.io 2>&1 | tail -1
-> ```
+There is one thing a pod network like this cannot do, and it is exactly what BNK needs. A pod gets
+**one** interface from Calico. BNK's engine has to stand with one foot in the cluster and one foot in
+the data center, and that needs extra network interfaces in a pod. The tool for that is **Multus**, a
+"meta" plug-in that adds more interfaces to chosen pods. It is a BNK prerequisite, so it is not here
+yet: BNK's installer will put it in, and you will watch it arrive. Confirm it is missing:
+
+```run
+kubectl get crd network-attachment-definitions.k8s.cni.cncf.io 2>&1 | tail -1
+```
 
 ---
 
-## Step 4: Hugepages, the one thing BNK needs from the kernel
+## Step 4: The one thing BNK needs from the kernel
 
 ```run
 kubectl get nodes -o custom-columns='NODE:.metadata.name,CPU:.status.allocatable.cpu,MEMORY:.status.allocatable.memory,HUGEPAGES-2Mi:.status.allocatable.hugepages-2Mi'
 ```
 
-Every node offers `4Gi` of **2Mi hugepages**.
+Every node offers `4Gi` of **hugepages**. Here is why that column exists.
 
-> ### Concept: hugepages and TMM
-> Memory is normally handed out in 4 KiB pages. TMM, BNK's packet engine (the same Traffic
-> Management Microkernel that runs in every BIG-IP), wants large, pinned 2 MiB pages so its packet
-> buffers never get swapped and the CPU's address cache rarely misses. TMM *requests* 2 GiB of
-> hugepages. A node without them can never run TMM, and the symptom is a pod stuck in `Pending`
-> that never mentions hugepages. The lab reserved them on the VM's kernel already; on a real
-> server you set `vm.nr_hugepages`, or a kernel boot parameter, and restart the kubelet.
+Normally Linux hands memory out in small 4 KiB pages, and the processor keeps a small cache of where
+recently used pages live. BNK's engine, **TMM** (the *Traffic Management Microkernel*, the same
+packet engine that runs inside every BIG-IP), moves millions of packets a second through big buffers.
+With small pages it would constantly miss that cache. So TMM asks for **2 MiB pages**, pinned in
+memory where they can never be swapped out, and it asks for 2 GiB of them.
+
+If a node cannot offer hugepages, TMM simply never starts, and the only symptom is a pod waiting
+forever in `Pending` without a word about hugepages. The team reserved them on this VM's kernel
+before handing you the cluster (that is the "all nodes share one kernel" consequence from step 2: one
+setting, three nodes). On real servers this is a kernel setting, `vm.nr_hugepages`, and a kubelet
+restart.
 
 ---
 
-## Step 5: What is missing (that is the point)
+## Step 5: What is missing (which is the point)
 
-Ask the cluster for anything F5:
+Ask the cluster for anything F5, and look at its namespaces:
 
 ```run
 kubectl get crd | grep -c -E 'f5|cert-manager|cni.cncf.io' || true
 kubectl get ns
 ```
 
-Zero F5 resource types and no F5 namespaces: a clean cluster, the way a new one arrives.
-
-Now see the whole picture in one command, the lab's status screen:
+Zero. A clean cluster, exactly how they arrive from the hardware team. Now the whole picture in one
+screen, the team's status command:
 
 ```run
 lab status
 ```
 
-Most of it says *not installed*. By the end of the lab every line will be filled in.
+Most of it says *not installed*. By the end of the day every line will be filled in.
 
 ---
 
-## Step 6: What BIG-IP Next for Kubernetes is made of
+## Step 6: What you are about to install
 
-Before you install it, know what you are installing. BNK on a host (called **Host mode**: TMM runs
-as a normal pod on the node's CPU, no DPU) is three layers:
+Priya draws three boxes on the whiteboard.
 
-| Layer | Components | What they do |
-|---|---|---|
-| **Operator** | F5 Lifecycle Operator (**FLO**) | Installs and upgrades everything else. You give it one object, a **CNEInstance**, and it lays down ~80 components from F5's *release manifest* |
-| **Control plane** | CNE controller, CWC (licensing), DSSM (state), observer, cert services | Watches Kubernetes objects (Gateways, routes, VLANs) and programs TMM |
-| **Data plane** | **TMM** (one pod on the node you choose) | Moves the packets: VIPs, load balancing, SNAT, firewall, AI gateway |
+*"BNK in **Host mode** means TMM runs as an ordinary pod on a node's CPU. No special hardware, no
+DPU. It is three layers."*
 
-The install is an ordered list, which F5's guide *Install BNK (Host) on a self-managed cluster
-using FLO* walks through: prepare the cluster, label the TMM node, install cert-manager, create
-registry pull secrets, install FLO, generate certificates, create a CNEInstance, license it.
+The **operator** at the bottom: the **F5 Lifecycle Operator**, FLO. You never install BNK's eighty
+components yourself. You give FLO one object, a **CNEInstance**, that says "BNK release 2.4.2, this
+size, this network", and FLO installs everything listed in F5's *release manifest* for that release,
+and upgrades it later.
 
-> ### Concept: why not just run the guide's commands?
-> F5's older hands-on labs did exactly that: a script per step, run by hand, in order. It teaches
-> the steps, but it does not scale: every cluster becomes a snowflake, nothing records what was
-> run, and an upgrade means doing it all again carefully. In this lab every step of the guide is
-> **code in a repository**, and a tool runs it. You will read that code in challenge 3, and see each
-> phase print the page of F5's guide it replaces.
+The **control plane** in the middle: the controller that watches Kubernetes objects (Gateways,
+routes, VLANs) and turns them into TMM configuration, plus licensing, state storage and certificate
+services.
+
+The **data plane** on top: **TMM**, one pod on the node you choose, actually moving the packets:
+virtual servers, load balancing, address translation, the firewall.
+
+F5's guide, *Install BNK (Host) on a self-managed cluster using FLO*, gets you there in a fixed
+order: prepare the cluster, label the TMM node, install cert-manager, create the registry pull
+secrets, install FLO, generate certificates, create the CNEInstance, license it.
+
+*"Every one of those steps is in our repository as code,"* Priya says. *"You will read that code
+this morning, and this afternoon a tool runs it. Which tool is up to you."*
 
 ---
 
-## Step 7: The three tools you can install it with
+## Step 7: Three ways to install, one installer
 
-| Path | How BNK gets installed | Who uses it |
+| | How BNK gets installed | Why a team picks it |
 |---|---|---|
-| **CI/CD pipeline** (recommended) | You change a file in a pull request. A pipeline *plans* (shows what would change), a human reviews, the merge *applies* | Platform teams who already ship everything through git |
-| **BNK Forge** | F5's deployment and lifecycle tool runs the same installer as a module, step by step, with a UI and Day-2 views | Teams who want a console, approvals and fleet views |
-| **Argo CD** | GitOps: Argo watches git and makes the cluster match it, continuously | Teams already running GitOps for everything else |
+| **CI/CD pipeline** | You change a file in a pull request. A pipeline shows the plan, a colleague reviews it, the merge installs | Everything already goes through git and review |
+| **BNK Forge** | F5's deployment and lifecycle tool runs the same installer step by step, with a console | You want a UI, step-level retries and fleet views |
+| **Argo CD** | The cluster pulls its desired state from git and makes itself match | You run GitOps for everything else |
 
-All three run **the same installer** from the same repository. That is the lesson of the day: the
-install logic lives in one versioned place, and the orchestrator is a choice.
+All three run the **same installer**, from the same repository, pinned to the same build. That is the
+quiet lesson of the day: the knowledge of how to install BNK lives in one versioned place, and the
+tool that runs it is a choice you can change.
 
-When you are ready, press **Check** to continue. (It checks that you ran `lab status`.)
+Press **Check** when you have run `lab status`. Next, you build the edge of the data center.
