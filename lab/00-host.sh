@@ -26,24 +26,16 @@ step "base tools (the image carries docker, kind, kubectl, helm)"
 for t in docker kind containerlab kubectl helm git jq curl python3 make openssl; do need "$t"; done
 docker info >/dev/null 2>&1 || fail "docker is not running"
 export DEBIAN_FRONTEND=noninteractive
-# Cloud package mirrors have bad minutes (503s). Retry with backoff, and after three failures switch
-# from the cloud's regional mirror to Ubuntu's main archive, rather than fail the whole lab.
-apt_install() {
-  local i
-  for i in 1 2 3 4 5 6; do
-    if apt-get update -qq >/dev/null 2>&1 && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq "$@" >/dev/null 2>&1; then return 0; fi
-    if (( i == 3 )); then
-      echo "      package mirror failing, switching to archive.ubuntu.com"
-      sed -i -E 's#https?://[a-z0-9.-]+\.(gce|ec2|azure|clouds)\.archive\.ubuntu\.com/ubuntu/?#http://archive.ubuntu.com/ubuntu/#g' \
-        /etc/apt/sources.list /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources 2>/dev/null || true
-    fi
-    echo "      apt attempt $i failed, retrying in $(( i * 10 ))s"; sleep $(( i * 10 ))
-  done
-  fail "could not install $* (package mirrors unavailable)"
-}
-command -v shellcheck >/dev/null && command -v xz >/dev/null || apt_install shellcheck xz-utils
 
 fetch() { curl -fsSL --retry 4 --retry-delay 3 -o "$2" "$1"; }
+# No apt: package mirrors have bad minutes (503s). shellcheck comes from its pinned, checksum-verified
+# release, and .xz archives are unpacked with Python's standard library.
+if ! command -v shellcheck >/dev/null; then
+  SC=$(mktemp -d); f="shellcheck-${SHELLCHECK_VERSION}.linux.x86_64.tar.xz"
+  fetch "https://github.com/koalaman/shellcheck/releases/download/${SHELLCHECK_VERSION}/${f}" "$SC/$f"
+  echo "${SHELLCHECK_SHA256}  $SC/$f" | sha256sum -c - >/dev/null || fail "shellcheck checksum mismatch"
+  untar_xz "$SC/$f" "$SC" 1 && install -m 0755 "$SC/shellcheck" /usr/local/bin/shellcheck; rm -rf "$SC"
+fi
 T=$(mktemp -d)
 
 if ! yq --version 2>/dev/null | grep -q "${YQ_VERSION}"; then
@@ -59,7 +51,7 @@ if ! node --version 2>/dev/null | grep -q "^${NODE_VERSION}$"; then
   fetch "https://nodejs.org/dist/${NODE_VERSION}/${f}" "$T/$f"
   fetch "https://nodejs.org/dist/${NODE_VERSION}/SHASUMS256.txt" "$T/node.sums"
   (cd "$T" && grep " ${f}\$" node.sums | sha256sum -c - >/dev/null) || fail "node checksum"
-  mkdir -p /opt/node && tar -xJf "$T/$f" -C /opt/node --strip-components=1
+  mkdir -p /opt/node && untar_xz "$T/$f" /opt/node 1
   ln -sf /opt/node/bin/node /usr/local/bin/node; ln -sf /opt/node/bin/npm /usr/local/bin/npm
 fi
 ok "node $(node --version) (runs actions/checkout in host-mode CI jobs)"

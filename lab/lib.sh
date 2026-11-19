@@ -20,6 +20,8 @@ KIND_CLUSTER=bnk
 NR_HUGEPAGES=2048                 # 4 GiB of 2Mi pages: TMM requests 2 GiB
 GITEA_IMAGE="gitea/gitea:1.27.3"
 GITEA_RUNNER_VERSION="6.0.0"     # needs Gitea >= 1.26.2; runs .github/workflows unchanged
+SHELLCHECK_VERSION=v0.10.0
+SHELLCHECK_SHA256=6c881ab0698e4e6ea235245f22832860544f17ba386442fe7e9d629f8cbedf87
 NODE_VERSION="v22.21.1"           # host-mode jobs run JavaScript actions (actions/checkout) with it
 CODE_SERVER_VERSION="4.105.1"
 FORGE_REF="v4.0.0"                # iracic82/bnk-forge tag that carries dist/ for 4.0.0
@@ -109,3 +111,24 @@ set_owner() {  # set_owner pipeline|forge|argocd
   gitea_api PUT "$r" "{\"value\":\"$1\"}" >/dev/null 2>&1 || gitea_api POST "$r" "{\"value\":\"$1\"}" >/dev/null
   ok "repository variable BNK_INSTALLER=$1: only $1 installs BNK on this cluster"
 }
+
+# Unpack .xz and .tar.xz with Python's standard library, so the lab needs no xz package (no apt at all).
+unxz_to() {  # unxz_to <file.xz> <output file>
+  python3 -c 'import lzma,shutil,sys; shutil.copyfileobj(lzma.open(sys.argv[1]), open(sys.argv[2],"wb"))' "$1" "$2"
+}
+untar_xz() {  # untar_xz <file.tar.xz> <dir> [strip-components]
+  python3 - "$1" "$2" "${3:-0}" <<'PY'
+import os, sys, tarfile
+src, dst, strip = sys.argv[1], sys.argv[2], int(sys.argv[3])
+with tarfile.open(src, "r:xz") as t:
+    for m in t.getmembers():
+        parts = m.name.split("/")[strip:]
+        if not parts or not parts[0]:
+            continue
+        m.name = "/".join(parts)
+        if m.islnk():
+            m.linkname = "/".join(m.linkname.split("/")[strip:])
+        t.extract(m, dst, filter="tar") if hasattr(tarfile, "data_filter") else t.extract(m, dst)
+PY
+}
+

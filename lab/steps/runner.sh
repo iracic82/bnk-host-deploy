@@ -15,7 +15,7 @@ if [[ "$(gitea-runner --version 2>/dev/null | awk '{print $NF}')" != "v${V}" && 
   curl -fsSL --retry 4 -o "$T/$f" "https://gitea.com/gitea/runner/releases/download/v${V}/${f}"
   curl -fsSL --retry 4 -o "$T/$f.sha256" "https://gitea.com/gitea/runner/releases/download/v${V}/${f}.sha256"
   (cd "$T" && sha256sum -c "$f.sha256" >/dev/null) || fail "gitea-runner checksum mismatch"
-  xz -dc "$T/$f" > /usr/local/bin/gitea-runner; chmod +x /usr/local/bin/gitea-runner; rm -rf "$T"
+  unxz_to "$T/$f" /usr/local/bin/gitea-runner; chmod +x /usr/local/bin/gitea-runner; rm -rf "$T"
 fi
 ok "$(gitea-runner --version)"
 
