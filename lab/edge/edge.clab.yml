@@ -21,6 +21,7 @@ topology:
       binds:
         - edge-router/daemons:/etc/frr/daemons
         - edge-router/frr.conf:/etc/frr/frr.conf
+        - edge-router/vtysh.conf:/etc/frr/vtysh.conf
     client:
       kind: linux
       image: nicolaka/netshoot:v0.14

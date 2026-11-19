@@ -15,14 +15,24 @@ sed -n '/^topology:/,$p' "$TOPO" | grep -vE '^\s*#' | sed 's/^/      /'
 
 step "2/4  containerlab deploy"
 cd "$(dirname "$TOPO")" || exit 1
-if docker ps --format '{{.Names}}' | grep -qx edge-router; then
-  ok "already deployed (containerlab destroy -t $TOPO to start over)"
+# "Deployed" means deployed by containerlab from this file. A router or client built some other way
+# (an older version of this lab) is replaced, so the cables match the file.
+if [[ "$(docker inspect -f '{{index .Config.Labels "containerlab"}}' edge-router 2>/dev/null)" == edge ]] \
+   && docker exec bnk-worker ip link show eth1 >/dev/null 2>&1; then
+  ok "already deployed by containerlab (containerlab destroy -t $TOPO to start over)"
 else
+  for c in edge-router client; do
+    if docker inspect "$c" >/dev/null 2>&1 && [[ "$(docker inspect -f '{{index .Config.Labels "containerlab"}}' "$c")" != edge ]]; then
+      docker rm -f "$c" >/dev/null; ok "removed a $c that containerlab did not build"
+    fi
+  done
+  for n in dc-edge client-net; do docker network rm "$n" >/dev/null 2>&1 && ok "removed the old docker network $n" || true; done
   containerlab deploy -t "$TOPO" 2>&1 | grep -E 'INFO|WARN|ERRO' | sed 's/^/      /' | tail -12
 fi
 containerlab inspect -t "$TOPO" 2>/dev/null | sed 's/^/      /'
 
 step "3/4  what got cabled"
+docker exec bnk-worker ip link show eth1 >/dev/null 2>&1 || fail "bnk-worker has no eth1: the dc-edge cable was not created (see the deploy output above)"
 ok "bnk-worker: $(docker exec bnk-worker ip -br link show eth1 | awk '{print $1, $2}') (no address: TMM will own this port)"
 ok "client:     $(docker exec client ip -br addr show eth1 | awk '{print $1, $3}'), default via 10.20.20.254"
 for _ in $(seq 1 20); do docker exec edge-router vtysh -c 'show ip route static' 2>/dev/null | grep -q 10.30.30.0 && break; sleep 1; done
