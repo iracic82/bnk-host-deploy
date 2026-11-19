@@ -76,6 +76,9 @@ enhanced_loading: null
 
 In **Gitea**, open your pull request *Install BNK on the lab cluster* and press **Merge**.
 
+> Merged it already in challenge 5? Then the install has run, or is running. Open **Actions >
+> deploy**, follow step 2 in that run's log instead of live, and carry on from step 3.
+
 Open **Actions**. A `deploy` run has started on `main`. Click into it. A `ci` run starts too, because
 every change to `main` is checked again.
 
@@ -281,8 +284,9 @@ kubectl -n f5-bnk exec $T -c debug -- bdt_cli -u -s tmm0:8850 arp | grep -v 'fe8
 ```
 
 Its own self IPs, `10.10.10.11` and `172.18.0.250`, are `permanent` entries. Sam's router,
-`10.10.10.254`, is **missing**, even though it just pinged TMM: TMM answered the router's MAC
-address directly and never needed to look it up. Auto last hop again.
+`10.10.10.254`, may also be there as `resolved`: TMM learns neighbours from the ARP requests it
+receives, so whether it shows depends on timing. It is not needed for the replies, though. The route
+table proved that: auto last hop sends them back the way they came.
 
 Finally, TMM's own load:
 
@@ -290,7 +294,7 @@ Finally, TMM's own load:
 kubectl -n f5-bnk exec $T -c debug -- tmctl -d blade tmm_stat -s cpu_usage_5secs,memory_used,client_side_traffic.tot_conns
 ```
 
-One row per **TMM thread**, four here. Each shows tens of percent of CPU even with no traffic, and
+One row per **TMM thread**, four here. The CPU column is far from zero even with no traffic, and
 that is normal. TMM **polls** its interfaces in a tight loop instead of waiting for the kernel to
 interrupt it, which is how it moves packets at line rate. You will come back to `tmctl` in
 challenge 10, when there is traffic to count.

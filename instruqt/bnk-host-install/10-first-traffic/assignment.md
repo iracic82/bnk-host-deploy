@@ -139,12 +139,14 @@ lab owner
 |---|---|---|
 | **pipeline** (path A) | the `apps` workflow: a server-side dry run, then `kubectl apply` | watch it in **Gitea > Actions** |
 | **argocd** (path C) | Argo CD's `apps` Application, automatically, within about a minute | watch it in the **Argo CD** tab |
-| **forge** (path B) | nobody. Forge installs the platform, and app teams ship their own way | run the command below |
+| **forge** (path B) | nobody. Forge installs the platform, and app teams ship their own way | `lab deliver` applies it for you |
 
-**Only if `lab owner` says `forge`**, apply the app the way an app team would:
+Then hand it over, whatever your path. `lab deliver` does the right thing for each owner: on the
+pipeline and Argo CD paths it only tells you what delivers it (and whether you have merged yet), on
+the Forge path it applies the file itself, because there nobody else will:
 
 ```run
-kubectl apply -f apps/hello/hello.yaml
+lab deliver apps/hello/hello.yaml
 ```
 
 On the Argo CD path, the `apps` Application grows a tree of the five objects, all Synced and

@@ -193,11 +193,10 @@ mkdir -p apps/inference && cp docs/examples/inference/inference.yaml apps/infere
 git add apps/inference && git commit -qm "apps: inference, three simulated GPUs behind BNK's endpoint picker" && git push -u origin inference-app
 ```
 
-**Merge** it in **Gitea**, and let your path deliver it (`lab owner`, as in challenge 10). Only on the
-Forge path, apply it yourself:
+**Merge** it in **Gitea**, then hand it over as in challenge 10:
 
 ```run
-kubectl apply -f apps/inference/inference.yaml
+lab deliver apps/inference/inference.yaml
 ```
 
 Watch it come up. The picker's own pod appears next to the three model servers, rendered by BNK:

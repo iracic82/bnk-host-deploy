@@ -223,7 +223,13 @@ challenge 10:
 |---|---|
 | **pipeline** | the `apps` workflow runs on the merge. Watch **Gitea > Actions** |
 | **argocd** | Argo's `apps` Application notices within about a minute |
-| **forge** | apply it yourself: `kubectl apply -f apps/hello/hello.yaml` |
+| **forge** | `lab deliver` applies it |
+
+Then, whatever your path:
+
+```run
+lab deliver apps/hello/hello.yaml
+```
 
 Wait until five pods run, then send traffic:
 
