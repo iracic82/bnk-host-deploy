@@ -179,6 +179,10 @@ lab owner
 | **argocd** (path C) | Argo CD's `apps` Application, automatically, within about a minute | watch it in the **Argo CD** tab |
 | **forge** (path B) | nobody. Forge installs the platform, and app teams ship their own way | `lab deliver` applies it for you |
 
+> Played more than one install path? The owner is whichever tool installed last. Point it at the path
+> you want to deliver with, for example `source /opt/lab/lib.sh && set_owner pipeline`, then run
+> `lab owner` again.
+
 Then hand it over, whatever your path. `lab deliver` does the right thing for each owner: on the
 pipeline and Argo CD paths it only tells you what delivers it (and whether you have merged yet), on
 the Forge path it applies the file itself, because there nobody else will:
