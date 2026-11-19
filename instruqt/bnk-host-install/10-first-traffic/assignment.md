@@ -127,9 +127,16 @@ mkdir -p apps/hello && cp docs/examples/hello/hello.yaml apps/hello/hello.yaml
 git add apps/hello && git commit -m "apps: hello, the first app behind BNK" && git push -u origin hello-app
 ```
 
-**Now open and merge the pull request.** In the **Gitea** tab, the green banner *You pushed on branch
-hello-app* has a **New Pull Request** button, as in challenge 4. Create the pull request, wait for
-`ci` to go green, then press **Merge**. Nothing reaches the cluster until this merge lands on `main`.
+**Open the pull request, wait for its checks, then merge:**
+
+1. In the **Gitea** tab, click **New Pull Request** on the green banner *You pushed on branch …*, and
+   **Create** it.
+2. **Wait for the checks.** The pull request's Conversation tab lists its workflow runs (`ci`, and
+   `plan` when a cluster file changed), and so does **Actions**. A yellow dot means still running.
+   Wait until every one shows a green tick.
+3. Press **Merge**.
+
+Nothing reaches the cluster until this merge lands on `main`.
 
 How the merged app reaches the cluster depends on the path you took. Ask the lab:
 

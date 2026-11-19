@@ -134,8 +134,8 @@ Save, then validate, commit and push:
 ./tests/cluster.sh clusters/lab.yaml && git commit -qam "clusters/lab: let BNK run endpoint pickers in namespace inference" && git push -u origin enable-inference
 ```
 
-**Now open the pull request** in **Gitea**: the green banner's **New Pull Request** button, then
-**Create**. Do not merge yet, read on first. What this change makes the installer do:
+**Open the pull request** in **Gitea**: click **New Pull Request** on the green banner and **Create** it.
+Do not merge yet, read on first. What this change makes the installer do:
 
 | Phase | Action |
 |---|---|
@@ -156,9 +156,9 @@ lab owner
 
 | `lab owner` says | How the platform change lands |
 |---|---|
-| **pipeline** | the plan comment on the pull request lists the new phase 47 actions and the CNEInstance diff (`+ eppNamespaces`). **Merge**, and `deploy` applies it |
-| **argocd** | **Merge**. In the **Argo CD** tab, `bnk-install` turns **OutOfSync** (the ConfigMap from `clusters/` changed). **Sync** it |
-| **forge** | **Merge** for the record. Forge runs the installer image you built earlier, so make the change in Forge itself, on the module's input: `lab forge-input bnk-lab epp_namespaces inference`, then **Deploy all** on project `bnk-lab` |
+| **pipeline** | wait for `plan`: its comment lists the new phase 47 actions and the CNEInstance diff (`+ eppNamespaces`). Then **Merge**, and `deploy` applies it |
+| **argocd** | wait for `ci` to go green, then **Merge**. In the **Argo CD** tab, `bnk-install` turns **OutOfSync** (the ConfigMap from `clusters/` changed). **Sync** it |
+| **forge** | wait for `ci` to go green, then **Merge** for the record. Forge runs the installer image you built earlier, so make the change in Forge itself, on the module's input: `lab forge-input bnk-lab epp_namespaces inference`, then **Deploy all** on project `bnk-lab` |
 
 When it has landed, confirm:
 
@@ -199,8 +199,16 @@ mkdir -p apps/inference && cp docs/examples/inference/inference.yaml apps/infere
 git add apps/inference && git commit -qm "apps: inference, three simulated GPUs behind BNK's endpoint picker" && git push -u origin inference-app
 ```
 
-**Now open and merge this pull request** in **Gitea** (the green banner's **New Pull Request**, then
-**Merge** once `ci` is green). Then hand it over as in challenge 10:
+**Open the pull request, wait for its checks, then merge:**
+
+1. In the **Gitea** tab, click **New Pull Request** on the green banner *You pushed on branch …*, and
+   **Create** it.
+2. **Wait for the checks.** The pull request's Conversation tab lists its workflow runs (`ci`, and
+   `plan` when a cluster file changed), and so does **Actions**. A yellow dot means still running.
+   Wait until every one shows a green tick.
+3. Press **Merge**.
+
+Then hand it over as in challenge 10:
 
 ```run
 lab deliver apps/inference/inference.yaml

@@ -218,9 +218,17 @@ sed -i 's/replicas: 3/replicas: 5/' apps/hello/hello.yaml && git diff
 git commit -qam "apps/hello: 5 replicas" && git push -u origin hello-five
 ```
 
-**Now open and merge the pull request** in **Gitea** (the green banner's **New Pull Request**, then
-**Merge** once `ci` is green). Nothing changes on the cluster until it lands on `main`. Then let your
-path deliver it, exactly as in challenge 10:
+**Open the pull request, wait for its checks, then merge:**
+
+1. In the **Gitea** tab, click **New Pull Request** on the green banner *You pushed on branch …*, and
+   **Create** it.
+2. **Wait for the checks.** The pull request's Conversation tab lists its workflow runs (`ci`, and
+   `plan` when a cluster file changed), and so does **Actions**. A yellow dot means still running.
+   Wait until every one shows a green tick.
+3. Press **Merge**.
+
+Nothing changes on the cluster until it lands on `main`. Then let your path deliver it, exactly as
+in challenge 10:
 
 | `lab owner` says | Delivery |
 |---|---|
