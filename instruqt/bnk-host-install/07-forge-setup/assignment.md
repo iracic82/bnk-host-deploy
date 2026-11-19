@@ -204,7 +204,8 @@ Every word of that page came from `forge/forge-blueprint.json` in your repositor
 ![Deploy dialog, lower half: module forge/bnk-host @1.0.0, Deployment Target New Project, the required input "The node TMM runs on"](../assets/forge-5-deploy-target.png)
 
 1. **Deployment Target:** keep **New Project**, and set **Project Name** to `bnk-lab`
-2. **The node TMM runs on:** `bnk-worker`
+2. **The node TMM runs on:** `bnk-worker`. Careful, this field sits right under *Project Name*: the
+   node is `bnk-worker`, the project is `bnk-lab`. If they get swapped, the first install step says so
 3. Leave **Advanced options** alone. `cluster_name` defaults to `lab`
 4. Press the button at the bottom of the dialog
 
@@ -235,7 +236,12 @@ stores it encrypted and writes it, mode 0600, into the runner container at
 `/work/secrets/kubeconfig`, `/work/secrets/cne_pull_64.json` and `/work/secrets/license.jwt`, only
 for the length of a run. The last block of the output lists each required secret as **present**.
 
-Open the project's **Secrets** tab: three entries, values hidden.
+Open the project's **Secrets** tab. Under **Required Secrets**, all three rows now say **Configured**.
+Under **Project Secrets**, each file is listed with an arrow to the requirement it satisfies, for
+example `license.jwt → bnk_license_jwt`. That link is what tells Forge *this* file is *that*
+credential. The values themselves are never shown.
+
+![Forge project bnk-lab, Secrets tab: kubeconfig, far_service_account_key and bnk_license_jwt all Configured, each project secret linked to its requirement](../assets/forge-7-secrets.png)
 
 > ### Concept: why the kubeconfig is a secret here
 > The CI runner lives beside the cluster with its own access. Forge's runner is a short-lived

@@ -29,6 +29,16 @@ minor=$(kubectl version -o json 2>/dev/null | sed -n 's/.*"minor": *"\([0-9]*\).
 ok "API server reachable: $(kubectl config current-context 2>/dev/null), Kubernetes 1.${minor}"
 [[ "$minor" == "${K8S_MINOR#*.}" ]] || warn "Kubernetes 1.${minor}; BNK ${BNK_VERSION} host mode is qualified on ${K8S_MINOR}"
 
+# The TMM node must exist. Caught here, before anything changes, with the names that do exist: a
+# Forge form or a cluster file can easily carry a project or cluster name in the node field.
+if [[ -n "${BNK_TMM_NODES:-}" ]]; then
+  for n in ${BNK_TMM_NODES//,/ }; do
+    kubectl get node "$n" >/dev/null 2>&1 \
+      || die "TMM node '$n' is not a node in this cluster. Nodes: $(kubectl get nodes -o jsonpath='{.items[*].metadata.name}' | tr ' ' ',')"
+  done
+  ok "TMM node ${BNK_TMM_NODES} exists"
+fi
+
 # CNI. FLO's own preflight blocks with an ERROR when it cannot place the CNI in a family it knows.
 # Calico is the primary (and only tested) CNI for host mode on generic Kubernetes.
 pods=$(kubectl get pods -A -o name 2>/dev/null || true)
