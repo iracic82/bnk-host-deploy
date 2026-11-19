@@ -1,125 +1,116 @@
-# The AI team's first model, behind BIG-IP Next for Kubernetes. No GPUs in this lab: each "GPU" is
-# llm-d's vLLM simulator, which speaks the OpenAI API and vLLM's metrics, and simulates what costs
-# time on a real GPU: prefill per prompt token, decode per output token, and a KV cache whose hits
-# skip the prefill. Its answers are filler text. Its timings and cache behave like the real thing.
+# The AI team's first model behind BIG-IP Next for Kubernetes, on NVIDIA Dynamo.
+# No GPUs in this lab: Dynamo's Mocker engine models what a real GPU worker does (scheduling, the KV
+# cache, prefill and decode timing) and, like a real worker, publishes KV-cache events on NATS.
 #
-#   Deployment model         3 simulated GPUs, each with a small KV cache (about four long prompts)
-#   InferencePool model-pool the model servers, as one pool the Gateway API Inference Extension routes to
-#   F5EPP model-pool-epp     BNK's endpoint picker: for every request, picks the pod by prompt prefix
-#                            (who already holds this prompt in KV cache?) and by load
-#   Gateway ai-picker        VIP 10.30.30.11:80 -> HTTPRoute chat -> InferencePool (the picker decides)
-#   Gateway ai-roundrobin    VIP 10.30.30.12:80 -> HTTPRoute chat-rr -> Service model-rr (round robin)
+#   DynamoGraphDeployment mocker  Dynamo's frontend, and three Mocker decode workers ("GPUs"). Each worker
+#                                 pod has a frontend sidecar in direct mode: it serves exactly the worker
+#                                 BNK's picker named. Each KV cache is small on purpose: a few prompts.
+#   InferencePool model-pool      the decode workers
+#   F5EPP model-pool-epp          BNK's endpoint picker, engine dynamo: reads the workers' KV-cache events
+#                                 from NATS and names the worker that already holds the prompt
+#   Gateway ai-picker  10.30.30.11 -> HTTPRoute chat    -> InferencePool (BNK's picker decides)
+#   Gateway ai-roundrobin 10.30.30.12 -> HTTPRoute chat-rr -> Dynamo's frontend (its default round robin)
 #
-# Prerequisite, owned by the platform team: clusters/lab.yaml lists this namespace under
-# inference.epp_namespaces. The install then creates the namespace with F5's pull secret and lets the
-# BNK controller run endpoint pickers here. That is why this file has no Namespace object.
-apiVersion: apps/v1
-kind: Deployment
+# Prerequisites, owned by the platform team: inference.epp_namespaces lists this namespace (phase 47),
+# and the Dynamo platform runs (lab dynamo).
+apiVersion: nvidia.com/v1beta1
+kind: DynamoGraphDeployment
 metadata:
-  name: model
+  name: mocker
   namespace: inference
 spec:
-  replicas: 3
-  selector:
-    matchLabels: {app: model}
-  template:
-    metadata:
-      labels: {app: model}
-    spec:
-      automountServiceAccountToken: false
-      # one "GPU" per node where possible, as on a real GPU cluster
-      topologySpreadConstraints:
-      - {maxSkew: 1, topologyKey: kubernetes.io/hostname, whenUnsatisfiable: ScheduleAnyway, labelSelector: {matchLabels: {app: model}}}
-      containers:
-      - name: vllm-sim
-        image: ghcr.io/llm-d/llm-d-inference-sim:v1.0.0
-        args:
-        - --model=Qwen/Qwen3-0.6B
-        - --port=8000
-        - --max-num-seqs=4
-        - --max-model-len=4096
-        - --enable-kvcache              # simulate the KV cache: report cached_tokens, skip prefill on a hit
-        - --kv-cache-size=96            # blocks of 16 tokens: room for about four long system prompts
-        - --block-size=16
-        - --prefill-overhead=20ms
-        - --prefill-time-per-token=2ms  # a cache miss pays this for every prompt token
-        - --inter-token-latency=10ms
-        env:
-        - name: POD_IP                  # the simulator's KV-cache mode needs its own address
-          valueFrom: {fieldRef: {fieldPath: status.podIP}}
-        ports:
-        - {name: http, containerPort: 8000}
-        readinessProbe:
-          httpGet: {path: /health, port: http}
-        resources:
-          requests: {cpu: 100m, memory: 64Mi}
----
-# The same pods behind a plain Service: what you get without an endpoint picker.
-apiVersion: v1
-kind: Service
-metadata:
-  name: model-rr
-  namespace: inference
-spec:
-  selector: {app: model}
-  ports:
-  - {name: http, port: 8000, targetPort: http}
+  components:
+  - name: Frontend
+    type: frontend
+    replicas: 1
+    podTemplate:
+      spec:
+        containers:
+        - name: main
+          image: nvcr.io/nvidia/ai-dynamo/dynamo-planner:1.5.1
+          env: [{name: DYN_EVENT_PLANE, value: nats}]     # BNK's picker reads KV events from NATS
+          resources: {requests: {cpu: 100m, memory: 512Mi}}
+  - name: decode
+    type: decode
+    replicas: 3
+    frontendSidecar: sidecar-frontend
+    podTemplate:
+      spec:
+        topologySpreadConstraints:
+        - {maxSkew: 1, topologyKey: kubernetes.io/hostname, whenUnsatisfiable: ScheduleAnyway,
+           labelSelector: {matchLabels: {nvidia.com/dynamo-component-type: decode}}}
+        containers:
+        - name: main
+          image: nvcr.io/nvidia/ai-dynamo/dynamo-planner:1.5.1
+          workingDir: /workspace
+          command: [python3, -m, dynamo.mocker]
+          # block size 16 matches the picker's (F5EPP spec.blockSize). 96 blocks of KV cache per worker:
+          # room for about four of the customers' long prompts, like a busy GPU.
+          args: [--model-path, Qwen/Qwen3-0.6B, --model-name, Qwen/Qwen3-0.6B, --speedup-ratio, "1.0",
+                 --block-size, "16", --num-gpu-blocks-override, "96"]
+          envFrom: [{secretRef: {name: hf-token-secret}}]
+          env: [{name: DYN_EVENT_PLANE, value: nats}]
+          resources: {requests: {cpu: 200m, memory: 1Gi}}
+        - name: sidecar-frontend
+          image: nvcr.io/nvidia/ai-dynamo/dynamo-planner:1.5.1
+          args: [-m, dynamo.frontend, --router-mode, direct]
+          envFrom: [{secretRef: {name: hf-token-secret}}]
+          resources: {requests: {cpu: 50m, memory: 512Mi}}
 ---
 apiVersion: inference.networking.k8s.io/v1
 kind: InferencePool
-metadata:
-  name: model-pool
-  namespace: inference
+metadata: {name: model-pool, namespace: inference}
 spec:
   selector:
-    matchLabels: {app: model}
-  targetPorts:
-  - number: 8000
-  endpointPickerRef:
-    name: model-pool-epp
-    port: {number: 9002}
-    failureMode: FailOpen           # if the picker is down, fall back to any pod rather than fail
+    matchLabels:
+      nvidia.com/dynamo-graph-deployment-name: mocker
+      nvidia.com/dynamo-component-type: decode
+  targetPorts: [{number: 8000}]
+  endpointPickerRef: {name: model-pool-epp, port: {number: 9002}, failureMode: FailOpen}
 ---
-# BNK's controller renders the picker's Deployment, Service, ConfigMap and RBAC from this one object.
-# The simulator does not publish KV-cache events, so the zmq-wire plugin is removed and the picker
-# tracks prompt prefixes itself, from the requests it routes.
+# BNK's picker for Dynamo. Settings proven on BNK 2.4 with Dynamo 1.5.1: Dynamo publishes KV events per
+# endpoint, and the Mocker labels its vLLM metrics with model_name instead of Dynamo's component labels.
 apiVersion: inference.k8s.f5.com/v1alpha1
 kind: F5EPP
-metadata:
-  name: model-pool-epp
-  namespace: inference
+metadata: {name: model-pool-epp, namespace: inference}
 spec:
-  poolRef:
-    name: model-pool
-  engine: vllm
-  server:
-    modelServerMetricsPort: 8000
-    secureServing: false
-    metricsEndpointAuth: false
-  tokenizer:
-    name: Qwen/Qwen3-0.6B
+  poolRef: {name: model-pool}
+  engine: dynamo
+  natsURL: nats://dynamo-platform-nats.dynamo-system.svc.cluster.local:4222
+  server: {modelServerMetricsPort: 9090, secureServing: false, metricsEndpointAuth: false}
+  tokenizer: {name: Qwen/Qwen3-0.6B}
   eppConfig:
     config:
       plugins:
-      - name: zmq-wire
-        parameters: {"$patch": "delete"}
+      - name: dynamo-wire
+        type: dynamo-wire
+        parameters:
+          kv_events_topic: component.backend.endpoint.generate.kv-events
+          kv_metrics_topic: component.backend.endpoint.generate.kv_metrics
+      - name: core-metrics-extractor
+        type: core-metrics-extractor
+        parameters:
+          defaultEngine: vllm
+          engineLabelKey: inference.networking.k8s.io/engine-type
+          engineConfigs:
+          - name: vllm
+            kvUsageSpec: vllm:kv_cache_usage_perc{model_name="Qwen/Qwen3-0.6B"}
+            queuedRequestsSpec: vllm:num_requests_waiting{model_name="Qwen/Qwen3-0.6B"}
+            runningRequestsSpec: vllm:num_requests_running{model_name="Qwen/Qwen3-0.6B"}
+            cacheInfoSpec: ""
+            loraSpec: ""
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
-metadata:
-  name: ai-picker
-  namespace: inference
+metadata: {name: ai-picker, namespace: inference}
 spec:
   gatewayClassName: f5-gateway-class
   addresses: [{type: IPAddress, value: 10.30.30.11}]
-  listeners:
-  - {name: http, protocol: HTTP, port: 80}
+  listeners: [{name: http, protocol: HTTP, port: 80}]
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
-metadata:
-  name: chat
-  namespace: inference
+metadata: {name: chat, namespace: inference}
 spec:
   parentRefs: [{name: ai-picker, sectionName: http}]
   rules:
@@ -128,22 +119,17 @@ spec:
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
-metadata:
-  name: ai-roundrobin
-  namespace: inference
+metadata: {name: ai-roundrobin, namespace: inference}
 spec:
   gatewayClassName: f5-gateway-class
   addresses: [{type: IPAddress, value: 10.30.30.12}]
-  listeners:
-  - {name: http, protocol: HTTP, port: 80}
+  listeners: [{name: http, protocol: HTTP, port: 80}]
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
-metadata:
-  name: chat-rr
-  namespace: inference
+metadata: {name: chat-rr, namespace: inference}
 spec:
   parentRefs: [{name: ai-roundrobin, sectionName: http}]
   rules:
   - matches: [{path: {type: PathPrefix, value: /v1}}]
-    backendRefs: [{name: model-rr, port: 8000}]
+    backendRefs: [{name: mocker-frontend, port: 8000}]
