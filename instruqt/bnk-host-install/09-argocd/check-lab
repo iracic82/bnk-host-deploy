@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 [ -n "${BASH_ENV:-}${ENV:-}" ] && echo "note: runner set BASH_ENV=${BASH_ENV:-} ENV=${ENV:-}, unset for child scripts" >&2
 unset BASH_ENV ENV
+# Path not taken: BNK is already installed by another path and this path's tool does not own it.
+# Skipping this challenge then takes seconds, and the cluster and its owner stay as they are.
+export PATH=/usr/local/bin:$PATH KUBECONFIG=/root/.kube/config
+source /opt/lab/lib.sh
+_owner=$(gitea_api GET "/repos/${GITEA_ORG}/${GITEA_REPO}/actions/variables/BNK_INSTALLER" 2>/dev/null | jq -r '.data // .value // empty' || true)
+_avail=$(kubectl -n f5-bnk get cneinstance f5-bnk-instance -o jsonpath='{.status.conditions[?(@.type=="Available")].status}' 2>/dev/null || true)
+if [[ "$_avail" == True && -n "$_owner" && "$_owner" != argocd ]]; then echo "path not taken: BNK installed by $_owner"; exit 0; fi
 set -uo pipefail
 source /opt/lab/lib.sh; source /opt/lab/ci-helpers.sh
 kubectl get ns argocd >/dev/null 2>&1 || { fail-message "Argo CD is not installed. Run 'lab argocd' (step 2)."; exit 1; }

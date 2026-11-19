@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 [ -n "${BASH_ENV:-}${ENV:-}" ] && echo "note: runner set BASH_ENV=${BASH_ENV:-} ENV=${ENV:-}, unset for child scripts" >&2
 unset BASH_ENV ENV
+# Only on the path the student chose. Each path's first step sets the owner (BNK_INSTALLER). A student
+# who skips this challenge because they took another path gets an instant skip that changes nothing.
+export PATH=/usr/local/bin:$PATH KUBECONFIG=/root/.kube/config
+source /opt/lab/lib.sh
+_owner=$(gitea_api GET "/repos/${GITEA_ORG}/${GITEA_REPO}/actions/variables/BNK_INSTALLER" 2>/dev/null | jq -r '.data // .value // empty' || true)
+if [[ "$_owner" != forge ]]; then echo "path not taken (owner: ${_owner:-none}): skipping without changes"; exit 0; fi
 set -euxo pipefail
 export PATH=/usr/local/bin:$PATH KUBECONFIG=/root/.kube/config
 source /opt/lab/lib.sh; source /opt/lab/ci-helpers.sh
