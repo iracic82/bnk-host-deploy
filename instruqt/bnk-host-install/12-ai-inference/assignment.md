@@ -154,11 +154,42 @@ Now deliver it the way your path delivers platform changes. Check your path:
 lab owner
 ```
 
-| `lab owner` says | How the platform change lands |
-|---|---|
-| **pipeline** | wait for `plan`: its comment lists the new phase 47 actions and the CNEInstance diff (`+ eppNamespaces`). Then **Merge**, and `deploy` applies it |
-| **argocd** | wait for `ci` to go green, then **Merge**. In the **Argo CD** tab, `bnk-install` turns **OutOfSync** (the ConfigMap from `clusters/` changed). **Sync** it |
-| **forge** | wait for `ci` to go green, then **Merge** for the record. Forge runs the installer image you built earlier, so make the change in Forge itself, on the module's input: `lab forge-input bnk-lab epp_namespaces inference`, then **Deploy all** on project `bnk-lab` |
+**If `lab owner` says `argocd`:**
+
+1. Merge the pull request once `ci` is green (above).
+2. In the **Argo CD** tab, open the application **`bnk-install`** and press **Refresh**. Within seconds it
+   turns **OutOfSync**: the ConfigMap Argo builds from `clusters/` has a new content hash, because
+   `lab.yaml` changed. **App Diff** shows the new `inference:` block.
+3. Press **Sync**, tick **PRUNE**, and press **Synchronize**. Argo starts the install Job again.
+
+   > **Why Prune?** The ConfigMap is named after its content, so your change created a *new* one,
+   > `bnk-cluster-<new hash>`. The old one is no longer in git, and Argo marks it *not present in the
+   > application's source*. Prune tells Argo to delete what git no longer describes. Without it, the
+   > install still runs, but the old ConfigMap lingers and `bnk-install` never shows Synced. That is
+   > GitOps in one checkbox: git is the truth, in both directions.
+4. Click the **Job**, then its **pod**, then **Logs**. The installer converges every phase. Watch for
+   the new ones: phase **47** prints *Inference Extension CRDs v1.4.0 installed* and *endpoint-picker
+   namespace inference prepared*, phase **50** applies the CNEInstance with `eppNamespaces`, and
+   **70** adds two inference checks to its list.
+5. Wait for **Sync OK** on `bnk-install`, two to four minutes.
+
+**If `lab owner` says `pipeline`:**
+
+1. Wait for the `plan` comment on the pull request. It lists the phase 47 actions and the CNEInstance
+   diff, `+ eppNamespaces: [inference]`. That is your review.
+2. Merge. In **Actions**, open the `deploy` run and follow phases 47 and 50 in its log until it is green.
+
+**If `lab owner` says `forge`:**
+
+1. Merge once `ci` is green, for the record. Forge runs the installer image you built in challenge 4,
+   whose built-in cluster file does not know about this change, so make it in Forge itself:
+
+   ```run
+   lab forge-input bnk-lab epp_namespaces inference
+   ```
+
+2. In **BNK Forge**, open project **bnk-lab** and press **Deploy all**. In the module's log, the
+   `50 CNEInstance` step now runs phase 47 first, then applies the CNEInstance.
 
 When it has landed, confirm:
 
@@ -217,7 +248,7 @@ lab deliver apps/inference/inference.yaml
 Watch it come up. The picker's own pod appears next to the three model servers, rendered by BNK:
 
 ```run
-kubectl -n inference get pods,inferencepool,f5epp,gateway -o wide
+kubectl -n inference get pods,inferencepool,f5-epps,gateway -o wide
 ```
 
 Both Gateways get their addresses, `10.30.30.11` and `10.30.30.12`, and turn `PROGRAMMED True`.
