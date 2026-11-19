@@ -28,4 +28,4 @@ tmm:
 
 legacy_network_model: true    # VIPs from an F5BnkGateway pool, VLANs as F5SPKVlan (see lab.network.yaml)
 
-enabled: false                # TODO: true = "this cluster should have BNK"
+enabled: false                # true = "this cluster should have BNK" (you set it in challenge 5 or 9)
