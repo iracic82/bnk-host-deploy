@@ -3,12 +3,14 @@ set -uo pipefail
 source /opt/lab/lib.sh; source /opt/lab/ci-helpers.sh
 [[ "$(gitea_api GET "${REPO_PATH}/actions/variables/BNK_INSTALLER" 2>/dev/null | jq -r '.data // .value // empty')" == pipeline ]] \
   || { fail-message "The repository is not set up for the pipeline path. Run 'lab ci-secrets' (step 1)."; exit 1; }
-n=$(pr_for_branch enable-lab-cluster open)
-[[ -n "$n" ]] || n=$(gitea_api GET "${REPO_PATH}/pulls?state=open&limit=50" | jq -r '[.[] | select(.base.ref=="main")] | last | .number // empty')
-[[ -n "$n" ]] || { fail-message "No open pull request found. Push your branch and open the pull request in Gitea (step 3)."; exit 1; }
+# The newest pull request into main that changes clusters/lab.yaml, open or already merged (merging
+# early is fine: it only means the install has started).
+n=""
+for c in $(gitea_api GET "${REPO_PATH}/pulls?state=all&limit=50" | jq -r '[.[] | select(.base.ref=="main")] | sort_by(.number) | reverse | .[].number'); do
+  gitea_api GET "${REPO_PATH}/pulls/$c/files" | jq -r '.[].filename' | grep -qx 'clusters/lab.yaml' && { n=$c; break; }
+done
+[[ -n "$n" ]] || { fail-message "No pull request changes clusters/lab.yaml yet. Edit the TMM node and enabled flag, push, and open the pull request (steps 2-3)."; exit 1; }
 sha=$(gitea_api GET "${REPO_PATH}/pulls/$n" | jq -r .head.sha)
-gitea_api GET "${REPO_PATH}/pulls/$n/files" | jq -r '.[].filename' | grep -q '^clusters/lab.yaml$' \
-  || { fail-message "Pull request #$n does not change clusters/lab.yaml. Edit the TMM node and enabled flag (step 2)."; exit 1; }
 case "$(run_state plan.yml "$sha")" in
   completed/success) exit 0 ;;
   completed/*) fail-message "The plan for pull request #$n failed. Open it in Actions, read the last lines, fix clusters/lab.yaml, push again."; exit 1 ;;
