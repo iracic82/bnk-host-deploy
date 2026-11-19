@@ -223,7 +223,8 @@ manages? Not by editing anything in Forge. It goes the way every change goes, th
    manifests
 3. `lab forge-catalog`. Forge's sources follow `main`, so it now finds release **v1.0.1** and imports
    it
-4. in workspace `bnk-lab`, on the module's **⋮** menu, **Change Version** to `1.0.1`, then **Deploy all**
+4. in workspace `bnk-lab`, on the module's **⋮** menu, **Change Version** to `1.0.1`, then
+   `lab forge-apply bnk-lab`. **Deploy all** would skip the module, because it is already applied
 
 > ### Concept: why a new digest needs a new version
 > Forge treats a released version as **immutable**. Publish different content under the same

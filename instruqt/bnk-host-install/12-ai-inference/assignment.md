@@ -224,8 +224,16 @@ lab owner
    lab forge-input bnk-lab epp_namespaces inference
    ```
 
-2. In **BNK Forge**, open **Build > Workspaces > bnk-lab** and press **Deploy all**. Everything that already
-   matches is a quick `ok`. Watch the `50 CNEInstance` step: phase **47** prints *Inference Extension
+2. Run the module again with its new input:
+
+   ```run
+   lab forge-apply bnk-lab
+   ```
+
+   Why not **Deploy all**? Forge skips a module that is already applied when it cannot see a change,
+   and for a container module like this one it never sees one. `lab forge-apply` runs the module
+   itself, the same as the module's own deploy. Follow it in **Build > Workspaces > bnk-lab**.
+   Everything that already matches is a quick `ok`. Watch the `50 CNEInstance` step: phase **47** prints *Inference Extension
    CRDs v1.4.0 installed* and *endpoint-picker namespace inference prepared*, then phase **50** applies
    the CNEInstance with `eppNamespaces`. The pipeline turns to **Done** in two to four minutes.
 

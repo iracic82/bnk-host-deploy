@@ -17,4 +17,4 @@ jq -r '.warnings // [] | .[] | "   warn  Forge: " + (if type=="string" then . el
 got=$(forge_api GET "/api/project-modules/project/${pid}" | jq -c --arg id "$mid" --arg k "$K" '(if type=="array" then . else (.items // .modules // []) end)[] | select((.id|tostring) == $id) | .variable_overrides[$k] // "(unset)"')
 echo "      after:  $got"
 [[ "$got" == "$(jq -c -n --arg v "$V" '$v')" ]] || fail "Forge did not keep $K=$V"
-ok "now press Deploy all on project $P (Build > Workspaces > $P)"
+ok "now run: lab forge-apply $P   (Deploy all skips a module that is already applied)"
