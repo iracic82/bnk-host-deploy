@@ -204,7 +204,11 @@ class H(BaseHTTPRequestHandler):
         if self.path.startswith("/api/ask"):
             c = max(1, min(int(b.get("customer", 1)), 24))
             q = str(b.get("question", "What is a VIP?"))[:500]
-            names = [p["name"] for p in pods() if p["ready"]]
+            all_pods = pods(); names = [p["name"] for p in all_pods if p["ready"]]
+            if not names:
+                return self.reply(200, {"ok": False, "mode": mode, "vip": VIPS[mode], "customer": c,
+                    "error": f"no Dynamo worker is ready yet ({len(all_pods)} starting: the first image pull takes a few minutes). "
+                             "Wait with: kubectl -n inference wait --for=condition=Ready pod -l " + GPU_SELECTOR + " --timeout=15m"})
             before = {p: metrics(p)["requests"] for p in names}
             r = send(mode, c, q)
             gpu, _ = served_by(names, before)

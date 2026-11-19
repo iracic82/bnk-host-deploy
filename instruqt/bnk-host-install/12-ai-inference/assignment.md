@@ -305,6 +305,13 @@ kubectl -n inference get pods,inferencepool,f5-epps,gateway -o wide
 
 Both Gateways get their addresses, `10.30.30.11` and `10.30.30.12`, and turn `PROGRAMMED True`.
 
+The Dynamo image is large, so the first pull takes a few minutes. Wait until the three workers are
+ready (`2/2`: the Mocker worker and its frontend sidecar) before you send anything:
+
+```run
+kubectl -n inference wait --for=condition=Ready pod -l nvidia.com/dynamo-component-type=decode --timeout=15m && kubectl -n inference get pods
+```
+
 ---
 
 ## Step 5: Ask one question, twice
