@@ -72,7 +72,7 @@ forge_api() {  # forge_api <method> <path> [json]
     [[ -n "$_FORGE_TOKEN" && "$_FORGE_TOKEN" != null ]] || fail "cannot log in to Forge"
   fi
   curl -fsSk -X "$m" -H "Authorization: Bearer $_FORGE_TOKEN" -H 'Content-Type: application/json' \
-    ${d:+--data "$d"} "https://127.0.0.1${p}"
+    ${d:+--data "$d"} "https://127.0.0.1:8443${p}"
 }
 
 # Read one value from the lab vault, for piping into another secret store. Never echo the result.
