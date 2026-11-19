@@ -3,8 +3,8 @@ slug: cicd-plan
 id: lhq3adxfqyhi
 type: challenge
 title: 'Path A, CI/CD (1/2): declare the cluster, read the plan'
-teaser: Say in a pull request that this cluster should have BNK, on which node, and
-  let the pipeline show you exactly what an install would do, before anything changes.
+teaser: Say in a pull request that this cluster should have BNK, on which node, and let the pipeline show
+  you exactly what an install would do, before anything changes.
 notes:
 - type: text
   contents: |-
@@ -39,6 +39,9 @@ tabs:
     value: learner
 - id: kveelwytr8ue
   title: Terminal
+  type: terminal
+  hostname: lab
+- title: Terminal 2
   type: terminal
   hostname: lab
 - id: iauxt23pnexn

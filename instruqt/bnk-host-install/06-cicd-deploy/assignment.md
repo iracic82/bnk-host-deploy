@@ -3,8 +3,8 @@ slug: cicd-deploy
 id: 8yekglxwxkpa
 type: challenge
 title: 'Path A, CI/CD (2/2): merge, and watch the pipeline install BNK'
-teaser: The merge is the approval. Follow the install phase by phase in the pipeline
-  log while the cluster fills up, and learn what every BNK component you see is for.
+teaser: The merge is the approval. Follow the install phase by phase in the pipeline log while the cluster
+  fills up, and learn what every BNK component you see is for.
 notes:
 - type: text
   contents: |-
@@ -29,6 +29,9 @@ tabs:
     value: learner
 - id: iqyqd1yqmtvs
   title: Terminal
+  type: terminal
+  hostname: lab
+- title: Terminal 2
   type: terminal
   hostname: lab
 - id: 6tflwyjnco7s

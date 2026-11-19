@@ -52,6 +52,9 @@ tabs:
   title: Terminal
   type: terminal
   hostname: lab
+- title: Terminal 2
+  type: terminal
+  hostname: lab
 - id: wg8mkp63bygn
   title: Lab Topology
   type: service

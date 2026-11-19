@@ -3,9 +3,8 @@ slug: day-2
 id: qgmadlxp5z0a
 type: challenge
 title: 'Day 2: audit with Forge, change through git'
-teaser: Install is day one. Point BNK Forge at the running cluster to audit what is
-  deployed, prove the cluster still matches git, and make a change the only way changes
-  should happen.
+teaser: Install is day one. Point BNK Forge at the running cluster to audit what is deployed, prove the
+  cluster still matches git, and make a change the only way changes should happen.
 notes:
 - type: text
   contents: |-
@@ -27,6 +26,9 @@ tabs:
   port: 8090
 - id: v0pfovzjqazy
   title: Terminal
+  type: terminal
+  hostname: lab
+- title: Terminal 2
   type: terminal
   hostname: lab
 - id: 9iuzmyvx99q6

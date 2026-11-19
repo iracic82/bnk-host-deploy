@@ -38,6 +38,9 @@ tabs:
   title: Terminal
   type: terminal
   hostname: lab
+- title: Terminal 2
+  type: terminal
+  hostname: lab
 - id: wicyf4tjdkax
   title: Lab Topology
   type: service

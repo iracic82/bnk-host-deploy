@@ -3,9 +3,8 @@ slug: forge-setup
 id: y2zfvcufooa1
 type: challenge
 title: 'Path B, BNK Forge (1/2): install Forge and load the installer into it'
-teaser: Install F5's BNK Forge, then teach it your installer. The repository becomes
-  a Forge module source; the module runs your pinned image, one Forge step per install
-  phase.
+teaser: Install F5's BNK Forge, then teach it your installer. The repository becomes a Forge module source;
+  the module runs your pinned image, one Forge step per install phase.
 notes:
 - type: text
   contents: |-
@@ -25,6 +24,9 @@ notes:
 tabs:
 - id: i30x8wwnx9cn
   title: Terminal
+  type: terminal
+  hostname: lab
+- title: Terminal 2
   type: terminal
   hostname: lab
 - id: yerh10eu40gb

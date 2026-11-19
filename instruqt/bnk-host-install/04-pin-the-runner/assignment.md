@@ -40,6 +40,9 @@ tabs:
   title: Terminal
   type: terminal
   hostname: lab
+- title: Terminal 2
+  type: terminal
+  hostname: lab
 - id: ldljmwzkhosi
   title: VS Code
   type: service

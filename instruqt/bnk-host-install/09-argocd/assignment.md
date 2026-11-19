@@ -3,9 +3,8 @@ slug: argocd
 id: p5axqk0wfwew
 type: challenge
 title: 'Path C, Argo CD: GitOps installs BNK from inside the cluster'
-teaser: Install Argo CD, declare the cluster in git, and press Sync. Argo renders
-  the install from the repository and runs your pinned installer as a Job inside the
-  cluster.
+teaser: Install Argo CD, declare the cluster in git, and press Sync. Argo renders the install from the
+  repository and runs your pinned installer as a Job inside the cluster.
 notes:
 - type: text
   contents: |-
@@ -27,6 +26,9 @@ notes:
 tabs:
 - id: 3b2yt7qcdy1h
   title: Terminal
+  type: terminal
+  hostname: lab
+- title: Terminal 2
   type: terminal
   hostname: lab
 - id: cnrxhtqwiipp

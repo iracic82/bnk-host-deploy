@@ -3,9 +3,8 @@ slug: first-traffic
 id: x28zyoh5bjug
 type: challenge
 title: First traffic through BIG-IP Next for Kubernetes
-teaser: Ship an app the GitOps way, ask BNK for a VIP with the Gateway API, and send
-  a request from a user behind the edge router, through TMM, to a pod. Then watch
-  it spread across pods.
+teaser: Ship an app the GitOps way, ask BNK for a VIP with the Gateway API, and send a request from a
+  user behind the edge router, through TMM, to a pod. Then watch it spread across pods.
 notes:
 - type: text
   contents: |-
@@ -28,6 +27,9 @@ tabs:
   port: 8444
 - id: enxfetob9fgt
   title: Terminal
+  type: terminal
+  hostname: lab
+- title: Terminal 2
   type: terminal
   hostname: lab
 - id: mhduhjfvvj8z
