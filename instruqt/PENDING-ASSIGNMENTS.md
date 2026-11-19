@@ -26,5 +26,16 @@
 - Note: stale red "70 verify failed" banner stays from an earlier run; module status is authoritative.
 - Investigate: Forge licence card shows "Unknown" though License CR is Active (check before ch 11).
 
-## Challenges 9-11
-- add screenshots as the user plays them (Argo CD next)
+## Challenge 9 (Argo CD)
+- lab argocd: step 2 waits 1-3 min silently on first image pull (now prints progress)
+- Sync dialog: 4 objects (cm bnk-cluster-<hash>, ns, sa, crb); hook Job not listed by design -> assets/argocd-1-sync-dialog.png
+- Tree during sync: Job (anchor = hook) + pods                                                 -> assets/argocd-2-hook-failed.png
+  (keep as a "what a failed hook looks like / backoffLimit" teaching moment, or drop)
+- Success: Synced + Sync OK, Job healthy, pod completed                                       -> assets/argocd-3-sync-ok.png
+- Lesson box: kubectl in a pod has NO in-cluster fallback (tries localhost:8080); installer 1.0.2
+  builds a kubeconfig from the service account token (tokenFile). Fixed in the image, so fresh
+  tracks get it in the baked digest — no 1.0.2 rollout step needed for students.
+- Fresh-track check: setup's pinned digest must be built from a commit >= 414c31e.
+
+## Challenges 10-11
+- add screenshots as the user plays them
