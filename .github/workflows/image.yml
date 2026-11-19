@@ -35,6 +35,7 @@ jobs:
             KUBECTL_VERSION=${{ env.KUBECTL_VERSION }}
             HELM_VERSION=${{ env.HELM_VERSION }}
             YQ_VERSION=${{ env.YQ_VERSION }}
+            GIT_COMMIT=${{ github.sha }}
           tags: |
             ghcr.io/${{ github.repository }}:${{ github.ref_name }}
             ghcr.io/${{ github.repository }}:latest

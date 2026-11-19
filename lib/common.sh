@@ -43,10 +43,11 @@ phase_end() {
 # Who installed this, from what: stamped on the CNEInstance and appended to a ledger ConfigMap, so
 # the answer lives in the cluster (and in Forge's view of it), not in someone's memory.
 record_provenance() {
-  local by="${BNK_ORCHESTRATOR:-}" run="" commit="${GITHUB_SHA:-}" actor="${GITHUB_ACTOR:-$(id -un)}" now
+  local by="${BNK_ORCHESTRATOR:-}" run="" commit="${GITHUB_SHA:-${BNK_HOST_COMMIT:-}}" now actor
+  actor="${GITHUB_ACTOR:-$(id -un 2>/dev/null || echo "${by:-runner}-runner")}"
   [[ -z "$by" && -n "${GITHUB_ACTIONS:-}" ]] && by=pipeline
   [[ -n "${GITHUB_RUN_ID:-}" ]] && run="${GITHUB_SERVER_URL:-}/${GITHUB_REPOSITORY:-}/actions/runs/${GITHUB_RUN_ID}"
-  [[ -z "$commit" ]] && commit="$(git -C "$HERE" rev-parse HEAD 2>/dev/null || echo unknown)"
+  [[ -z "$commit" || "$commit" == unknown ]] && commit="$(git -C "$HERE" rev-parse HEAD 2>/dev/null || echo unknown)"
   now="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
   kubectl -n "$NS_BNK" annotate cneinstance f5-bnk-instance --overwrite \
     "bnk-host-deploy.io/commit=${commit}" "bnk-host-deploy.io/orchestrator=${by:-manual}" \

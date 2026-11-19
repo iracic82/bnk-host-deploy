@@ -11,6 +11,8 @@ ARG KUBECTL_VERSION
 ARG HELM_VERSION
 ARG YQ_VERSION
 ARG TARGETARCH=amd64
+# The commit this image was built from, for the provenance stamp (the image carries no .git).
+ARG GIT_COMMIT=unknown
 
 RUN apt-get update -qq \
  && apt-get install -y -qq --no-install-recommends bash ca-certificates curl openssl make python3 tar gzip git jq \
@@ -34,7 +36,7 @@ COPY --chown=1000:1000 . /opt/bnk-host-deploy
 RUN ln -s /opt/bnk-host-deploy/bin/bnk-host /usr/local/bin/bnk-host \
  && mkdir -p /work && chown 1000:1000 /work
 
-ENV BNK_HOST_HOME=/opt/bnk-host-deploy WORK=/work
+ENV BNK_HOST_HOME=/opt/bnk-host-deploy WORK=/work BNK_HOST_COMMIT=${GIT_COMMIT}
 WORKDIR /work
 USER 1000
 ENTRYPOINT ["bnk-host"]

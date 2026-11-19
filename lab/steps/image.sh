@@ -24,7 +24,7 @@ rev="$(git -C "$WS" rev-parse --short HEAD)"
 TAG="localhost:${PORT_REGISTRY}/bnk-host-deploy:${BNK_VERSION}-${rev}"
 step "2/4  docker build: installer + pinned kubectl ${KUBECTL_VERSION}, helm ${HELM_VERSION}, yq ${YQ_VERSION}"
 docker build -t "$TAG" --build-arg "KUBECTL_VERSION=$KUBECTL_VERSION" --build-arg "HELM_VERSION=$HELM_VERSION" \
-  --build-arg "YQ_VERSION=$YQ_VERSION" "$WS" 2>&1 | grep -E '^#[0-9]+ (\[|DONE|naming)' | tail -12 || true
+  --build-arg "YQ_VERSION=$YQ_VERSION" --build-arg "GIT_COMMIT=$(git -C "$WS" rev-parse HEAD)" "$WS" 2>&1 | grep -E '^#[0-9]+ (\[|DONE|naming)' | tail -12 || true
 docker image inspect "$TAG" >/dev/null 2>&1 || fail "docker build did not produce $TAG"
 docker run --rm "$TAG" version | sed 's/^/      /'
 ok "image runs as uid $(docker run --rm --entrypoint id "$TAG" -u), the non-root user Forge insists on"
