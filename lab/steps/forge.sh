@@ -28,7 +28,8 @@ ok "images from ghcr.io/f5devcentral at ${FORGE_VERSION}; strong per-sandbox dat
 step "3/6  ./install.sh (pulls ~8 images on first run, a few minutes)"
 # Forge's own installer, its output kept in full (a filtered view once hid the reason it stopped).
 log=/root/.lab/forge-install.log
-if ! ./install.sh > "$log" 2>&1; then
+# bash, not ./install.sh: the bundle in the fork is not marked executable
+if ! bash ./install.sh > "$log" 2>&1; then
   tail -30 "$log" | sed 's/^/      /'
   fail "Forge's install.sh failed (full log: $log)"
 fi
