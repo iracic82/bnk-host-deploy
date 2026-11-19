@@ -27,6 +27,23 @@ if [[ -z "${BNK_ORCHESTRATOR:-}" ]]; then
   if [[ "${BNK_IN_CLUSTER:-false}" == "true" ]]; then export BNK_ORCHESTRATOR=argocd; else export BNK_ORCHESTRATOR=forge; fi
 fi
 [[ -z "${KUBECONFIG:-}" && -r "$WORK/secrets/kubeconfig" ]] && export KUBECONFIG="$WORK/secrets/kubeconfig"
+# In a pod (the Argo CD Job), kubectl does NOT use the service account by itself: with no kubeconfig it
+# tries localhost:8080. Write one from the mounted token. tokenFile, not the token's value, because the
+# kubelet rotates it; helm reads the same file.
+SA=/var/run/secrets/kubernetes.io/serviceaccount
+if [[ -z "${KUBECONFIG:-}" && -n "${KUBERNETES_SERVICE_HOST:-}" && -r "$SA/token" ]]; then
+  export KUBECONFIG="$WORK/.kube/in-cluster.yaml"; mkdir -p "$WORK/.kube"
+  h="$KUBERNETES_SERVICE_HOST"; [[ "$h" == *:* ]] && h="[$h]"
+  cat > "$KUBECONFIG" <<EOF3
+apiVersion: v1
+kind: Config
+clusters: [{name: in-cluster, cluster: {server: "https://${h}:${KUBERNETES_SERVICE_PORT:-443}", certificate-authority: $SA/ca.crt}}]
+users: [{name: service-account, user: {tokenFile: $SA/token}}]
+contexts: [{name: in-cluster, context: {cluster: in-cluster, user: service-account, namespace: "$(cat "$SA/namespace" 2>/dev/null || echo default)"}}]
+current-context: in-cluster
+EOF3
+  chmod 600 "$KUBECONFIG"
+fi
 [[ -z "${FAR_PULL_JSON:-}" && -r "$WORK/secrets/cne_pull_64.json" ]] && export FAR_PULL_JSON="$WORK/secrets/cne_pull_64.json"
 [[ -z "${BNK_LICENSE_FILE:-}" && -r "$WORK/secrets/license.jwt" ]] && export BNK_LICENSE_FILE="$WORK/secrets/license.jwt"
 
