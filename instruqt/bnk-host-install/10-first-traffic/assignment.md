@@ -64,7 +64,7 @@ enhanced_loading: null
 ```run
 kubectl get gatewayclass f5-gateway-class
 kubectl -n f5-bnk get f5-spk-vlans
-kubectl -n f5-bnk get f5bnkgateways -o jsonpath='{.items[0].spec.ingressConfig.defaultListenerNetworks}' | jq
+kubectl -n f5-bnk get f5-bnkgateways -o jsonpath='{.items[0].spec.ingressConfig.defaultListenerNetworks}' | jq
 ```
 
 - the GatewayClass is **Accepted**: BNK's controller (`f5.com/f5-bnk-f5-cne-controller`) owns it
@@ -146,10 +146,36 @@ Trace the path the request took:
 docker exec client traceroute -n -w 1 -q 1 -m 4 10.30.30.10
 ```
 
-Hop 1 is the edge router; hop 2 is **TMM** (`10.10.10.11`). In challenge 2 that hop timed out.
+Two hops, and the second one **is the VIP**:
+
+```
+ 1  10.20.20.254  0.004 ms     the edge router
+ 2  10.30.30.10   5.139 ms     TMM, answering as the VIP itself
+```
+
+TMM is not a router that forwards your packet onward; it **terminates** the connection on the
+virtual server and opens a new one to a pod. So the trace ends at `10.30.30.10`. In challenge 2 this
+same trace died after hop 1: the router had a route to `10.30.30.0/24`, but nobody owned the address.
 
 | Hop | Who | Why it knows the way |
 |---|---|---|
+| client → `10.20.20.254` | edge router | the client's default route |
+| router → `10.10.10.11` | TMM's external self IP (the next hop, not a hop of its own) | the router's route `10.30.30.0/24 via 10.10.10.11` |
+| `10.30.30.10` | the virtual server on TMM | BNK programmed it from your Gateway |
+| TMM → pod | a `hello` pod | the virtual server's pool, kept current by BNK's controller |
+
+Now look back at the answer from the first request:
+
+```
+RemoteAddr: 172.18.0.250:33943
+```
+
+The pod did not see the client (`10.20.20.10`). It saw **`172.18.0.250`, TMM's internal self IP**:
+TMM source-translates (SNAT automap) the second connection, so the pod's reply comes back to TMM
+whatever the pod's routing says. That is the full-proxy model: two connections, TMM in the middle
+of both, which is what lets it inspect, rewrite and secure the traffic.
+
+---|---|---|
 | client → `10.20.20.254` | edge router | the client's default route |
 | router → `10.10.10.11` | TMM's external self IP | the router's route `10.30.30.0/24 via 10.10.10.11` |
 | TMM → pod | a `hello` pod | the virtual server's pool, kept current by BNK's controller |

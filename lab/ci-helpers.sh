@@ -32,7 +32,21 @@ open_pr() {  # open_pr <branch> <title> [body]
     | curl -fsS -X POST -u "${LAB_USER}:$(lab_secret gitea-password)" -H 'Content-Type: application/json' \
         --data @- "http://127.0.0.1:${PORT_GITEA}/api/v1${REPO_PATH}/pulls" | jq -r .number
 }
-merge_pr() { gitea_api POST "${REPO_PATH}/pulls/$1/merge" '{"Do":"merge"}' >/dev/null; }
+# Gitea answers 405 while it is still computing a new PR's mergeability, or while required status
+# checks (the ci workflow) are pending. Retry for up to 5 minutes, then show Gitea's own reason.
+merge_pr() {  # merge_pr <number>
+  local i code out; out=$(mktemp)
+  for i in $(seq 1 60); do
+    code=$(curl -sS -o "$out" -w '%{http_code}' -X POST -u "${LAB_USER}:$(lab_secret gitea-password)" \
+      -H 'Content-Type: application/json' --data '{"Do":"merge"}' \
+      "http://127.0.0.1:${PORT_GITEA}/api/v1${REPO_PATH}/pulls/$1/merge") || code=000
+    [[ "$code" =~ ^2 ]] && { rm -f "$out"; return 0; }
+    [[ "$code" == 405 || "$code" == 409 ]] || break
+    (( i == 1 )) && echo "   waiting for pull request #$1 to become mergeable (checks running)..." >&2
+    sleep 5
+  done
+  echo "Gitea refused to merge #$1 ($code): $(head -c 300 "$out")" >&2; rm -f "$out"; return 1
+}
 main_sha() { gitea_api GET "${REPO_PATH}/branches/main" | jq -r .commit.id; }
 file_on_main() { curl -fsS "http://127.0.0.1:${PORT_GITEA}/${GITEA_ORG}/${GITEA_REPO}/raw/branch/main/$1"; }
 

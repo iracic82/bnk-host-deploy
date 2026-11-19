@@ -39,3 +39,12 @@
 
 ## Challenges 10-11
 - add screenshots as the user plays them
+
+## Challenge 10 (first traffic) — played 11:45, all green
+- DONE locally: f5-bnkgateways (dashed) name; traceroute text (hop 2 IS the VIP, TMM terminates);
+  RemoteAddr 172.18.0.250 = TMM internal self IP, SNAT automap / full proxy explanation.
+- TODO: the delivery table confused the player (ran the Forge-only kubectl apply on the argocd path,
+  before merging). Make the per-path instruction unmistakable: print the owner first
+  (`lab owner` or gitea variable), and put "Forge path only" in its own callout.
+  Merging the PR later is harmless: Argo's apps app adopts the same objects.
+- Observed: 3 pods across 3 nodes; 12 requests 4/3/5; delete a pod -> 12x 200.
