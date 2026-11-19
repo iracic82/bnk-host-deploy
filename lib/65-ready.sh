@@ -2,7 +2,12 @@
 # Wait for the data plane. With the licence Active, f5-cne-controller creates and configures TMM and
 # the CNEInstance turns Available. Unlicensed, the controller logs "License is not enabled.. skip
 # Resource controllers" and never creates TMM, so then we wait for everything a licence does not gate.
-[[ "$DRY_RUN" == "1" ]] && { ok "plan: would wait up to ${BNK_WAIT_TIMEOUT}s for CNEInstance Available"; return 0; }
+if [[ "$DRY_RUN" == "1" ]]; then
+  if [[ "$(kubectl get cneinstance f5-bnk-instance -n "$NS_BNK" -o jsonpath='{.status.conditions[?(@.type=="Available")].status}' 2>/dev/null)" == True ]]; then
+    ok "CNEInstance already Available"
+  else ok "plan: would wait up to ${BNK_WAIT_TIMEOUT}s for CNEInstance Available"; fi
+  return 0
+fi
 
 deadline=$(( $(date +%s) + BNK_WAIT_TIMEOUT ))
 avail=""; pending=""

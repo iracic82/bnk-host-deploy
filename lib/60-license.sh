@@ -1,6 +1,11 @@
 # shellcheck shell=bash
 # Licence. Connected mode validates against F5 live, so a stale token fails here and not earlier.
-[[ "$DRY_RUN" == "1" ]] && { ok "plan: would apply License f5-cne-cluster-license (${BNK_LICENSE_MODE:-connected} mode)"; return 0; }
+if [[ "$DRY_RUN" == "1" ]]; then
+  st=$(kubectl get license.k8s.f5net.com f5-cne-cluster-license -n "$NS_CORE" -o jsonpath='{.status.state}' 2>/dev/null || true)
+  if [[ "$st" == "Active" ]]; then ok "licence already Active ($(kubectl get license.k8s.f5net.com f5-cne-cluster-license -n "$NS_CORE" -o jsonpath='{.status.entitlement}, expires {.status.expiry}' 2>/dev/null))"
+  else ok "plan: would apply License f5-cne-cluster-license (${BNK_LICENSE_MODE:-connected} mode)"; fi
+  return 0
+fi
 : "${BNK_LICENSE_JWT:?BNK_LICENSE_JWT not set, or pass --skip-license}"
 
 kubectl get crd licenses.k8s.f5net.com >/dev/null 2>&1 \

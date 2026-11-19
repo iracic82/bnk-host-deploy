@@ -13,7 +13,13 @@ done
 
 if [[ "${BNK_TMM_MANAGE_LABELS:-false}" == "true" && -n "$declared" ]]; then
   if [[ "$DRY_RUN" == "1" ]]; then
-    ok "plan: would label ${declared//,/ } with $TMM_LABEL"
+    for n in ${declared//,/ }; do
+      if [[ "$(kubectl get node "$n" -o jsonpath='{.metadata.labels.app}' 2>/dev/null)" == f5-tmm ]]; then
+        ok "$n already carries $TMM_LABEL"
+      else
+        ok "plan: would label $n with $TMM_LABEL"
+      fi
+    done
   else
     for n in ${declared//,/ }; do
       kubectl label node "$n" "$TMM_LABEL" --overwrite >/dev/null
