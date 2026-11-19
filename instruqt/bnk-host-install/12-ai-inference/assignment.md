@@ -147,7 +147,7 @@ lab owner
 |---|---|
 | **pipeline** | the plan comment on the pull request lists the new phase 47 actions and the CNEInstance diff (`+ eppNamespaces`). **Merge**, and `deploy` applies it |
 | **argocd** | **Merge**. In the **Argo CD** tab, `bnk-install` turns **OutOfSync** (the ConfigMap from `clusters/` changed). **Sync** it |
-| **forge** | **Merge** for the record. Forge runs the installer image you built earlier, so set the change in Forge itself: project `bnk-lab` > **Variables** > `epp_namespaces` = `inference`, then **Deploy all** |
+| **forge** | **Merge** for the record. Forge runs the installer image you built earlier, so make the change in Forge itself, on the module's input: `lab forge-input bnk-lab epp_namespaces inference`, then **Deploy all** on project `bnk-lab` |
 
 When it has landed, confirm:
 
