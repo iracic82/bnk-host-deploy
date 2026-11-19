@@ -135,8 +135,14 @@ Three settings the command made, and why:
 It also set the repository variable `BNK_INSTALLER=forge`, so the CI pipeline now stands aside for
 this cluster. Run `lab owner` whenever you want to check.
 
-Open the **BNK Forge** tab and sign in as `admin` with the password the command printed (it is also
-in `/root/.lab/forge-password`).
+**Sign in to the BNK Forge tab.** The user is `admin`. Print the password:
+
+```run
+echo "user: admin   password: $(cat /root/.lab/forge-password)"
+```
+
+Open the **BNK Forge** tab, enter `admin` and that password, and press **Sign in**. If the tab shows an
+error page, Forge is still starting: wait half a minute and reload it with the tab's refresh button.
 
 ---
 

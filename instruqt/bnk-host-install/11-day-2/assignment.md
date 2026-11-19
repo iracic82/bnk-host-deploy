@@ -129,7 +129,14 @@ This is safe to run on any path:
 | **B, Forge** | Forge is already running, and it registered cluster `lab` when it installed BNK. Nothing to do |
 | **A or C** | installs Forge as an **operations tool only**, so `BNK_INSTALLER` keeps its value, then registers cluster `lab` in a Forge project called `operations` |
 
-Sign in to the **BNK Forge** tab as `admin`. The password is in `/root/.lab/forge-password`.
+**Sign in to the BNK Forge tab.** The user is `admin`. Print the password:
+
+```run
+echo "user: admin   password: $(cat /root/.lab/forge-password)"
+```
+
+Open the **BNK Forge** tab, enter `admin` and that password, and press **Sign in**. If the tab shows an
+error page, Forge is still starting: wait half a minute and reload it with the tab's refresh button.
 
 Check who owns installs, so the change in step 5 goes through the right tool:
 
