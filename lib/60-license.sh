@@ -2,7 +2,7 @@
 # Licence. Connected mode validates against F5 live, so a stale token fails here and not earlier.
 if [[ "$DRY_RUN" == "1" ]]; then
   st=$(kubectl get license.k8s.f5net.com f5-cne-cluster-license -n "$NS_CORE" -o jsonpath='{.status.state}' 2>/dev/null || true)
-  if [[ "$st" == "Active" ]]; then ok "licence already Active ($(kubectl get license.k8s.f5net.com f5-cne-cluster-license -n "$NS_CORE" -o jsonpath='{.status.entitlement}, expires {.status.expiry}' 2>/dev/null))"
+  if [[ "$st" == "Active" ]]; then ok "licence already Active ($(kubectl get license.k8s.f5net.com f5-cne-cluster-license -n "$NS_CORE" -o jsonpath='{.status.entitlementType}, expires {.status.licenseExpiryDate}' 2>/dev/null))"
   else ok "plan: would apply License f5-cne-cluster-license (${BNK_LICENSE_MODE:-connected} mode)"; fi
   return 0
 fi
