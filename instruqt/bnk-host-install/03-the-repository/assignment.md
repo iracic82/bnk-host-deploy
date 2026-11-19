@@ -124,7 +124,7 @@ with the long form. That sentence cost someone an afternoon once. Now it costs n
 allows a longer wait because a lab is always the coldest cluster you will ever install on.
 
 **`clusters/lab.yaml` answers *where*.** The context, the storage class, TMM's two network legs, and
-two lines marked `TODO`: `tmm.nodes: []` and `enabled: false`. Nothing will be installed on this
+two lines still empty: `tmm.nodes: []` and `enabled: false`. Nothing will be installed on this
 cluster until someone declares, in a reviewed pull request, that it should be, and where TMM runs.
 That someone will be you, this afternoon.
 
