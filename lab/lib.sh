@@ -24,20 +24,23 @@ SHELLCHECK_VERSION=v0.10.0
 SHELLCHECK_SHA256=6c881ab0698e4e6ea235245f22832860544f17ba386442fe7e9d629f8cbedf87
 NODE_VERSION="v22.21.1"           # host-mode jobs run JavaScript actions (actions/checkout) with it
 CODE_SERVER_VERSION="4.105.1"
-FORGE_REF="v4.0.0"                # bnk-forge release tag that carries dist/ (install bundle)
-FORGE_REPO="https://github.com/iracic82/bnk-forge.git"
-FORGE_REGISTRY="ghcr.io/f5devcentral"   # where this release's images are published
-# (4.3.4 on JLCode-tech/ghcr.io/jlcode-tech was tried: its API image cannot queue jobs, redis-py 5.2.1 vs a
-#  newer unpinned kombu that needs >= 6.1. Back to 4.0.0 until a fixed image is published.)
+FORGE_REF="v4.3.4"                # bnk-forge release tag that carries dist/ (install bundle)
+FORGE_REPO="https://github.com/JLCode-tech/bnk-forge.git"
+FORGE_REGISTRY="ghcr.io/jlcode-tech"    # where this release's images are published (ghcr.io/<repo owner>)
+# 4.3.4's Celery images (api, worker, beat) were built with an unpinned kombu 5.7.0, which refuses its own
+# redis-py 5.2.1, so no job can be queued and Deploy all fails with HTTP 500. lab forge builds a one-line
+# fix on top of the verified originals: kombu pinned to 5.5.4 (celery 5.4.0 accepts it, pip check is clean).
+FORGE_KOMBU_FIX="kombu==5.5.4"
+FORGE_PATCH_IMAGES="bnk-forge-api bnk-forge-worker bnk-forge-beat"
 # The tag and the images live in a third-party namespace, and tags can move. Pin the content: the commit
 # the tag pointed at when this lab was checked, and each image's digest. lab forge refuses anything else.
-FORGE_COMMIT="e38976f2bf9c995e2ee899ddf3ae97017e2741f9"
-FORGE_IMAGE_DIGESTS="bnk-forge-api@sha256:5d461ba6d98ea77985a6574727a7fe5f10a4b54107abeb2ab9b0955815061d60
-bnk-forge-beat@sha256:94495d3e9a5c31084961a01a5ed2a31d921ba27d03e6f25462dc6d2f6c63b27e
-bnk-forge-frontend@sha256:0110b21adfc524d3103737607d87a12c0e51082195ce63a16164bbc32e0ad233
-bnk-forge-mcp@sha256:b051ec956288ca8a230d3505c31e25fee7dc07c1127b2884071032590142b08a
-bnk-forge-proxy@sha256:2de3ee88e8fabf72b558e2b1af4ce3b02cc9e1679eb9a3681ca0fdd085c60ce2
-bnk-forge-worker@sha256:995a7f39a4f1e156c424e37b4819b39ab526dbeeb709d3db7250e0ec34a52a19"
+FORGE_COMMIT="1a9239d6aa8793d30c7fbf9c76f816206b05d4a8"
+FORGE_IMAGE_DIGESTS="bnk-forge-api@sha256:bfc042e4111d243885b752cdbcc3cf5f3555398f49a14fe14e90a52051057638
+bnk-forge-beat@sha256:54d7802b14935442bd777984a033a1693cfe14cb0edaa3dda8c459ce021a4ae5
+bnk-forge-frontend@sha256:9aa2cbaf3e104707f776be61375f4eba14535dd1e5941c937d5306744f10e7e5
+bnk-forge-mcp@sha256:c179a9743411418bad828b7dad5a7aea4a1870d856fc1375a7a3e73d883c4b37
+bnk-forge-proxy@sha256:9e2f345c2f04c62f5ddfc840f6e6877d710fe5bae560b55055ee00ae5da80573
+bnk-forge-worker@sha256:9667337660d46626ad456cbc3fb98b221f1e3c4da2c0b0ab383b9618f2f71a71"
 REGISTRY_IMAGE="registry:2.8.3"
 
 # Ports on the VM. Instruqt tabs connect to these.
@@ -50,7 +53,7 @@ PORT_REGISTRY=5000
 PORT_ARGOCD=8091
 FRR_IMAGE="quay.io/frrouting/frr:10.6.2"
 CLIENT_IMAGE="nicolaka/netshoot:v0.14"
-FORGE_VERSION="4.0.0"
+FORGE_VERSION="4.3.4"
 ARGOCD_VERSION="v3.6.2"
 
 LAB_USER=learner                  # the Gitea account the learner works as

@@ -41,6 +41,16 @@ while read -r pin; do
     || { docker rmi -f "$ref" >/dev/null 2>&1; fail "image $ref is not the pinned ${want:0:19}: refusing to run it"; }
 done <<<"$FORGE_IMAGE_DIGESTS"
 ok "all six Forge images pulled and match their pinned digests"
+# The fix for 4.3.4's Celery images, layered on the verified originals and tagged under the same name,
+# so install.sh (its pull disabled) starts the fixed ones. Each keeps its original user.
+for name in ${FORGE_PATCH_IMAGES:-}; do
+  ref="${FORGE_REGISTRY}/${name}:${FORGE_VERSION}"; user=$(docker image inspect "$ref" --format '{{.Config.User}}')
+  printf 'FROM %s\nUSER root\nRUN pip install --no-cache-dir "%s" && pip check\nUSER %s\n' "$ref" "$FORGE_KOMBU_FIX" "${user:-root}" \
+    | docker build -q -t "$ref" - >/dev/null || fail "could not build the $FORGE_KOMBU_FIX fix for $name"
+  docker run --rm --entrypoint python "$ref" -c "import kombu; assert kombu.__version__ == '${FORGE_KOMBU_FIX#*==}'" \
+    || fail "$name does not carry $FORGE_KOMBU_FIX after the fix"
+done
+[[ -n "${FORGE_PATCH_IMAGES:-}" ]] && ok "${FORGE_KOMBU_FIX} fix built on top of: ${FORGE_PATCH_IMAGES}"
 sed -i 's/^\$COMPOSE_CMD pull$/echo "  images pulled and verified by the lab"/' install.sh
 grep -q '^\$COMPOSE_CMD pull$' install.sh && fail "could not disable install.sh's own image pull"
 # bash, not ./install.sh: the bundle in the fork is not marked executable
