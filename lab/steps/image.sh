@@ -38,7 +38,14 @@ ok "$TAG"
 ok "digest $DIGEST"
 
 step "4/4  pin the digest in the repository"
-"$WS/forge/pin-image.sh" "localhost:${PORT_REGISTRY}" bnk-host-deploy "$DIGEST" | sed 's/^/      forge:  /'
+# A different build is a new release in Forge's catalog (versions there are immutable): bump the patch.
+art="$WS/forge/bnk-host/bnkforge.artifact.json"
+cur_digest=$(jq -r '.container_image.digest' "$art"); cur_ver=$(jq -r '.version' "$art")
+newver=""
+if [[ "$cur_digest" != "$DIGEST" && "$cur_digest" != sha256:0000000000000000000000000000000000000000000000000000000000000000 ]]; then
+  newver="${cur_ver%.*}.$(( ${cur_ver##*.} + 1 ))"
+fi
+"$WS/forge/pin-image.sh" "localhost:${PORT_REGISTRY}" bnk-host-deploy "$DIGEST" $newver | sed 's/^/      forge:  /'
 "$WS/argocd/pin-image.sh" "172.18.0.1:${PORT_REGISTRY}/bnk-host-deploy@${DIGEST}" | sed 's/^/      argocd: /'
 echo
 git -C "$WS" --no-pager diff --stat
