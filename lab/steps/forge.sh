@@ -26,7 +26,13 @@ chmod 600 .env
 ok "images from ghcr.io/f5devcentral at ${FORGE_VERSION}; strong per-sandbox database passwords"
 
 step "3/6  ./install.sh (pulls ~8 images on first run, a few minutes)"
-./install.sh 2>&1 | grep -E '✓|✅|⚠|ERROR|Error|healthy|Installation' | sed 's/^/      /' || true
+# Forge's own installer, its output kept in full (a filtered view once hid the reason it stopped).
+log=/root/.lab/forge-install.log
+if ! ./install.sh > "$log" 2>&1; then
+  tail -30 "$log" | sed 's/^/      /'
+  fail "Forge's install.sh failed (full log: $log)"
+fi
+grep -E '✓|✅|⚠|healthy|Installation' "$log" | sed 's/^/      /' || true
 for _ in $(seq 1 120); do curl -fsSk https://127.0.0.1/api/health >/dev/null 2>&1 && break; sleep 5; done
 curl -fsSk https://127.0.0.1/api/health >/dev/null || fail "Forge did not become healthy: docker compose -f $DST/docker-compose.yml ps"
 ok "Forge healthy behind its TLS proxy on :443"
