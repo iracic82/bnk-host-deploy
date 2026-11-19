@@ -39,4 +39,6 @@ upload kubeconfig kubeconfig cat /root/.lab/kubeconfig-forge.yaml
 upload far_service_account_key cne_pull_64.json vault_get far_service_account_key
 upload bnk_license_jwt license.jwt vault_get bnk_license_jwt
 step "what Forge now requires vs. holds"
-forge_api GET "/api/projects/${pid}/secrets/required" | jq -r '(if type=="array" then . else (.required // .secrets // .items // []) end)[]? | "      \(.name // .secret_name)  \(if (.present // .configured // .satisfied // false) then "present" else "MISSING" end)"' 2>/dev/null || true
+forge_api GET "/api/projects/${pid}/secrets/required" | jq -r '
+  (.required_secrets // [])[] | "      \(.name)  \(if .exists then "present (\(.source // "project"))" else "MISSING" end)",
+  (if .all_satisfied then "   ok  all required secrets present: the module can run" else "   !!  \(.missing_count) required secret(s) missing" end)'
