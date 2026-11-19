@@ -44,7 +44,12 @@ phase_end() {
 # the answer lives in the cluster (and in Forge's view of it), not in someone's memory.
 record_provenance() {
   local by="${BNK_ORCHESTRATOR:-}" run="" commit="${GITHUB_SHA:-${BNK_HOST_COMMIT:-}}" now actor
-  actor="${GITHUB_ACTOR:-$(id -un 2>/dev/null || echo "${by:-runner}-runner")}"
+  # GNU id prints the bare uid and fails when the uid has no name (the runner image's uid 1000).
+  actor="${GITHUB_ACTOR:-}"
+  if [[ -z "$actor" ]]; then
+    actor="$(id -un 2>/dev/null || true)"
+    [[ -z "$actor" || "$actor" =~ ^[0-9]+$ ]] && actor="${by:-runner}-runner"
+  fi
   [[ -z "$by" && -n "${GITHUB_ACTIONS:-}" ]] && by=pipeline
   [[ -n "${GITHUB_RUN_ID:-}" ]] && run="${GITHUB_SERVER_URL:-}/${GITHUB_REPOSITORY:-}/actions/runs/${GITHUB_RUN_ID}"
   [[ -z "$commit" || "$commit" == unknown ]] && commit="$(git -C "$HERE" rev-parse HEAD 2>/dev/null || echo unknown)"
